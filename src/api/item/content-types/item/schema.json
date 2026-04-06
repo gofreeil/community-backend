@@ -1,0 +1,88 @@
+{
+  "kind": "collectionType",
+  "collectionName": "items",
+  "info": {
+    "singularName": "item",
+    "pluralName": "items",
+    "displayName": "Item"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "text"
+    },
+    "description": {
+      "type": "text"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "gemachim",
+        "giveaway",
+        "business",
+        "minyanim",
+        "education",
+        "realestate",
+        "security",
+        "shops",
+        "restaurants",
+        "rides",
+        "jobs",
+        "singles",
+        "events",
+        "for_kids",
+        "attractions",
+        "safe-space",
+        "category ",
+        "lost_and_found",
+        "message",
+        "raise_hand"
+      ]
+    },
+    "contact": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "neighborhood": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "extra_fields": {
+      "type": "json"
+    },
+    "status1": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "inactive",
+        "deleted",
+        "resolved"
+      ]
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "items"
+    },
+    "user_id": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "advertisement_orders",
+  "info": {
+    "singularName": "advertisement-order",
+    "pluralName": "advertisement-orders",
+    "displayName": "AdvertisementOrder "
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email"
+    },
+    "neighborhood_label": {
+      "type": "string"
+    },
+    "neighborhood_count": {
+      "type": "integer"
+    },
+    "total_payment": {
+      "type": "decimal"
+    },
+    "total_monthly": {
+      "type": "decimal"
+    },
+    "selected_items": {
+      "type": "json"
+    },
+    "item3_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "confirmed",
+        "completed"
+      ]
+    },
+    "fund_contribution": {
+      "type": "decimal"
+    }
+  }
+}

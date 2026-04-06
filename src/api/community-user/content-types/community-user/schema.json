@@ -1,0 +1,73 @@
+{
+  "kind": "collectionType",
+  "collectionName": "community_users",
+  "info": {
+    "singularName": "community-user",
+    "pluralName": "community-users",
+    "displayName": "community-user"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "external_id": {
+      "type": "string",
+      "unique": true
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "neighborhood": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "text"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "password_hash": {
+      "type": "string"
+    },
+    "nickname": {
+      "type": "string"
+    },
+    "business": {
+      "type": "string"
+    },
+    "notifications": {
+      "type": "boolean"
+    },
+    "family_status": {
+      "type": "string"
+    },
+    "gender": {
+      "type": "string"
+    },
+    "birth_date": {
+      "type": "string"
+    },
+    "balance": {
+      "type": "decimal"
+    },
+    "role": {
+      "type": "enumeration",
+      "enum": ["user", "neighborhood_admin", "super_admin"],
+      "default": "user"
+    },
+    "banned": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

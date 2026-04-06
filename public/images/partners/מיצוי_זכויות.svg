@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#bgGrad)"/>
+  
+  <!-- Justice scales icon -->
+  <g transform="translate(200, 100)">
+    <!-- Scale base -->
+    <line x1="0" y1="-40" x2="0" y2="60" stroke="#fbbf24" stroke-width="4"/>
+    <circle cx="0" cy="-40" r="6" fill="#fbbf24"/>
+    
+    <!-- Scale beam -->
+    <line x1="-60" y1="-20" x2="60" y2="-20" stroke="#fbbf24" stroke-width="3"/>
+    
+    <!-- Left pan -->
+    <line x1="-60" y1="-20" x2="-60" y2="0" stroke="#fbbf24" stroke-width="2"/>
+    <ellipse cx="-60" cy="5" rx="25" ry="8" fill="#fbbf24" opacity="0.8"/>
+    
+    <!-- Right pan -->
+    <line x1="60" y1="-20" x2="60" y2="0" stroke="#fbbf24" stroke-width="2"/>
+    <ellipse cx="60" cy="5" rx="25" ry="8" fill="#fbbf24" opacity="0.8"/>
+    
+    <!-- Base -->
+    <rect x="-30" y="60" width="60" height="10" fill="#fbbf24" rx="2"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="200" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">מיצוי זכויות</text>
+  <text x="200" y="230" font-family="Arial, sans-serif" font-size="20" fill="#fbbf24" text-anchor="middle">תושבים מול הרשויות</text>
+  <text x="200" y="260" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">⚖️ צדק לכל אזרח</text>
+</svg>

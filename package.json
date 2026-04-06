@@ -1,0 +1,44 @@
+{
+  "name": "community-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "NODE_OPTIONS=--max-old-space-size=2048 strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.38.0",
+    "@strapi/plugin-graphql": "^5.38.0",
+    "@strapi/plugin-users-permissions": "5.38.0",
+    "@strapi/strapi": "5.38.0",
+    "better-sqlite3": "12.4.1",
+    "pg": "^8.20.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.18.0",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "f5031b36-568b-4622-8646-a05f46aa6da2",
+    "installId": "7d75ff88f6bddb6db34f19e27c78d861a2faac8c8bbe269091e1e31d9fd1596d"
+  }
+}

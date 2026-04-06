@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "community_funds",
+  "info": {
+    "singularName": "community-fund",
+    "pluralName": "community-funds",
+    "displayName": "CommunityFund"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "amount": {
+      "type": "decimal"
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": [
+        "donation",
+        "order"
+      ]
+    },
+    "note": {
+      "type": "text"
+    }
+  }
+}

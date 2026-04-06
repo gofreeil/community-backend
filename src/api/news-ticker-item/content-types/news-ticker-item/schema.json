@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "news_ticker_items",
+  "info": {
+    "singularName": "news-ticker-item",
+    "pluralName": "news-ticker-items",
+    "displayName": "NewsTickerItem"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "locale2": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "order": {
+      "type": "integer"
+    }
+  }
+}

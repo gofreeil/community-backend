@@ -1,0 +1,19 @@
+{
+  "kind": "collectionType",
+  "collectionName": "push_subscriptions",
+  "info": {
+    "singularName": "push-subscription",
+    "pluralName": "push-subscriptions",
+    "displayName": "Push Subscription",
+    "description": "Web Push notification subscriptions"
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {},
+  "attributes": {
+    "endpoint":   { "type": "text",   "required": true },
+    "p256dh":     { "type": "text",   "required": true },
+    "auth":       { "type": "text",   "required": true },
+    "user_id":    { "type": "string"  },
+    "user_agent": { "type": "string"  }
+  }
+}

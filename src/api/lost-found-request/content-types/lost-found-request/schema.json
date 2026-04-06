@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lost_found_requests",
+  "info": {
+    "singularName": "lost-found-request",
+    "pluralName": "lost-found-requests",
+    "displayName": "LostFoundRequest"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "lost_child",
+        "lost_dog",
+        "elderly_help",
+        "car_help",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "text"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "neighborhood": {
+      "type": "string"
+    },
+    "item7_status": {
+      "type": "enumeration",
+      "enum": [
+        "open",
+        "resolved"
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "advertisements",
+  "info": {
+    "singularName": "advertisement",
+    "pluralName": "advertisements",
+    "displayName": "Advertisement"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "cta": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "color": {
+      "type": "string"
+    },
+    "item1_status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "inactive"
+      ]
+    }
+  }
+}

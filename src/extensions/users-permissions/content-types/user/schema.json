@@ -109,6 +109,10 @@
     },
     "external_id": {
       "type": "string"
+    },
+    "app_role": {
+      "type": "string",
+      "default": "user"
     }
   }
 }

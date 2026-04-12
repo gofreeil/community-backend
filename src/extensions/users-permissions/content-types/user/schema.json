@@ -113,6 +113,12 @@
     "app_role": {
       "type": "string",
       "default": "user"
+    },
+    "security_question": {
+      "type": "string"
+    },
+    "security_answer": {
+      "type": "string"
     }
   }
 }

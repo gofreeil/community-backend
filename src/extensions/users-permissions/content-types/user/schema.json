@@ -71,6 +71,44 @@
       "relation": "oneToMany",
       "target": "api::item.item",
       "mappedBy": "user"
+    },
+    "city": {
+      "type": "string"
+    },
+    "neighborhood": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "nickname": {
+      "type": "string"
+    },
+    "business": {
+      "type": "string"
+    },
+    "family_status": {
+      "type": "string"
+    },
+    "gender": {
+      "type": "string"
+    },
+    "birth_date": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "text"
+    },
+    "balance": {
+      "type": "integer",
+      "default": 0
+    },
+    "notifications": {
+      "type": "boolean",
+      "default": true
+    },
+    "external_id": {
+      "type": "string"
     }
   }
 }

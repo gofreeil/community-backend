@@ -11,10 +11,14 @@ async function runMigrations(strapi: Core.Strapi) {
     return;
   }
 
+  // __dirname ב-build = dist/ → migrations נמצא ב-root של הפרויקט
   const migrationsDir = path.join(__dirname, '..', 'migrations');
+  // fallback אם הbuild שונה
+  const migrationsDir2 = path.join(process.cwd(), 'migrations');
+  const finalMigrationsDir = fs.existsSync(migrationsDir) ? migrationsDir : migrationsDir2;
 
-  if (!fs.existsSync(migrationsDir)) {
-    strapi.log.warn('[migrations] No migrations folder found');
+  if (!fs.existsSync(finalMigrationsDir)) {
+    strapi.log.warn(`[migrations] No migrations folder found (checked: ${migrationsDir}, ${migrationsDir2})`);
     return;
   }
 
@@ -28,7 +32,7 @@ async function runMigrations(strapi: Core.Strapi) {
   `);
 
   const files = fs
-    .readdirSync(migrationsDir)
+    .readdirSync(finalMigrationsDir)
     .filter((f) => f.endsWith('.sql'))
     .sort();
 
@@ -42,7 +46,7 @@ async function runMigrations(strapi: Core.Strapi) {
       continue;
     }
 
-    const sql = fs.readFileSync(path.join(migrationsDir, filename), 'utf8');
+    const sql = fs.readFileSync(path.join(finalMigrationsDir, filename), 'utf8');
 
     try {
       await db.connection.raw(sql);

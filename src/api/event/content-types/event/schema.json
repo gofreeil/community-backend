@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event"
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {},
+  "attributes": {
+    "title":        { "type": "string",  "required": true },
+    "date":         { "type": "date",    "required": true },
+    "time":         { "type": "string" },
+    "location":     { "type": "string" },
+    "icon":         { "type": "string",  "default": "📅" },
+    "color":        { "type": "string",  "default": "blue" },
+    "neighborhood": { "type": "string" },
+    "city":         { "type": "string" },
+    "created_by_id":{ "type": "string" },
+    "description":  { "type": "text" }
+  }
+}

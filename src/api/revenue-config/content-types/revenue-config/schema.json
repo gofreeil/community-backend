@@ -1,0 +1,38 @@
+{
+  "kind": "singleType",
+  "collectionName": "revenue_config",
+  "info": {
+    "singularName": "revenue-config",
+    "pluralName": "revenue-configs",
+    "displayName": "Revenue Config"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero_title": {
+      "type": "string",
+      "default": "איך הקהילה מייצרת ערך — ומחזירה אותו לחברים"
+    },
+    "hero_subtitle": {
+      "type": "text",
+      "default": "מודל שקוף שבו כל שקל שנכנס מתחלק בין בעלים, צדקה ורכזים — וכולם מרוויחים יחד עם הקהילה."
+    },
+    "stats": {
+      "type": "json"
+    },
+    "channels": {
+      "type": "json"
+    },
+    "costs": {
+      "type": "json"
+    },
+    "distribution": {
+      "type": "json"
+    },
+    "flow_nodes": {
+      "type": "json"
+    }
+  }
+}

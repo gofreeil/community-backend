@@ -3,11 +3,29 @@ import type { Core } from '@strapi/strapi';
 const config: Core.Config.Middlewares = [
   'strapi::logger',
   'strapi::errors',
-  'strapi::security',
+  {
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ["'self'", 'https:'],
+          'img-src': ["'self'", 'data:', 'blob:', 'https://community-il.duckdns.org'],
+          'media-src': ["'self'", 'data:', 'blob:', 'https://community-il.duckdns.org'],
+          upgradeInsecureRequests: null,
+        },
+      },
+    },
+  },
   {
     name: 'strapi::cors',
     config: {
-      origin: ['http://localhost:5173', 'http://localhost:4173'],
+      origin: [
+        'http://localhost:5173',
+        'http://localhost:4173',
+        'https://community-il.vercel.app',
+        /^https:\/\/community-il-.*\.vercel\.app$/, // Vercel preview deployments
+      ],
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       headers: ['Content-Type', 'Authorization'],
     },

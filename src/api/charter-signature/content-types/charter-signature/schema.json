@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "charter_signatures",
+  "info": {
+    "singularName": "charter-signature",
+    "pluralName": "charter-signatures",
+    "displayName": "Charter Signature",
+    "description": "חתימות על אמנת הקהילה - שם מלא, ת.ז., תאריך לידה, חתימה דיגיטלית"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "fullName": {
+      "type": "string",
+      "required": true
+    },
+    "idNumber": {
+      "type": "string",
+      "required": true
+    },
+    "birthDate": {
+      "type": "date",
+      "required": true
+    },
+    "signature": {
+      "type": "text",
+      "required": true
+    },
+    "signedAt": {
+      "type": "datetime"
+    }
+  }
+}

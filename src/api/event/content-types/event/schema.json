@@ -9,15 +9,26 @@
   "options": { "draftAndPublish": false },
   "pluginOptions": {},
   "attributes": {
-    "title":        { "type": "string",  "required": true },
-    "date":         { "type": "date",    "required": true },
-    "time":         { "type": "string" },
-    "location":     { "type": "string" },
-    "icon":         { "type": "string",  "default": "📅" },
-    "color":        { "type": "string",  "default": "blue" },
-    "neighborhood": { "type": "string" },
-    "city":         { "type": "string" },
-    "creator_id":  { "type": "string" },
-    "description":  { "type": "text" }
+    "title":         { "type": "string",  "required": true },
+    "date":          { "type": "date",    "required": true },
+    "time":          { "type": "string" },
+    "location":      { "type": "string" },
+    "icon":          { "type": "string",  "default": "📅" },
+    "color":         { "type": "string",  "default": "blue" },
+    "neighborhood":  { "type": "string" },
+    "city":          { "type": "string" },
+    "creator_id":      { "type": "string" },
+    "submitted_by_id": { "type": "string" },
+    "description":   { "type": "text" },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending"
+    },
+    "price": {
+      "type": "integer",
+      "default": 0
+    },
+    "price_description": { "type": "string" }
   }
 }

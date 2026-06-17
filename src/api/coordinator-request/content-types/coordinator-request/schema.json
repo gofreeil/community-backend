@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coordinator_requests",
+  "info": {
+    "singularName": "coordinator-request",
+    "pluralName": "coordinator-requests",
+    "displayName": "Coordinator Request",
+    "description": "בקשות להצטרפות כרכזי שכונות - מטופלות ע\"י סופר-אדמין"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user_id": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "phone": {
+      "type": "string",
+      "required": true
+    },
+    "neighborhoods": {
+      "type": "text"
+    },
+    "experience": {
+      "type": "text"
+    },
+    "motivation": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "decided_at": {
+      "type": "datetime"
+    },
+    "decided_by": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "text"
+    }
+  }
+}

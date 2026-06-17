@@ -1,0 +1,84 @@
+{
+  "kind": "collectionType",
+  "collectionName": "submitted_ads",
+  "info": {
+    "singularName": "submitted-ad",
+    "pluralName": "submitted-ads",
+    "displayName": "Submitted Ad",
+    "description": "פרסומות שמשתמשים שלחו לאישור - pending / approved / rejected"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "ad_status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "subtitle": {
+      "type": "text"
+    },
+    "hover_text": {
+      "type": "text"
+    },
+    "cta": {
+      "type": "string"
+    },
+    "gradient": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "text"
+    },
+    "main_image": {
+      "type": "text"
+    },
+    "landing": {
+      "type": "json"
+    },
+    "submitted_by_id": {
+      "type": "string"
+    },
+    "submitted_by_email": {
+      "type": "string"
+    },
+    "submitted_by_name": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "datetime"
+    },
+    "decided_at": {
+      "type": "datetime"
+    },
+    "decided_by": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "text"
+    },
+    "expires_at": {
+      "type": "datetime"
+    },
+    "duration_days": {
+      "type": "integer",
+      "default": 30
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "payment_amount": {
+      "type": "decimal"
+    },
+    "reminders_sent": {
+      "type": "json"
+    }
+  }
+}

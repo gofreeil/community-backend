@@ -612,6 +612,44 @@ export interface ApiCommunityUserCommunityUser
   };
 }
 
+export interface ApiEventEvent extends Struct.CollectionTypeSchema {
+  collectionName: 'events';
+  info: {
+    displayName: 'Event';
+    pluralName: 'events';
+    singularName: 'event';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    city: Schema.Attribute.String;
+    color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'blue'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text;
+    icon: Schema.Attribute.String & Schema.Attribute.DefaultTo<'\uD83D\uDCC5'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'> &
+      Schema.Attribute.Private;
+    location: Schema.Attribute.String;
+    neighborhood: Schema.Attribute.String;
+    price: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    price_description: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.DefaultTo<'pending'>;
+    submitted_by_id: Schema.Attribute.String;
+    time: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiItemItem extends Struct.CollectionTypeSchema {
   collectionName: 'items';
   info: {
@@ -813,6 +851,95 @@ export interface ApiPushSubscriptionPushSubscription
       Schema.Attribute.Private;
     user_agent: Schema.Attribute.String;
     user_id: Schema.Attribute.String;
+  };
+}
+
+export interface ApiRevenueConfigRevenueConfig extends Struct.SingleTypeSchema {
+  collectionName: 'revenue_config';
+  info: {
+    displayName: 'Revenue Config';
+    pluralName: 'revenue-configs';
+    singularName: 'revenue-config';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    channels: Schema.Attribute.JSON;
+    costs: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    distribution: Schema.Attribute.JSON;
+    flow_nodes: Schema.Attribute.JSON;
+    hero_subtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'\u05DE\u05D5\u05D3\u05DC \u05E9\u05E7\u05D5\u05E3 \u05E9\u05D1\u05D5 \u05DB\u05DC \u05E9\u05E7\u05DC \u05E9\u05E0\u05DB\u05E0\u05E1 \u05DE\u05EA\u05D7\u05DC\u05E7 \u05D1\u05D9\u05DF \u05D1\u05E2\u05DC\u05D9\u05DD, \u05E6\u05D3\u05E7\u05D4 \u05D5\u05E8\u05DB\u05D6\u05D9\u05DD \u2014 \u05D5\u05DB\u05D5\u05DC\u05DD \u05DE\u05E8\u05D5\u05D5\u05D9\u05D7\u05D9\u05DD \u05D9\u05D7\u05D3 \u05E2\u05DD \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4.'>;
+    hero_title: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\u05D0\u05D9\u05DA \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4 \u05DE\u05D9\u05D9\u05E6\u05E8\u05EA \u05E2\u05E8\u05DA \u2014 \u05D5\u05DE\u05D7\u05D6\u05D9\u05E8\u05D4 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05D7\u05D1\u05E8\u05D9\u05DD'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::revenue-config.revenue-config'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    stats: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiSubmittedAdSubmittedAd extends Struct.CollectionTypeSchema {
+  collectionName: 'submitted_ads';
+  info: {
+    description: '\u05E4\u05E8\u05E1\u05D5\u05DE\u05D5\u05EA \u05E9\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05E9\u05DC\u05D7\u05D5 \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 pending / approved / rejected';
+    displayName: 'Submitted Ad';
+    pluralName: 'submitted-ads';
+    singularName: 'submitted-ad';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    ad_status: Schema.Attribute.Enumeration<
+      ['pending', 'approved', 'rejected']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    company_name: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    cta: Schema.Attribute.String;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
+    duration_days: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<30>;
+    expires_at: Schema.Attribute.DateTime;
+    gradient: Schema.Attribute.String;
+    hover_text: Schema.Attribute.Text;
+    landing: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::submitted-ad.submitted-ad'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Text;
+    main_image: Schema.Attribute.Text;
+    payment_amount: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    rejection_reason: Schema.Attribute.Text;
+    reminders_sent: Schema.Attribute.JSON;
+    submitted_at: Schema.Attribute.DateTime;
+    submitted_by_email: Schema.Attribute.String;
+    submitted_by_id: Schema.Attribute.String;
+    submitted_by_name: Schema.Attribute.String;
+    subtitle: Schema.Attribute.Text;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1274,9 +1401,16 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
+    app_role: Schema.Attribute.String & Schema.Attribute.DefaultTo<'user'>;
+    avatar_url: Schema.Attribute.Text;
+    balance: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    birth_date: Schema.Attribute.String;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    business: Schema.Attribute.String;
+    city: Schema.Attribute.String;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    coordinator_of: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1285,6 +1419,9 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    external_id: Schema.Attribute.String;
+    family_status: Schema.Attribute.String;
+    gender: Schema.Attribute.String;
     items: Schema.Attribute.Relation<'oneToMany', 'api::item.item'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -1292,11 +1429,15 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    neighborhood: Schema.Attribute.String;
+    nickname: Schema.Attribute.String;
+    notifications: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    phone: Schema.Attribute.String;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1304,6 +1445,9 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    security_answer: Schema.Attribute.String;
+    security_question: Schema.Attribute.String;
+    status: Schema.Attribute.String & Schema.Attribute.DefaultTo<'active'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1332,11 +1476,14 @@ declare module '@strapi/strapi' {
       'api::city.city': ApiCityCity;
       'api::community-fund.community-fund': ApiCommunityFundCommunityFund;
       'api::community-user.community-user': ApiCommunityUserCommunityUser;
+      'api::event.event': ApiEventEvent;
       'api::item.item': ApiItemItem;
       'api::lost-found-request.lost-found-request': ApiLostFoundRequestLostFoundRequest;
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
+      'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
+      'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

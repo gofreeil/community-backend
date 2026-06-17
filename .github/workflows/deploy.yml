@@ -1,0 +1,38 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy via SSH
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/community/app
+            echo "=== Pulling latest ==="
+            git fetch origin
+            git reset --hard origin/${GITHUB_REF_NAME:-main}
+            cd /opt/community
+            echo "=== Building image ==="
+            docker compose build strapi
+            echo "=== Restarting service ==="
+            docker compose up -d strapi
+            echo "=== Cleanup ==="
+            docker image prune -f
+            echo "=== Status ==="
+            docker compose ps

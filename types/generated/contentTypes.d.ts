@@ -506,6 +506,40 @@ export interface ApiAdvertisementAdvertisement
   };
 }
 
+export interface ApiCharterSignatureCharterSignature
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'charter_signatures';
+  info: {
+    description: '\u05D7\u05EA\u05D9\u05DE\u05D5\u05EA \u05E2\u05DC \u05D0\u05DE\u05E0\u05EA \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4 - \u05E9\u05DD \u05DE\u05DC\u05D0, \u05EA.\u05D6., \u05EA\u05D0\u05E8\u05D9\u05DA \u05DC\u05D9\u05D3\u05D4, \u05D7\u05EA\u05D9\u05DE\u05D4 \u05D3\u05D9\u05D2\u05D9\u05D8\u05DC\u05D9\u05EA';
+    displayName: 'Charter Signature';
+    pluralName: 'charter-signatures';
+    singularName: 'charter-signature';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    birthDate: Schema.Attribute.Date & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    fullName: Schema.Attribute.String & Schema.Attribute.Required;
+    idNumber: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::charter-signature.charter-signature'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    signature: Schema.Attribute.Text & Schema.Attribute.Required;
+    signedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCityCity extends Struct.CollectionTypeSchema {
   collectionName: 'cities';
   info: {
@@ -612,6 +646,47 @@ export interface ApiCommunityUserCommunityUser
   };
 }
 
+export interface ApiCoordinatorRequestCoordinatorRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'coordinator_requests';
+  info: {
+    description: '\u05D1\u05E7\u05E9\u05D5\u05EA \u05DC\u05D4\u05E6\u05D8\u05E8\u05E4\u05D5\u05EA \u05DB\u05E8\u05DB\u05D6\u05D9 \u05E9\u05DB\u05D5\u05E0\u05D5\u05EA - \u05DE\u05D8\u05D5\u05E4\u05DC\u05D5\u05EA \u05E2"\u05D9 \u05E1\u05D5\u05E4\u05E8-\u05D0\u05D3\u05DE\u05D9\u05DF';
+    displayName: 'Coordinator Request';
+    pluralName: 'coordinator-requests';
+    singularName: 'coordinator-request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
+    experience: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::coordinator-request.coordinator-request'
+    > &
+      Schema.Attribute.Private;
+    motivation: Schema.Attribute.Text;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    neighborhoods: Schema.Attribute.Text;
+    phone: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    rejection_reason: Schema.Attribute.Text;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user_id: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
@@ -628,6 +703,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    creator_id: Schema.Attribute.String;
     date: Schema.Attribute.Date & Schema.Attribute.Required;
     description: Schema.Attribute.Text;
     icon: Schema.Attribute.String & Schema.Attribute.DefaultTo<'\uD83D\uDCC5'>;
@@ -783,6 +859,37 @@ export interface ApiNewsTickerItemNewsTickerItem
   };
 }
 
+export interface ApiPostPost extends Struct.CollectionTypeSchema {
+  collectionName: 'posts';
+  info: {
+    description: '\u05E4\u05D5\u05E1\u05D8\u05D9\u05DD/\u05D7\u05D3\u05E9\u05D5\u05EA \u05E7\u05D4\u05D9\u05DC\u05EA\u05D9\u05D9\u05DD - \u05DE\u05D5\u05E6\u05D2\u05D9\u05DD \u05D1-NewsTicker \u05D5\u05DE\u05D5\u05E4\u05E6\u05D9\u05DD \u05D3\u05E8\u05DA /api/community-news';
+    displayName: 'Post';
+    pluralName: 'posts';
+    singularName: 'post';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    archived: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    category: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    imageUrl: Schema.Attribute.Media<'images'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::post.post'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sourceUrl: Schema.Attribute.String;
+    summary: Schema.Attribute.Text;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProfileProfile extends Struct.CollectionTypeSchema {
   collectionName: 'profiles';
   info: {
@@ -873,9 +980,9 @@ export interface ApiRevenueConfigRevenueConfig extends Struct.SingleTypeSchema {
     distribution: Schema.Attribute.JSON;
     flow_nodes: Schema.Attribute.JSON;
     hero_subtitle: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'\u05DE\u05D5\u05D3\u05DC \u05E9\u05E7\u05D5\u05E3 \u05E9\u05D1\u05D5 \u05DB\u05DC \u05E9\u05E7\u05DC \u05E9\u05E0\u05DB\u05E0\u05E1 \u05DE\u05EA\u05D7\u05DC\u05E7 \u05D1\u05D9\u05DF \u05D1\u05E2\u05DC\u05D9\u05DD, \u05E6\u05D3\u05E7\u05D4 \u05D5\u05E8\u05DB\u05D6\u05D9\u05DD \u2014 \u05D5\u05DB\u05D5\u05DC\u05DD \u05DE\u05E8\u05D5\u05D5\u05D9\u05D7\u05D9\u05DD \u05D9\u05D7\u05D3 \u05E2\u05DD \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4.'>;
+      Schema.Attribute.DefaultTo<'\u05DE\u05D5\u05D3\u05DC \u05E9\u05E7\u05D5\u05E3 \u05E9\u05D1\u05D5 \u05DB\u05DC \u05E9\u05E7\u05DC \u05E9\u05E0\u05DB\u05E0\u05E1 \u05DE\u05EA\u05D7\u05DC\u05E7 \u05D1\u05D9\u05DF \u05D1\u05E2\u05DC\u05D9\u05DD, \u05E6\u05D3\u05E7\u05D4 \u05D5\u05E8\u05DB\u05D6\u05D9\u05DD - \u05D5\u05DB\u05D5\u05DC\u05DD \u05DE\u05E8\u05D5\u05D5\u05D9\u05D7\u05D9\u05DD \u05D9\u05D7\u05D3 \u05E2\u05DD \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4.'>;
     hero_title: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'\u05D0\u05D9\u05DA \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4 \u05DE\u05D9\u05D9\u05E6\u05E8\u05EA \u05E2\u05E8\u05DA \u2014 \u05D5\u05DE\u05D7\u05D6\u05D9\u05E8\u05D4 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05D7\u05D1\u05E8\u05D9\u05DD'>;
+      Schema.Attribute.DefaultTo<'\u05D0\u05D9\u05DA \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4 \u05DE\u05D9\u05D9\u05E6\u05E8\u05EA \u05E2\u05E8\u05DA - \u05D5\u05DE\u05D7\u05D6\u05D9\u05E8\u05D4 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05D7\u05D1\u05E8\u05D9\u05DD'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -893,7 +1000,7 @@ export interface ApiRevenueConfigRevenueConfig extends Struct.SingleTypeSchema {
 export interface ApiSubmittedAdSubmittedAd extends Struct.CollectionTypeSchema {
   collectionName: 'submitted_ads';
   info: {
-    description: '\u05E4\u05E8\u05E1\u05D5\u05DE\u05D5\u05EA \u05E9\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05E9\u05DC\u05D7\u05D5 \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 pending / approved / rejected';
+    description: '\u05E4\u05E8\u05E1\u05D5\u05DE\u05D5\u05EA \u05E9\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05E9\u05DC\u05D7\u05D5 \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 - pending / approved / rejected';
     displayName: 'Submitted Ad';
     pluralName: 'submitted-ads';
     singularName: 'submitted-ad';
@@ -1473,13 +1580,16 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::advertisement-order.advertisement-order': ApiAdvertisementOrderAdvertisementOrder;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
+      'api::charter-signature.charter-signature': ApiCharterSignatureCharterSignature;
       'api::city.city': ApiCityCity;
       'api::community-fund.community-fund': ApiCommunityFundCommunityFund;
       'api::community-user.community-user': ApiCommunityUserCommunityUser;
+      'api::coordinator-request.coordinator-request': ApiCoordinatorRequestCoordinatorRequest;
       'api::event.event': ApiEventEvent;
       'api::item.item': ApiItemItem;
       'api::lost-found-request.lost-found-request': ApiLostFoundRequestLostFoundRequest;
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
+      'api::post.post': ApiPostPost;
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;

@@ -1,7 +1,7 @@
 import type { Core } from '@strapi/strapi';
 import fs from 'fs';
 import path from 'path';
-import { seedPGCampaigns, seedPGStat } from './seeds/pg-campaigns';
+import { seedPGCampaigns } from './seeds/pg-campaigns';
 
 async function runMigrations(strapi: Core.Strapi) {
   const db = strapi.db;
@@ -88,7 +88,6 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // Purchasing-Groups - תוכן ציבורי לקריאה
         'api::pg-campaign.pg-campaign.find',
         'api::pg-campaign.pg-campaign.findOne',
-        'api::pg-stat.pg-stat.find',
         // תגובות סקר - יצירה אנונימית מותרת (משוב מהשטח)
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
     ],
@@ -134,7 +133,6 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // Purchasing-Groups
         'api::pg-campaign.pg-campaign.find',
         'api::pg-campaign.pg-campaign.findOne',
-        'api::pg-stat.pg-stat.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
         'api::pg-satisfaction-response.pg-satisfaction-response.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.findOne',
@@ -239,6 +237,5 @@ export default {
     await ensureSuperAdmin(strapi);
     await ensurePermissions(strapi);
     await seedPGCampaigns(strapi);
-    await seedPGStat(strapi);
   },
 };

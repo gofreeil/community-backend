@@ -1,6 +1,6 @@
 import type { Core } from '@strapi/strapi';
 
-// נתונים ראשוניים לקמפיינים של רכישות קבוצתיות (purchasing-groups).
+// תוכן/מבנה של קמפיינים - בלי מספרים. נתוני חברים/חיסכון מגיעים מ-Google Sheet.
 // נמתח רק אם אין רשומות בכלל - שלא לדרוס תוכן שהמשתמש ערך ידנית.
 const CAMPAIGNS = [
     {
@@ -12,11 +12,6 @@ const CAMPAIGNS = [
         order: 1,
         status: 'active',
         can_join: true,
-        monthly_savings: 25,
-        annual_savings: 300,
-        members_count: 312,
-        rating: 5.0,
-        reviews_count: 47,
         providers_line: 'מסלולים בחברת רמי לוי, אקס פון, וויקום',
         join_link: 'https://docs.google.com/forms/d/e/1FAIpQLSfRCs5W7HUuc5vcOuMGqsqaDubzNBn4YuC4UDbvoFmSCdJAiQ/viewform?usp=header',
         join_cta_subtitle: 'לקו הסלולר הזול במדינה - חברות רמי לוי / אקס פון / וויקום',
@@ -112,13 +107,6 @@ const CAMPAIGNS = [
         can_join: true,
         is_new: true,
         new_badge_text: 'חדש!',
-        monthly_savings: 15,
-        annual_savings: 180,
-        members_count: 198,
-        rating: 4.9,
-        reviews_count: 21,
-        savings_text: '10-70 ש"ח',
-        annual_savings_text: 'כ-420 ש"ח בשנה',
         join_link: 'https://forms.gle/2Y9SdUfqkJd5mPaS7',
         join_link_diesel: 'https://docs.google.com/forms/d/e/1FAIpQLScz6iFzBwX7oGYXdh98Y9aah_RgWXINtbsJ5u05wWYE8anVUA/viewform?usp=publish-editor',
         join_cta_subtitle: 'הנחה בדלק <span class="cta-small">(95 או 98)</span>',
@@ -278,26 +266,5 @@ export async function seedPGCampaigns(strapi: Core.Strapi) {
         strapi.log.info(`[seed:pg-campaigns] ✅ נוצרו ${CAMPAIGNS.length} קמפיינים`);
     } catch (e) {
         strapi.log.warn('[seed:pg-campaigns] נכשל:', e instanceof Error ? e.message : String(e));
-    }
-}
-
-export async function seedPGStat(strapi: Core.Strapi) {
-    try {
-        const existing = await strapi.db.query('api::pg-stat.pg-stat').findOne({ where: {} });
-        if (existing) {
-            strapi.log.info('[seed:pg-stat] קיים - מדלג');
-            return;
-        }
-        await strapi.db.query('api::pg-stat.pg-stat').create({
-            data: {
-                total_members: 964,
-                total_annual_savings: 86694,
-                boycott_threshold: 10000,
-                boycott_text: 'כשנגיע ל-10,000 חברים נחל הליך של חרם כנגד משווקים שמפקיעים מחירים!',
-            },
-        });
-        strapi.log.info('[seed:pg-stat] ✅ נוצר');
-    } catch (e) {
-        strapi.log.warn('[seed:pg-stat] נכשל:', e instanceof Error ? e.message : String(e));
     }
 }

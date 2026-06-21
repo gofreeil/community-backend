@@ -5,7 +5,7 @@
     "singularName": "pg-campaign",
     "pluralName": "pg-campaigns",
     "displayName": "PG · Campaign",
-    "description": "קמפיין רכישות קבוצתיות (purchasing-groups) - כל מה שמופיע בעמוד הבית ובעמוד הפרטים"
+    "description": "קמפיין רכישות קבוצתיות - תוכן ומבנה בלבד. נתוני חברים/חיסכון מגיעים מ-Google Sheet, לא מכאן."
   },
   "options": {
     "draftAndPublish": true
@@ -49,32 +49,6 @@
       "default": false
     },
     "new_badge_text": {
-      "type": "string"
-    },
-    "monthly_savings": {
-      "type": "integer",
-      "default": 0
-    },
-    "annual_savings": {
-      "type": "integer",
-      "default": 0
-    },
-    "members_count": {
-      "type": "integer",
-      "default": 0
-    },
-    "rating": {
-      "type": "decimal",
-      "default": 0
-    },
-    "reviews_count": {
-      "type": "integer",
-      "default": 0
-    },
-    "savings_text": {
-      "type": "string"
-    },
-    "annual_savings_text": {
       "type": "string"
     },
     "providers_line": {

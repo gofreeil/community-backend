@@ -15,6 +15,10 @@ RUN npm ci --include=dev
 
 COPY . .
 
+# חייבים לרענן את types/generated לפני קומפילציה - אחרת factories.create* יזרוק שגיאה
+# על content-types חדשים שלא נכללים בקובץ הקיים מהקומיט.
+RUN npx strapi ts:generate-types
+
 RUN npm run build
 
 # ---------- Stage 2: runtime ----------

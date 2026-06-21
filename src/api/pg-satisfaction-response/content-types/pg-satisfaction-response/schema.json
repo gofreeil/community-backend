@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pg_satisfaction_responses",
+  "info": {
+    "singularName": "pg-satisfaction-response",
+    "pluralName": "pg-satisfaction-responses",
+    "displayName": "PG · Satisfaction Response",
+    "description": "תגובות סקר שביעות רצון של חברי קבוצות הרכישות"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "campaign_slug": {
+      "type": "string",
+      "required": true
+    },
+    "level": {
+      "type": "integer",
+      "min": 1,
+      "max": 5,
+      "required": true
+    },
+    "improvements": {
+      "type": "text"
+    },
+    "comments": {
+      "type": "text"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_phone": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "datetime"
+    }
+  }
+}

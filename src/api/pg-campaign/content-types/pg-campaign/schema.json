@@ -1,0 +1,117 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pg_campaigns",
+  "info": {
+    "singularName": "pg-campaign",
+    "pluralName": "pg-campaigns",
+    "displayName": "PG · Campaign",
+    "description": "קמפיין רכישות קבוצתיות (purchasing-groups) - כל מה שמופיע בעמוד הבית ובעמוד הפרטים"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true,
+      "targetField": "title"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["active", "soon", "inactive"],
+      "default": "soon",
+      "required": true
+    },
+    "can_join": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_new": {
+      "type": "boolean",
+      "default": false
+    },
+    "new_badge_text": {
+      "type": "string"
+    },
+    "monthly_savings": {
+      "type": "integer",
+      "default": 0
+    },
+    "annual_savings": {
+      "type": "integer",
+      "default": 0
+    },
+    "members_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "rating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "reviews_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "savings_text": {
+      "type": "string"
+    },
+    "annual_savings_text": {
+      "type": "string"
+    },
+    "providers_line": {
+      "type": "string"
+    },
+    "join_link": {
+      "type": "string"
+    },
+    "join_link_diesel": {
+      "type": "string"
+    },
+    "join_cta_subtitle": {
+      "type": "text"
+    },
+    "find_section": {
+      "type": "json"
+    },
+    "benefits": {
+      "type": "json"
+    },
+    "steps_override": {
+      "type": "json"
+    },
+    "faq_override": {
+      "type": "json"
+    },
+    "plans_table": {
+      "type": "json"
+    },
+    "plans_table_diesel": {
+      "type": "json"
+    },
+    "plans_table_note": {
+      "type": "text"
+    },
+    "plans_table_diesel_note": {
+      "type": "text"
+    }
+  }
+}

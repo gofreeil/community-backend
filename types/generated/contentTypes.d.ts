@@ -859,6 +859,143 @@ export interface ApiNewsTickerItemNewsTickerItem
   };
 }
 
+export interface ApiPgCampaignPgCampaign extends Struct.CollectionTypeSchema {
+  collectionName: 'pg_campaigns';
+  info: {
+    description: '\u05E7\u05DE\u05E4\u05D9\u05D9\u05DF \u05E8\u05DB\u05D9\u05E9\u05D5\u05EA \u05E7\u05D1\u05D5\u05E6\u05EA\u05D9\u05D5\u05EA (purchasing-groups) - \u05DB\u05DC \u05DE\u05D4 \u05E9\u05DE\u05D5\u05E4\u05D9\u05E2 \u05D1\u05E2\u05DE\u05D5\u05D3 \u05D4\u05D1\u05D9\u05EA \u05D5\u05D1\u05E2\u05DE\u05D5\u05D3 \u05D4\u05E4\u05E8\u05D8\u05D9\u05DD';
+    displayName: 'PG \u00B7 Campaign';
+    pluralName: 'pg-campaigns';
+    singularName: 'pg-campaign';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    annual_savings: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    annual_savings_text: Schema.Attribute.String;
+    benefits: Schema.Attribute.JSON;
+    can_join: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    faq_override: Schema.Attribute.JSON;
+    find_section: Schema.Attribute.JSON;
+    icon: Schema.Attribute.String;
+    image_url: Schema.Attribute.String;
+    is_new: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    join_cta_subtitle: Schema.Attribute.Text;
+    join_link: Schema.Attribute.String;
+    join_link_diesel: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pg-campaign.pg-campaign'
+    > &
+      Schema.Attribute.Private;
+    members_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    monthly_savings: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    new_badge_text: Schema.Attribute.String;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<100>;
+    plans_table: Schema.Attribute.JSON;
+    plans_table_diesel: Schema.Attribute.JSON;
+    plans_table_diesel_note: Schema.Attribute.Text;
+    plans_table_note: Schema.Attribute.Text;
+    providers_line: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    reviews_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    savings_text: Schema.Attribute.String;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    status: Schema.Attribute.Enumeration<['active', 'soon', 'inactive']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'soon'>;
+    steps_override: Schema.Attribute.JSON;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPgSatisfactionResponsePgSatisfactionResponse
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'pg_satisfaction_responses';
+  info: {
+    description: '\u05EA\u05D2\u05D5\u05D1\u05D5\u05EA \u05E1\u05E7\u05E8 \u05E9\u05D1\u05D9\u05E2\u05D5\u05EA \u05E8\u05E6\u05D5\u05DF \u05E9\u05DC \u05D7\u05D1\u05E8\u05D9 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D4\u05E8\u05DB\u05D9\u05E9\u05D5\u05EA';
+    displayName: 'PG \u00B7 Satisfaction Response';
+    pluralName: 'pg-satisfaction-responses';
+    singularName: 'pg-satisfaction-response';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    campaign_slug: Schema.Attribute.String & Schema.Attribute.Required;
+    comments: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    improvements: Schema.Attribute.Text;
+    level: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pg-satisfaction-response.pg-satisfaction-response'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    submitted_at: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user_id: Schema.Attribute.String;
+    user_phone: Schema.Attribute.String;
+  };
+}
+
+export interface ApiPgStatPgStat extends Struct.SingleTypeSchema {
+  collectionName: 'pg_stats';
+  info: {
+    description: '\u05E1\u05D8\u05D8\u05D9\u05E1\u05D8\u05D9\u05E7\u05D5\u05EA \u05D2\u05DC\u05D5\u05D1\u05DC\u05D9\u05D5\u05EA \u05DC\u05D0\u05EA\u05E8 \u05E8\u05DB\u05D9\u05E9\u05D5\u05EA \u05E7\u05D1\u05D5\u05E6\u05EA\u05D9\u05D5\u05EA - \u05E1\u05D4"\u05DB \u05D7\u05D1\u05E8\u05D9\u05DD, \u05E1\u05D4"\u05DB \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05E9\u05E0\u05EA\u05D9';
+    displayName: 'PG \u00B7 Stat (\u05D2\u05DC\u05D5\u05D1\u05DC\u05D9)';
+    pluralName: 'pg-stats';
+    singularName: 'pg-stat';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    boycott_text: Schema.Attribute.Text;
+    boycott_threshold: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<10000>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pg-stat.pg-stat'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    total_annual_savings: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<86694>;
+    total_members: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<964>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPostPost extends Struct.CollectionTypeSchema {
   collectionName: 'posts';
   info: {
@@ -1553,7 +1690,9 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.role'
     >;
     security_answer: Schema.Attribute.String;
+    security_answer_2: Schema.Attribute.String;
     security_question: Schema.Attribute.String;
+    security_question_2: Schema.Attribute.String;
     status: Schema.Attribute.String & Schema.Attribute.DefaultTo<'active'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1589,6 +1728,9 @@ declare module '@strapi/strapi' {
       'api::item.item': ApiItemItem;
       'api::lost-found-request.lost-found-request': ApiLostFoundRequestLostFoundRequest;
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
+      'api::pg-campaign.pg-campaign': ApiPgCampaignPgCampaign;
+      'api::pg-satisfaction-response.pg-satisfaction-response': ApiPgSatisfactionResponsePgSatisfactionResponse;
+      'api::pg-stat.pg-stat': ApiPgStatPgStat;
       'api::post.post': ApiPostPost;
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;

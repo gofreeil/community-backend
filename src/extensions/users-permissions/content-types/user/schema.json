@@ -120,6 +120,12 @@
     "security_answer": {
       "type": "string"
     },
+    "security_question_2": {
+      "type": "string"
+    },
+    "security_answer_2": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "default": "active"

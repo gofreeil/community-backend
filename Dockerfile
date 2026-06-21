@@ -16,8 +16,15 @@ RUN npm ci --include=dev
 COPY . .
 
 # חייבים לרענן את types/generated לפני קומפילציה - אחרת factories.create* יזרוק שגיאה
-# על content-types חדשים שלא נכללים בקובץ הקיים מהקומיט.
-RUN npx strapi ts:generate-types
+# על content-types חדשים שלא נכללים בקובץ ה-types שעלה ב-git.
+# Strapi דורש שיהיו ENV vars לתצורה אפילו ב-typegen, נותנים placeholders שאינם משמשים בריצה.
+RUN APP_KEYS=build-only-placeholder-key \
+    ADMIN_JWT_SECRET=build-only-placeholder \
+    API_TOKEN_SALT=build-only-placeholder \
+    TRANSFER_TOKEN_SALT=build-only-placeholder \
+    JWT_SECRET=build-only-placeholder \
+    ENCRYPTION_KEY=build-only-placeholder \
+    npx strapi ts:generate-types
 
 RUN npm run build
 

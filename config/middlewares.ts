@@ -25,9 +25,12 @@ const config: Core.Config.Middlewares = [
         'http://localhost:4173',
         'http://localhost:5174',
         'http://localhost:5175',
+        // Domain אחיד — gofreeil.com (apex) + כל הסאב-דומיינים
+        'https://gofreeil.com',
+        /^https:\/\/[a-z0-9-]+\.gofreeil\.com$/,
+        // Vercel.app legacy — נשמרים זמנית עד להשלמת ההגירה
         'https://community-il.vercel.app',
-        /^https:\/\/community-il-.*\.vercel\.app$/, // Vercel preview deployments
-        // Purchasing-Groups
+        /^https:\/\/community-il-.*\.vercel\.app$/,
         'https://purchasing-groups.vercel.app',
         /^https:\/\/purchasing-groups-.*\.vercel\.app$/,
         /^https:\/\/purchasing_groups-.*\.vercel\.app$/,

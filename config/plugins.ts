@@ -20,8 +20,8 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
                 },
             },
             settings: {
-                defaultFrom:    env('EMAIL_FROM', 'noreply@community-il.vercel.app'),
-                defaultReplyTo: env('EMAIL_FROM', 'noreply@community-il.vercel.app'),
+                defaultFrom:    env('EMAIL_FROM', 'noreply@gofreeil.com'),
+                defaultReplyTo: env('EMAIL_FROM', 'noreply@gofreeil.com'),
             },
         },
     },

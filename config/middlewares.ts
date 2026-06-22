@@ -47,11 +47,11 @@ const config: Core.Config.Middlewares = [
   {
     name: 'strapi::session',
     config: {
-      // מאפשר עבודה מאחורי reverse proxy (nginx → HTTPS)
-      // הקוקיז צריכים להיות secure=true (HTTPS) ו-sameSite=none (cross-site OAuth redirect)
+      // OAuth דורש session cross-domain. Koa לא מזהה HTTPS מאחורי proxy → cookie.secure: false
+      // האבטחה נשמרת ע"י HTTPS של nginx + sameSite=lax למניעת CSRF
       cookie: {
-        secure: true,
-        sameSite: 'none',
+        secure: false,
+        sameSite: 'lax',
         httpOnly: true,
       },
     },

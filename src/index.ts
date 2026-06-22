@@ -340,6 +340,43 @@ async function ensureSuperAdmin(strapi: Core.Strapi) {
   }
 }
 
+// מפעיל ספק OAuth של Google ב-users-permissions אם הוגדרו GOOGLE_OAUTH_CLIENT_ID/SECRET ב-env.
+// השרת מעדכן את ה-grant store של ה-plugin בכל startup - אין צורך לערוך באדמין UI.
+async function ensureGoogleProvider(strapi: Core.Strapi) {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    strapi.log.info('[bootstrap] Google OAuth: GOOGLE_OAUTH_CLIENT_ID/SECRET לא מוגדרים - מדלג');
+    return;
+  }
+  try {
+    const pluginStore = strapi.store({
+      type: 'plugin',
+      name: 'users-permissions',
+      key: 'grant',
+    });
+    const grant: any = (await pluginStore.get({})) ?? {};
+    const before = JSON.stringify(grant.google ?? {});
+    grant.google = {
+      ...(grant.google ?? {}),
+      enabled: true,
+      icon: 'google',
+      key: clientId,
+      secret: clientSecret,
+      callback: '/api/auth/google/callback',
+      scope: ['email'],
+    };
+    if (JSON.stringify(grant.google) === before) {
+      strapi.log.info('[bootstrap] Google OAuth: כבר מוגדר');
+    } else {
+      await pluginStore.set({ value: grant });
+      strapi.log.info('[bootstrap] ✅ Google OAuth: הופעל/עודכן עם credentials מה-env');
+    }
+  } catch (e) {
+    strapi.log.warn('[bootstrap] ensureGoogleProvider נכשל:', e instanceof Error ? e.message : String(e));
+  }
+}
+
 export default {
   register(/* { strapi }: { strapi: Core.Strapi } */) {},
 
@@ -347,6 +384,7 @@ export default {
     await runMigrations(strapi);
     await ensureSuperAdmin(strapi);
     await ensurePermissions(strapi);
+    await ensureGoogleProvider(strapi);
     await seedPGCampaigns(strapi);
   },
 };

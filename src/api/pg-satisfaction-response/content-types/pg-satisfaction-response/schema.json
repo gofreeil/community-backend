@@ -37,6 +37,12 @@
     "user_phone": {
       "type": "string"
     },
+    "user_name": {
+      "type": "string"
+    },
+    "user_city": {
+      "type": "string"
+    },
     "submitted_at": {
       "type": "datetime"
     }

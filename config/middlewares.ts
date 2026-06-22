@@ -44,7 +44,18 @@ const config: Core.Config.Middlewares = [
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',
-  'strapi::session',
+  {
+    name: 'strapi::session',
+    config: {
+      // מאפשר עבודה מאחורי reverse proxy (nginx → HTTPS)
+      // הקוקיז צריכים להיות secure=true (HTTPS) ו-sameSite=none (cross-site OAuth redirect)
+      cookie: {
+        secure: true,
+        sameSite: 'none',
+        httpOnly: true,
+      },
+    },
+  },
   'strapi::favicon',
   'strapi::public',
 ];

@@ -47,13 +47,11 @@ const config: Core.Config.Middlewares = [
   {
     name: 'strapi::session',
     config: {
-      // OAuth דורש session cross-domain. Koa לא מזהה HTTPS מאחורי proxy → cookie.secure: false
-      // האבטחה נשמרת ע"י HTTPS של nginx + sameSite=lax למניעת CSRF
-      cookie: {
-        secure: false,
-        sameSite: 'lax',
-        httpOnly: true,
-      },
+      // OAuth דורש session cross-domain. Strapi default = secure:true ב-production
+      // אבל Koa לא מזהה HTTPS מאחורי nginx proxy → cookie נכשל. מבטלים secure.
+      secure: false,
+      sameSite: 'lax',
+      httpOnly: true,
     },
   },
   'strapi::favicon',

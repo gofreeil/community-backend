@@ -90,6 +90,27 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::pg-campaign.pg-campaign.findOne',
         // תגובות סקר - יצירה אנונימית מותרת (משוב מהשטח)
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
+        // Chachmei-Haeda (ch-) - תוכן ציבורי לקריאה
+        'api::ch-charter-signature.ch-charter-signature.find',
+        'api::ch-charter-signature.ch-charter-signature.findOne',
+        'api::ch-charter-signature.ch-charter-signature.create',
+        'api::ch-article.ch-article.find',
+        'api::ch-article.ch-article.findOne',
+        'api::ch-qa-item.ch-qa-item.find',
+        'api::ch-qa-item.ch-qa-item.findOne',
+        'api::ch-question-submission.ch-question-submission.create',
+        'api::ch-activity-item.ch-activity-item.find',
+        'api::ch-activity-item.ch-activity-item.findOne',
+        'api::ch-hearing.ch-hearing.find',
+        'api::ch-hearing.ch-hearing.findOne',
+        'api::ch-ruling.ch-ruling.find',
+        'api::ch-ruling.ch-ruling.findOne',
+        'api::ch-hearing-request.ch-hearing-request.create',
+        'api::ch-rabbi.ch-rabbi.find',
+        'api::ch-rabbi.ch-rabbi.findOne',
+        'api::ch-news-item.ch-news-item.find',
+        'api::ch-news-item.ch-news-item.findOne',
+        'api::ch-home-config.ch-home-config.find',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -150,6 +171,83 @@ const PERMISSIONS_TO_REVOKE: Record<'public', string[]> = {
     ],
 };
 
+// כל הפעולות שעורך חכמי העדה יכול לעשות על תכני ch-*
+const CHACHMEI_EDITOR_PERMISSIONS: string[] = [
+    'api::ch-charter-signature.ch-charter-signature.find',
+    'api::ch-charter-signature.ch-charter-signature.findOne',
+    'api::ch-charter-signature.ch-charter-signature.create',
+    'api::ch-charter-signature.ch-charter-signature.update',
+    'api::ch-charter-signature.ch-charter-signature.delete',
+    'api::ch-article.ch-article.find',
+    'api::ch-article.ch-article.findOne',
+    'api::ch-article.ch-article.create',
+    'api::ch-article.ch-article.update',
+    'api::ch-article.ch-article.delete',
+    'api::ch-qa-item.ch-qa-item.find',
+    'api::ch-qa-item.ch-qa-item.findOne',
+    'api::ch-qa-item.ch-qa-item.create',
+    'api::ch-qa-item.ch-qa-item.update',
+    'api::ch-qa-item.ch-qa-item.delete',
+    'api::ch-question-submission.ch-question-submission.find',
+    'api::ch-question-submission.ch-question-submission.findOne',
+    'api::ch-question-submission.ch-question-submission.update',
+    'api::ch-question-submission.ch-question-submission.delete',
+    'api::ch-activity-item.ch-activity-item.find',
+    'api::ch-activity-item.ch-activity-item.findOne',
+    'api::ch-activity-item.ch-activity-item.create',
+    'api::ch-activity-item.ch-activity-item.update',
+    'api::ch-activity-item.ch-activity-item.delete',
+    'api::ch-hearing.ch-hearing.find',
+    'api::ch-hearing.ch-hearing.findOne',
+    'api::ch-hearing.ch-hearing.create',
+    'api::ch-hearing.ch-hearing.update',
+    'api::ch-hearing.ch-hearing.delete',
+    'api::ch-ruling.ch-ruling.find',
+    'api::ch-ruling.ch-ruling.findOne',
+    'api::ch-ruling.ch-ruling.create',
+    'api::ch-ruling.ch-ruling.update',
+    'api::ch-ruling.ch-ruling.delete',
+    'api::ch-hearing-request.ch-hearing-request.find',
+    'api::ch-hearing-request.ch-hearing-request.findOne',
+    'api::ch-hearing-request.ch-hearing-request.update',
+    'api::ch-hearing-request.ch-hearing-request.delete',
+    'api::ch-rabbi.ch-rabbi.find',
+    'api::ch-rabbi.ch-rabbi.findOne',
+    'api::ch-rabbi.ch-rabbi.create',
+    'api::ch-rabbi.ch-rabbi.update',
+    'api::ch-rabbi.ch-rabbi.delete',
+    'api::ch-news-item.ch-news-item.find',
+    'api::ch-news-item.ch-news-item.findOne',
+    'api::ch-news-item.ch-news-item.create',
+    'api::ch-news-item.ch-news-item.update',
+    'api::ch-news-item.ch-news-item.delete',
+    'api::ch-home-config.ch-home-config.find',
+    'api::ch-home-config.ch-home-config.update',
+    // קריאת פרטי המשתמש המחובר (לבדיקת תפקיד)
+    'plugin::users-permissions.user.me',
+];
+
+async function ensureChachmeiEditorRole(strapi: Core.Strapi): Promise<{ id: number } | null> {
+    try {
+        const existing = await strapi.db.query('plugin::users-permissions.role').findOne({
+            where: { type: 'chachmei_editor' },
+        });
+        if (existing) return existing as { id: number };
+        const created = await strapi.db.query('plugin::users-permissions.role').create({
+            data: {
+                name: 'Chachmei Editor',
+                description: 'עורך תוכן באתר חכמי העדה - יכול לנהל את כל תכני ch-*',
+                type: 'chachmei_editor',
+            },
+        });
+        strapi.log.info(`[bootstrap] ✅ role "chachmei_editor" נוצר (id=${(created as any).id})`);
+        return created as { id: number };
+    } catch (e) {
+        strapi.log.warn('[bootstrap] ensureChachmeiEditorRole נכשל:', e instanceof Error ? e.message : String(e));
+        return null;
+    }
+}
+
 async function ensurePermissions(strapi: Core.Strapi) {
     try {
         const roles = await strapi.db.query('plugin::users-permissions.role').findMany({
@@ -161,6 +259,7 @@ async function ensurePermissions(strapi: Core.Strapi) {
             strapi.log.warn('[bootstrap] public/authenticated roles לא נמצאו - מדלג על ensurePermissions');
             return;
         }
+        const chachmeiRole = await ensureChachmeiEditorRole(strapi);
 
         const grant = async (roleId: number, action: string) => {
             const existing = await strapi.db.query('plugin::users-permissions.permission').findOne({
@@ -192,6 +291,9 @@ async function ensurePermissions(strapi: Core.Strapi) {
         let added = 0;
         for (const action of PERMISSIONS.public)        if (await grant(publicRole.id, action)) added++;
         for (const action of PERMISSIONS.authenticated) if (await grant(authRole.id,   action)) added++;
+        if (chachmeiRole) {
+            for (const action of CHACHMEI_EDITOR_PERMISSIONS) if (await grant(chachmeiRole.id, action)) added++;
+        }
 
         let removed = 0;
         for (const action of PERMISSIONS_TO_REVOKE.public) if (await revoke(publicRole.id, action)) removed++;
@@ -202,30 +304,39 @@ async function ensurePermissions(strapi: Core.Strapi) {
     }
 }
 
+// סופר אדמינים קבועים - יוקצו אוטומטית בכל startup אם נרשמו ב-Strapi.
+// SUPER_ADMIN_EMAIL נוסף לרשימה אם הוגדר ב-env.
+const HARDCODED_SUPER_ADMINS = ['yahavanter@gmail.com'];
+
 async function ensureSuperAdmin(strapi: Core.Strapi) {
-  const email = process.env.SUPER_ADMIN_EMAIL;
-  if (!email) return;
-  try {
-    const users = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { email: { $eqi: email } },
-      limit: 1,
-    });
-    if (users.length === 0) {
-      strapi.log.warn(`[bootstrap] Super admin user not found: ${email}`);
-      return;
-    }
-    const user = users[0] as { id: number; app_role?: string };
-    if (user.app_role !== 'super_admin') {
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: user.id },
-        data: { app_role: 'super_admin' },
+  const envEmail = process.env.SUPER_ADMIN_EMAIL;
+  const emails = Array.from(new Set(
+    [...HARDCODED_SUPER_ADMINS, envEmail].filter(Boolean) as string[]
+  )).map((e) => e.toLowerCase());
+  if (emails.length === 0) return;
+  for (const email of emails) {
+    try {
+      const users = await strapi.db.query('plugin::users-permissions.user').findMany({
+        where: { email: { $eqi: email } },
+        limit: 1,
       });
-      strapi.log.info(`[bootstrap] ✅ Set super_admin for: ${email}`);
-    } else {
-      strapi.log.info(`[bootstrap] Already super_admin: ${email}`);
+      if (users.length === 0) {
+        strapi.log.info(`[bootstrap] super_admin ממתין להרשמה: ${email}`);
+        continue;
+      }
+      const user = users[0] as { id: number; app_role?: string };
+      if (user.app_role !== 'super_admin') {
+        await strapi.db.query('plugin::users-permissions.user').update({
+          where: { id: user.id },
+          data: { app_role: 'super_admin' },
+        });
+        strapi.log.info(`[bootstrap] ✅ Set super_admin for: ${email}`);
+      } else {
+        strapi.log.info(`[bootstrap] Already super_admin: ${email}`);
+      }
+    } catch (e) {
+      strapi.log.warn(`[bootstrap] ensureSuperAdmin failed for ${email}:`, e);
     }
-  } catch (e) {
-    strapi.log.warn('[bootstrap] ensureSuperAdmin failed:', e);
   }
 }
 

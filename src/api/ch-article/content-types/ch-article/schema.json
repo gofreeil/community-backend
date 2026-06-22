@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_articles",
+  "info": {
+    "singularName": "ch-article",
+    "pluralName": "ch-articles",
+    "displayName": "Chachmei · Article",
+    "description": "מאמרים בהיכל הרוח של חכמי העדה — title/author/excerpt/body כ-JSON רב לשוני (he/en/ru)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true
+    },
+    "title": {
+      "type": "json",
+      "required": true
+    },
+    "author": {
+      "type": "json",
+      "required": true
+    },
+    "articleDate": {
+      "type": "date",
+      "required": true
+    },
+    "excerpt": {
+      "type": "json"
+    },
+    "body": {
+      "type": "json"
+    },
+    "approvedBy": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
+    }
+  }
+}

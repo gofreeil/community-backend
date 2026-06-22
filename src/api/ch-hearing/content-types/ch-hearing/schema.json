@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_hearings",
+  "info": {
+    "singularName": "ch-hearing",
+    "pluralName": "ch-hearings",
+    "displayName": "Chachmei · Hearing",
+    "description": "דיוני בית הדין UECC — מתוכננים והתקיימו."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "caseName": {
+      "type": "json",
+      "required": true
+    },
+    "dayanim": {
+      "type": "json"
+    },
+    "zoomLink": {
+      "type": "string"
+    },
+    "hearingDate": {
+      "type": "date",
+      "required": true
+    },
+    "hearingTime": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["planned", "done", "cancelled"],
+      "default": "planned",
+      "required": true
+    },
+    "summary": {
+      "type": "json"
+    }
+  }
+}

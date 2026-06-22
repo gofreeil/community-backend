@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_question_submissions",
+  "info": {
+    "singularName": "ch-question-submission",
+    "pluralName": "ch-question-submissions",
+    "displayName": "Chachmei · Question Submission",
+    "description": "שאלות שנשלחו על ידי משתמשים דרך /ask — ממתינות לתשובת חכמי העדה."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "askerName": {
+      "type": "string",
+      "required": true
+    },
+    "askerEmail": {
+      "type": "string",
+      "private": true
+    },
+    "askerPhone": {
+      "type": "string",
+      "private": true
+    },
+    "topic": {
+      "type": "string"
+    },
+    "question": {
+      "type": "text",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "answered", "rejected"],
+      "default": "pending"
+    },
+    "publishedQaSlug": {
+      "type": "string"
+    }
+  }
+}

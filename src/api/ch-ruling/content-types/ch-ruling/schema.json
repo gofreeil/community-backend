@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_rulings",
+  "info": {
+    "singularName": "ch-ruling",
+    "pluralName": "ch-rulings",
+    "displayName": "Chachmei · Ruling",
+    "description": "פסקי דין שפורסמו על ידי בית הדין UECC."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "caseRef": {
+      "type": "string"
+    },
+    "caseName": {
+      "type": "json",
+      "required": true
+    },
+    "dayanim": {
+      "type": "json"
+    },
+    "rulingDate": {
+      "type": "date",
+      "required": true
+    },
+    "summary": {
+      "type": "json"
+    },
+    "decision": {
+      "type": "json"
+    }
+  }
+}

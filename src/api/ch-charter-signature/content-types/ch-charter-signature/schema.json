@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_charter_signatures",
+  "info": {
+    "singularName": "ch-charter-signature",
+    "pluralName": "ch-charter-signatures",
+    "displayName": "Chachmei · Charter Signature",
+    "description": "חתימות על אמנת UECC של חכמי העדה — שם, עסק, תפקיד, עיר, פרטי קשר. שדות מולמדים מאוחסנים כ-JSON (he/en/ru)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "json",
+      "required": true
+    },
+    "businessName": {
+      "type": "json"
+    },
+    "role": {
+      "type": "json"
+    },
+    "city": {
+      "type": "json"
+    },
+    "email": {
+      "type": "string",
+      "private": true
+    },
+    "phone": {
+      "type": "string",
+      "private": true
+    },
+    "birthDate": {
+      "type": "string",
+      "private": true
+    },
+    "idNumber": {
+      "type": "string",
+      "private": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["signed", "disqualified"],
+      "default": "signed",
+      "required": true
+    },
+    "signedDate": {
+      "type": "date",
+      "required": true
+    },
+    "disqualifiedReason": {
+      "type": "json"
+    },
+    "disqualifiedBy": {
+      "type": "json"
+    },
+    "disqualifiedDate": {
+      "type": "date"
+    },
+    "acceptedTerms": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

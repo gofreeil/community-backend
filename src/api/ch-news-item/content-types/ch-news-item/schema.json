@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_news_items",
+  "info": {
+    "singularName": "ch-news-item",
+    "pluralName": "ch-news-items",
+    "displayName": "Chachmei · News Item",
+    "description": "פריטי חדשות עבור הסיפור הראשי באתר חכמי העדה."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "line1": {
+      "type": "json",
+      "required": true
+    },
+    "line2": {
+      "type": "json"
+    },
+    "sourceUrl": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
+    }
+  }
+}

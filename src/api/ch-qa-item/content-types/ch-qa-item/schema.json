@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_qa_items",
+  "info": {
+    "singularName": "ch-qa-item",
+    "pluralName": "ch-qa-items",
+    "displayName": "Chachmei · Q&A Item",
+    "description": "שו\"ת שפורסם על ידי חכמי העדה — שאלה ותשובה רב-לשוניים (he/en/ru)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true
+    },
+    "topic": {
+      "type": "json",
+      "required": true
+    },
+    "question": {
+      "type": "json",
+      "required": true
+    },
+    "asker": {
+      "type": "json"
+    },
+    "askDate": {
+      "type": "date"
+    },
+    "answer": {
+      "type": "json",
+      "required": true
+    },
+    "answeredBy": {
+      "type": "json"
+    },
+    "answerDate": {
+      "type": "date"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_activity_items",
+  "info": {
+    "singularName": "ch-activity-item",
+    "pluralName": "ch-activity-items",
+    "displayName": "Chachmei · Activity Item",
+    "description": "פעילות (סרטון/מאמר/הודעה/כתבה) בהיכל המעשה — שדות רב-לשוניים."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true
+    },
+    "kind": {
+      "type": "json",
+      "required": true
+    },
+    "title": {
+      "type": "json",
+      "required": true
+    },
+    "author": {
+      "type": "json"
+    },
+    "activityDate": {
+      "type": "date",
+      "required": true
+    },
+    "excerpt": {
+      "type": "json"
+    },
+    "body": {
+      "type": "json"
+    },
+    "videoUrl": {
+      "type": "string"
+    },
+    "imageUrl": {
+      "type": "string"
+    },
+    "sourceUrl": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
+    }
+  }
+}

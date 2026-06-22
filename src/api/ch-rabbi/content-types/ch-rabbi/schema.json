@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_rabbis",
+  "info": {
+    "singularName": "ch-rabbi",
+    "pluralName": "ch-rabbis",
+    "displayName": "Chachmei · Rabbi",
+    "description": "רבני חכמי העדה — שמות בעברית/אנגלית/רוסית, תמונה, כתובת."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "rabbiName": {
+      "type": "json",
+      "required": true
+    },
+    "rabbiTitle": {
+      "type": "json"
+    },
+    "rabbiNickname": {
+      "type": "json"
+    },
+    "rabbiCity": {
+      "type": "json"
+    },
+    "photo": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
+    }
+  }
+}

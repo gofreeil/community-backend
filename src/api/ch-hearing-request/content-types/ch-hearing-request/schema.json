@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_hearing_requests",
+  "info": {
+    "singularName": "ch-hearing-request",
+    "pluralName": "ch-hearing-requests",
+    "displayName": "Chachmei · Hearing Request",
+    "description": "בקשות לפתיחת דיון שהוגשו דרך /request-hearing."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "requesterName": {
+      "type": "string",
+      "required": true
+    },
+    "requesterPhone": {
+      "type": "string",
+      "private": true
+    },
+    "requesterEmail": {
+      "type": "string",
+      "private": true
+    },
+    "oppositeParty": {
+      "type": "string"
+    },
+    "caseDescription": {
+      "type": "text",
+      "required": true
+    },
+    "amount": {
+      "type": "string"
+    },
+    "documentsNotes": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "accepted", "rejected", "scheduled"],
+      "default": "pending"
+    }
+  }
+}

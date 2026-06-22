@@ -34,6 +34,8 @@ const config: Core.Config.Middlewares = [
         'https://purchasing-groups.vercel.app',
         /^https:\/\/purchasing-groups-.*\.vercel\.app$/,
         /^https:\/\/purchasing_groups-.*\.vercel\.app$/,
+        'https://chachmei-haeda.vercel.app',
+        /^https:\/\/chachmei-haeda-.*\.vercel\.app$/,
       ],
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       headers: ['Content-Type', 'Authorization'],

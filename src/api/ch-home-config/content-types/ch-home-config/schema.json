@@ -1,0 +1,22 @@
+{
+  "kind": "singleType",
+  "collectionName": "ch_home_configs",
+  "info": {
+    "singularName": "ch-home-config",
+    "pluralName": "ch-home-configs",
+    "displayName": "Chachmei · Home Config",
+    "description": "הגדרות עמוד הבית של חכמי העדה — סרטון פתיחה ועוד."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "homeVideoUrl": {
+      "type": "string"
+    },
+    "homeVideoTitle": {
+      "type": "string"
+    }
+  }
+}

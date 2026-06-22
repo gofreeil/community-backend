@@ -54,6 +54,9 @@
     "providers_line": {
       "type": "string"
     },
+    "rating_companies": {
+      "type": "json"
+    },
     "join_link": {
       "type": "string"
     },

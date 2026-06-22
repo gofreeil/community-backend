@@ -13,6 +13,7 @@ const CAMPAIGNS = [
         status: 'active',
         can_join: true,
         providers_line: 'מסלולים בחברת רמי לוי, אקס פון, וויקום',
+        rating_companies: ['רמי לוי', 'אקס פון', 'וויקום'],
         join_link: 'https://docs.google.com/forms/d/e/1FAIpQLSfRCs5W7HUuc5vcOuMGqsqaDubzNBn4YuC4UDbvoFmSCdJAiQ/viewform?usp=header',
         join_cta_subtitle: 'לקו הסלולר הזול במדינה - חברות רמי לוי / אקס פון / וויקום',
         find_section: {
@@ -107,6 +108,7 @@ const CAMPAIGNS = [
         can_join: true,
         is_new: true,
         new_badge_text: 'חדש!',
+        rating_companies: ['סונול', 'דור אלון', 'טן', 'תפוז'],
         join_link: 'https://forms.gle/2Y9SdUfqkJd5mPaS7',
         join_link_diesel: 'https://docs.google.com/forms/d/e/1FAIpQLScz6iFzBwX7oGYXdh98Y9aah_RgWXINtbsJ5u05wWYE8anVUA/viewform?usp=publish-editor',
         join_cta_subtitle: 'הנחה בדלק <span class="cta-small">(95 או 98)</span>',

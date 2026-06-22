@@ -16,6 +16,9 @@
       "type": "string",
       "required": true
     },
+    "company": {
+      "type": "string"
+    },
     "level": {
       "type": "integer",
       "min": 1,

@@ -342,6 +342,17 @@ async function ensureSuperAdmin(strapi: Core.Strapi) {
 
 // מפעיל ספק OAuth של Google ב-users-permissions אם הוגדרו GOOGLE_OAUTH_CLIENT_ID/SECRET ב-env.
 // השרת מעדכן את ה-grant store של ה-plugin בכל startup - אין צורך לערוך באדמין UI.
+// כל ה-URLs של frontend שמותר להחזיר אליהם access_token אחרי OAuth
+const ALLOWED_OAUTH_CALLBACKS = [
+  'https://chachmim.gofreeil.com',
+  'https://chachmei-haeda.gofreeil.com',
+  'https://community.gofreeil.com',
+  'https://community-il.gofreeil.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+];
+
 async function ensureGoogleProvider(strapi: Core.Strapi) {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
@@ -366,11 +377,31 @@ async function ensureGoogleProvider(strapi: Core.Strapi) {
       callback: '/api/auth/google/callback',
       scope: ['email'],
     };
+    // ביטול whitelist על redirectUri - Google כבר מוודא את ה-URI ב-Cloud Console (אבטחה כפולה)
+    delete grant.google.redirectUri;
+    delete grant.google.redirect_uri;
     if (JSON.stringify(grant.google) === before) {
       strapi.log.info('[bootstrap] Google OAuth: כבר מוגדר');
     } else {
       await pluginStore.set({ value: grant });
       strapi.log.info('[bootstrap] ✅ Google OAuth: הופעל/עודכן עם credentials מה-env');
+    }
+
+    // גם רשימת ה-callbacks המותרים על ה-advanced settings
+    const advancedStore = strapi.store({
+      type: 'plugin',
+      name: 'users-permissions',
+      key: 'advanced',
+    });
+    const advanced: any = (await advancedStore.get({})) ?? {};
+    const allowed = ALLOWED_OAUTH_CALLBACKS.flatMap((o) => [
+      `${o}/auth/google-callback`,
+      `${o}/auth/google-callback?returnTo=%2Fprofile`,
+      `${o}/auth/google-callback?returnTo=%2Fadmin`,
+    ]);
+    if (advanced.allowed_redirect_origins !== ALLOWED_OAUTH_CALLBACKS.join(',')) {
+      await advancedStore.set({ value: { ...advanced, allowed_redirect_origins: ALLOWED_OAUTH_CALLBACKS.join(',') } });
+      strapi.log.info(`[bootstrap] Allowed OAuth origins: ${ALLOWED_OAUTH_CALLBACKS.length}`);
     }
   } catch (e) {
     strapi.log.warn('[bootstrap] ensureGoogleProvider נכשל:', e instanceof Error ? e.message : String(e));

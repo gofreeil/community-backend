@@ -88,8 +88,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // Purchasing-Groups - תוכן ציבורי לקריאה
         'api::pg-campaign.pg-campaign.find',
         'api::pg-campaign.pg-campaign.findOne',
-        // תגובות סקר - יצירה אנונימית מותרת (משוב מהשטח)
+        // תגובות סקר - יצירה אנונימית + קריאה ציבורית (משוב גלוי בעמוד)
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
+        'api::pg-satisfaction-response.pg-satisfaction-response.find',
+        'api::pg-satisfaction-response.pg-satisfaction-response.findOne',
         // Chachmei-Haeda (ch-) - תוכן ציבורי לקריאה
         'api::ch-charter-signature.ch-charter-signature.find',
         'api::ch-charter-signature.ch-charter-signature.findOne',

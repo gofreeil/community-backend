@@ -83,6 +83,10 @@
     },
     "user_id": {
       "type": "string"
+    },
+    "view_count": {
+      "type": "integer",
+      "default": 0
     }
   }
 }

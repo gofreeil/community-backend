@@ -351,6 +351,7 @@ const ALLOWED_OAUTH_CALLBACKS = [
   'https://community.gofreeil.com',
   'https://community-il.gofreeil.com',
   'https://groups.gofreeil.com',
+  'https://purchasing-groups.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',

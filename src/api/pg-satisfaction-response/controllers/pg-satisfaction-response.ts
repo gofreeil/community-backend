@@ -11,8 +11,8 @@ export default factories.createCoreController(
                 return ctx.forbidden('רק super_admin רשאי לעדכן תגובות');
             }
             // לאדמין מאפשרים רק את שלושת השדות הללו — לא להחליף את הטקסט המקורי של המשתמש.
-            const body = ctx.request.body?.data ?? {};
-            const allowed = {};
+            const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
+            const allowed: { is_featured?: boolean; admin_liked?: boolean; admin_reply?: string | null } = {};
             if ('is_featured' in body) allowed.is_featured = !!body.is_featured;
             if ('admin_liked' in body) allowed.admin_liked = !!body.admin_liked;
             if ('admin_reply' in body) allowed.admin_reply = body.admin_reply == null ? null : String(body.admin_reply);

@@ -1,38 +1,25 @@
-name: Deploy to Production
+# ⚠️ Automatic deploys are NOT handled here.
+#
+# They run via a cron-pull on the VPS itself: /opt/strapi/community-backend/auto-deploy.sh
+# (cron checks origin/main every 5 min and rebuilds the `strapi` service when it changes).
+#
+# Why: the VPS firewall drops inbound SSH from GitHub Actions runner IPs (i/o timeout),
+# so the previous appleboy/ssh-action approach could never connect. The old script also
+# used wrong paths (/opt/community) — the real path is /opt/strapi/community-backend.
+#
+# This workflow is kept disabled (manual dispatch only) so it stops failing on every push.
+name: Deploy to Production (disabled — VPS uses cron-pull, see auto-deploy.sh)
 
 on:
-  push:
-    branches: [main, master]
   workflow_dispatch:
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 jobs:
-  deploy:
-    name: Deploy via SSH
+  noop:
+    name: Deploys handled on the VPS
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          script: |
-            set -e
-            cd /opt/community/app
-            echo "=== Pulling latest ==="
-            git fetch origin
-            git reset --hard origin/${GITHUB_REF_NAME:-main}
-            cd /opt/community
-            echo "=== Building image ==="
-            docker compose build strapi
-            echo "=== Restarting service ==="
-            docker compose up -d strapi
-            echo "=== Cleanup ==="
-            docker image prune -f
-            echo "=== Status ==="
-            docker compose ps
+      - name: Explain
+        run: |
+          echo "Automatic deploys run via cron-pull on the VPS (auto-deploy.sh)."
+          echo "To deploy manually: ssh community-vps, then in /opt/strapi/community-backend run:"
+          echo "  git fetch origin && git reset --hard origin/main && docker compose build strapi && docker compose up -d strapi"

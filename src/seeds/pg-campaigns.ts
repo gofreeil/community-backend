@@ -35,7 +35,7 @@ const CAMPAIGNS = [
                 'עלות ממוצעת לקו לשנה',
                 'עלות סים',
                 'עלות משלוח',
-                'רובץ על רשת',
+                'רוכב על רשת',
             ],
             rows: [
                 {
@@ -49,7 +49,7 @@ const CAMPAIGNS = [
                         { label: 'עלות ממוצעת לקו לשנה', value: '14.9' },
                         { label: 'עלות סים', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
                         { label: 'עלות משלוח', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
-                        { label: 'רובץ על רשת', image: { src: '/images/פלאפון.jfif', alt: 'פלאפון' } },
+                        { label: 'רוכב על רשת', image: { src: '/images/פלאפון.jfif', alt: 'פלאפון' } },
                     ],
                 },
                 {
@@ -63,7 +63,7 @@ const CAMPAIGNS = [
                         { label: 'עלות ממוצעת לקו לשנה', html: '16.4 <span class="plan-note">(עלות קו ל-2 מכשירים 15 ש"ח כל אחד)</span>' },
                         { label: 'עלות סים', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
                         { label: 'עלות משלוח', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
-                        { label: 'רובץ על רשת', image: { src: '/images/פלאפון.jfif', alt: 'פלאפון' } },
+                        { label: 'רוכב על רשת', image: { src: '/images/פלאפון.jfif', alt: 'פלאפון' } },
                     ],
                 },
                 {
@@ -77,7 +77,7 @@ const CAMPAIGNS = [
                         { label: 'עלות ממוצעת לקו לשנה', value: 'מחיר קבוע 19.9' },
                         { label: 'עלות סים', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
                         { label: 'עלות משלוח', html: '<span class="no-cost-icon">🚫</span><br />ללא עלות' },
-                        { label: 'רובץ על רשת', image: { src: '/images/סלקום.jfif', alt: 'סלקום' } },
+                        { label: 'רוכב על רשת', image: { src: '/images/סלקום.jfif', alt: 'סלקום' } },
                     ],
                 },
                 {
@@ -91,7 +91,7 @@ const CAMPAIGNS = [
                         { label: 'עלות ממוצעת לקו לשנה', value: '18.9' },
                         { label: 'עלות סים', value: '4.9 ש"ח' },
                         { label: 'עלות משלוח', value: '14.9 ש"ח' },
-                        { label: 'רובץ על רשת', image: { src: '/images/סלקום.jfif', alt: 'סלקום' } },
+                        { label: 'רוכב על רשת', image: { src: '/images/סלקום.jfif', alt: 'סלקום' } },
                     ],
                 },
             ],

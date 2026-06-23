@@ -350,9 +350,12 @@ const ALLOWED_OAUTH_CALLBACKS = [
   'https://chachmei-haeda.gofreeil.com',
   'https://community.gofreeil.com',
   'https://community-il.gofreeil.com',
+  'https://groups.gofreeil.com',
+  'https://purchasing-groups.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
+  'http://localhost:5191',
 ];
 
 async function ensureGoogleProvider(strapi: Core.Strapi) {

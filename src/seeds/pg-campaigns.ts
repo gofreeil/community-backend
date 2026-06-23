@@ -5,8 +5,8 @@ import type { Core } from '@strapi/strapi';
 const CAMPAIGNS = [
     {
         slug: 'cellular',
-        title: 'סלולר חוסכוני',
-        description: 'מסלולי סלולר זולים במיוחד מבית רמי לוי, אקס פון ווויקום',
+        title: 'קו הסלולר הזול במדינה!',
+        description: 'החל מ-15 ש"ח לחודש, ללא התחייבות, ללא דמי הצטרפות',
         icon: '📱',
         image_url: '/assets/cellular.jpg',
         order: 1,
@@ -99,8 +99,8 @@ const CAMPAIGNS = [
     },
     {
         slug: 'fuel',
-        title: 'דלק חוסכוני',
-        description: 'הנחה קבועה בדלק בתחנות סונול, דור אלון, טן ותפוז',
+        title: 'הנחה בדלק לכל החיים!',
+        description: 'הנחה של 31 אגורות על כל ליטר בנזין מהמחיר היציג של סונול כל ימי חייך. ניתן לממש ב-555 תחנות ברחבי הארץ של דור אלון, טן, תפוז וסונול!',
         icon: '⛽',
         image_url: '/assets/fuel.jpg',
         order: 2,
@@ -213,8 +213,8 @@ const CAMPAIGNS = [
     },
     {
         slug: 'internet',
-        title: 'אינטרנט מהיר',
-        description: 'בקרוב - חבילות אינטרנט בהנחה לחברי הקבוצה',
+        title: 'אינטרנט ביתי הזול במדינה!',
+        description: 'צוותנו פועלים לאתר את העסקה המשתלמת ביותר עבורנו.',
         icon: '🌐',
         image_url: '/assets/internet.jpg',
         order: 3,
@@ -223,8 +223,8 @@ const CAMPAIGNS = [
     },
     {
         slug: 'carInsurance',
-        title: 'ביטוח רכב',
-        description: 'בקרוב - ביטוח רכב קבוצתי בהנחה משמעותית',
+        title: 'ביטוח רכב הזול במדינה!',
+        description: 'צוותנו פועלים לאתר את העסקה המשתלמת ביותר עבורנו.',
         icon: '🚗',
         image_url: '/assets/car_insurance.png',
         order: 4,
@@ -233,8 +233,8 @@ const CAMPAIGNS = [
     },
     {
         slug: 'electricity',
-        title: 'חשמל חוסכוני',
-        description: 'בקרוב - חבילות חשמל בהנחה לחברי הקבוצה',
+        title: 'מערכת חשמל עצמאית המשתלמת במדינה!',
+        description: 'צוותנו פועלים לאתר את העסקה המשתלמת ביותר עבורנו.',
         icon: '⚡',
         image_url: '/assets/electricity.jpg',
         order: 5,
@@ -243,8 +243,8 @@ const CAMPAIGNS = [
     },
     {
         slug: 'coupons',
-        title: 'קופונים והנחות',
-        description: 'בקרוב - קופונים והנחות בלעדיים לחברי הקבוצה',
+        title: 'רכישת קופוני הנחה ברשתות המזון',
+        description: 'צוותנו פועלים לאתר את העסקה המשתלמת ביותר עבורנו.',
         icon: '🎟️',
         image_url: '/assets/coupons.jpg',
         order: 6,

@@ -45,6 +45,17 @@
     },
     "submitted_at": {
       "type": "datetime"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "admin_liked": {
+      "type": "boolean",
+      "default": false
+    },
+    "admin_reply": {
+      "type": "text"
     }
   }
 }

@@ -7,9 +7,12 @@ const ALLOWED_OAUTH_ORIGINS = [
     'https://community.gofreeil.com',
     'https://community-il.gofreeil.com',
     'https://community-il.vercel.app',
+    'https://groups.gofreeil.com',
+    'https://purchasing-groups.vercel.app',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
+    'http://localhost:5191',
 ];
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin => ({

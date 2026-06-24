@@ -159,6 +159,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
         'api::pg-satisfaction-response.pg-satisfaction-response.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.findOne',
+        // ה-controller שלנו דוחה כל מי שאינו super_admin; ההרשאה כאן רק פותחת את ה-endpoint לטיפול ב-controller
+        'api::pg-satisfaction-response.pg-satisfaction-response.update',
     ],
 };
 

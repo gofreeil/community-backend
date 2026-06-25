@@ -1,10 +1,17 @@
 import { factories } from '@strapi/strapi';
 
-// Override: רק super_admin רשאי לעדכן תגובות (פין, לייק, תשובת אדמין).
+// Override: רק super_admin רשאי לעדכן/למחוק תגובות (פין, לייק, תשובת אדמין, מחיקה).
 // יוזרים אנונימיים יכולים ליצור (.create) ולקרוא (.find/findOne) דרך הרשאות ה-public ב-bootstrap.
 export default factories.createCoreController(
     'api::pg-satisfaction-response.pg-satisfaction-response',
     ({ strapi }) => ({
+        async delete(ctx) {
+            const user = ctx.state?.user;
+            if (!user || user.app_role !== 'super_admin') {
+                return ctx.forbidden('רק super_admin רשאי למחוק תגובות');
+            }
+            return super.delete(ctx);
+        },
         async update(ctx) {
             const user = ctx.state?.user;
             if (!user || user.app_role !== 'super_admin') {

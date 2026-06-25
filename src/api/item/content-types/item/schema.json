@@ -63,6 +63,12 @@
     "city": {
       "type": "string"
     },
+    "lat": {
+      "type": "float"
+    },
+    "lng": {
+      "type": "float"
+    },
     "extra_fields": {
       "type": "json"
     },
@@ -87,6 +93,11 @@
     "view_count": {
       "type": "integer",
       "default": 0
+    },
+    "user_status": {
+      "type": "enumeration",
+      "enum": ["available", "not_available", "in_relationship", "taking_break"],
+      "default": "available"
     }
   }
 }

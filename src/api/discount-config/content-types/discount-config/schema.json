@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "discount_config",
+  "info": {
+    "singularName": "discount-config",
+    "pluralName": "discount-configs",
+    "displayName": "Discount Config"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "codes": {
+      "type": "json"
+    }
+  }
+}

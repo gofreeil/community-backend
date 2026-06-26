@@ -39,7 +39,8 @@
         "category ",
         "lost_and_found",
         "message",
-        "raise_hand"
+        "raise_hand",
+        "user_feedback"
       ]
     },
     "contact": {

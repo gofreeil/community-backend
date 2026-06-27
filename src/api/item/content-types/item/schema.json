@@ -79,7 +79,10 @@
         "active",
         "inactive",
         "deleted",
-        "resolved"
+        "resolved",
+        "pending",
+        "rejected",
+        "frozen"
       ]
     },
     "user": {

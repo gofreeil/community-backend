@@ -12,12 +12,12 @@
   "attributes": {
     "requester": {
       "type": "relation",
-      "relation": "oneWay",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
     "receiver": {
       "type": "relation",
-      "relation": "oneWay",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
     "message": {

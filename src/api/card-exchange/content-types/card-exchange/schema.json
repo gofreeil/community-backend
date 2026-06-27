@@ -12,12 +12,12 @@
   "attributes": {
     "user1": {
       "type": "relation",
-      "relation": "oneWay",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
     "user2": {
       "type": "relation",
-      "relation": "oneWay",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
     "message": {

@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "card_exchanges",
+  "info": {
+    "singularName": "card-exchange",
+    "pluralName": "card-exchanges",
+    "displayName": "Card Exchange"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user1": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "user2": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "message": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "accepted", "rejected", "completed"],
+      "default": "pending"
+    }
+  }
+}

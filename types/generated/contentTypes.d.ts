@@ -1193,6 +1193,7 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     user_id: Schema.Attribute.String;
+    view_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
   };
 }
 

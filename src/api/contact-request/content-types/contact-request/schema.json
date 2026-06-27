@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "contact_requests",
+  "info": {
+    "singularName": "contact-request",
+    "pluralName": "contact-requests",
+    "displayName": "Contact Request"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "requester": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "receiver": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "message": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "accepted", "rejected", "cancelled"],
+      "default": "pending"
+    }
+  }
+}

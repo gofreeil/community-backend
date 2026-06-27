@@ -125,6 +125,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::submitted-ad.submitted-ad.create',
         'api::submitted-ad.submitted-ad.update',
         'api::coordinator-request.coordinator-request.create',
+        // שכונות שהוצעו ע"י תושבים (עם פין על המפה) - יצירה + קריאה
+        'api::neighborhood.neighborhood.create',
+        'api::neighborhood.neighborhood.find',
+        'api::neighborhood.neighborhood.findOne',
         'api::charter-signature.charter-signature.find',
         'api::charter-signature.charter-signature.findOne',
         'api::lost-found-request.lost-found-request.find',

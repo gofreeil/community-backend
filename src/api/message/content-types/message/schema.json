@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "messages",
+  "info": {
+    "singularName": "message",
+    "pluralName": "messages",
+    "displayName": "Message"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "sender": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "receiver": {
+      "type": "relation",
+      "relation": "oneWay",
+      "target": "plugin::users-permissions.user"
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

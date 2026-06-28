@@ -166,6 +166,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // ה-controller שלנו דוחה כל מי שאינו super_admin; ההרשאה כאן רק פותחת את ה-endpoint לטיפול ב-controller
         'api::pg-satisfaction-response.pg-satisfaction-response.update',
         'api::pg-satisfaction-response.pg-satisfaction-response.delete',
+        // לייק/תגובה ציבוריים — כל משתמש מחובר; הזיהוי לפי ctx.state.user ב-controller
+        'api::pg-satisfaction-response.pg-satisfaction-response.toggleLike',
+        'api::pg-satisfaction-response.pg-satisfaction-response.addReply',
     ],
 };
 

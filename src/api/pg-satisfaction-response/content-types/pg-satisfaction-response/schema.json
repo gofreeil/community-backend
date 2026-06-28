@@ -56,6 +56,16 @@
     },
     "admin_reply": {
       "type": "text"
+    },
+    "likes": {
+      "type": "integer",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "json"
+    },
+    "replies": {
+      "type": "json"
     }
   }
 }

@@ -10,8 +10,8 @@ const config: Core.Config.Middlewares = [
         useDefaults: true,
         directives: {
           'connect-src': ["'self'", 'https:'],
-          'img-src': ["'self'", 'data:', 'blob:', 'https://community-il.duckdns.org'],
-          'media-src': ["'self'", 'data:', 'blob:', 'https://community-il.duckdns.org'],
+          'img-src': ["'self'", 'data:', 'blob:', 'https://api.gofreeil.com'],
+          'media-src': ["'self'", 'data:', 'blob:', 'https://api.gofreeil.com'],
           upgradeInsecureRequests: null,
         },
       },

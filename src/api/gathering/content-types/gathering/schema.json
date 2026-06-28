@@ -15,6 +15,7 @@
     "location":     { "type": "string" },
     "description":  { "type": "text" },
     "host_name":    { "type": "string" },
+    "image":        { "type": "text" },
     "icon":         { "type": "string", "default": "🍽️" },
     "color":        { "type": "string", "default": "amber" },
     "city":         { "type": "string" },

@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "gatherings",
+  "info": {
+    "singularName": "gathering",
+    "pluralName": "gatherings",
+    "displayName": "Gathering"
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {},
+  "attributes": {
+    "title":        { "type": "string", "required": true },
+    "date":         { "type": "date",   "required": true },
+    "time":         { "type": "string" },
+    "location":     { "type": "string" },
+    "description":  { "type": "text" },
+    "host_name":    { "type": "string" },
+    "icon":         { "type": "string", "default": "🍽️" },
+    "color":        { "type": "string", "default": "amber" },
+    "city":         { "type": "string" },
+    "neighborhood": { "type": "string" },
+    "creator_id":   { "type": "string" },
+    "manager_ids":  { "type": "json" },
+    "food_items":   { "type": "json" },
+    "attendees":    { "type": "json" },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "approved"
+    }
+  }
+}

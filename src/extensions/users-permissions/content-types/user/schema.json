@@ -133,6 +133,9 @@
     "coordinator_of": {
       "type": "json",
       "default": []
+    },
+    "totp_secret": {
+      "type": "string"
     }
   }
 }

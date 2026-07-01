@@ -14,6 +14,7 @@
     "time":          { "type": "string" },
     "location":      { "type": "string" },
     "icon":          { "type": "string",  "default": "📅" },
+    "image":         { "type": "text" },
     "color":         { "type": "string",  "default": "blue" },
     "neighborhood":  { "type": "string" },
     "city":          { "type": "string" },

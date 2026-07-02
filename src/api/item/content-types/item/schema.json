@@ -40,7 +40,10 @@
         "lost_and_found",
         "message",
         "raise_hand",
-        "user_feedback"
+        "user_feedback",
+        "halls",
+        "nc_marketplace",
+        "nc_engagement"
       ]
     },
     "contact": {

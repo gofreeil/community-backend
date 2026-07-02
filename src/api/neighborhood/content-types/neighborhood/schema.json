@@ -31,6 +31,12 @@
     "user_id": {
       "type": "string"
     },
+    "requester_name": {
+      "type": "string"
+    },
+    "requester_phone": {
+      "type": "string"
+    },
     "status": {
       "type": "enumeration",
       "enum": ["pending", "approved", "rejected"],

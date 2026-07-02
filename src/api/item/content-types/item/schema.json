@@ -18,33 +18,7 @@
       "type": "text"
     },
     "category": {
-      "type": "enumeration",
-      "enum": [
-        "gemachim",
-        "giveaway",
-        "business",
-        "minyanim",
-        "education",
-        "realestate",
-        "security",
-        "shops",
-        "restaurants",
-        "rides",
-        "jobs",
-        "singles",
-        "events",
-        "for_kids",
-        "attractions",
-        "safe-space",
-        "category ",
-        "lost_and_found",
-        "message",
-        "raise_hand",
-        "user_feedback",
-        "halls",
-        "nc_marketplace",
-        "nc_engagement"
-      ]
+      "type": "string"
     },
     "contact": {
       "type": "string"

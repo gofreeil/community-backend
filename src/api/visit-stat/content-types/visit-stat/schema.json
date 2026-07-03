@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "visit_stats",
+  "info": {
+    "singularName": "visit-stat",
+    "pluralName": "visit-stats",
+    "displayName": "Visit Stat"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "month": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "count": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

@@ -9,7 +9,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Server =>
   app: {
     keys: env.array('APP_KEYS'),
   },
-  // משימות מתוזמנות - מחיקת הודעות מעל 60 יום (ראה config/cron-tasks.ts)
+  // משימות מתוזמנות - ניקוי הודעות: 100 אחרונות/3 חודשים, ארכיון לנצח (ראה config/cron-tasks.ts)
   cron: {
     enabled: true,
     tasks: cronTasks,

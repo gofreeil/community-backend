@@ -5,7 +5,7 @@
     "singularName": "ch-charter-signature",
     "pluralName": "ch-charter-signatures",
     "displayName": "Chachmei · Charter Signature",
-    "description": "חתימות על אמנת UECC של חכמי העדה — שם, עסק, תפקיד, עיר, פרטי קשר. שדות מולמדים מאוחסנים כ-JSON (he/en/ru)."
+    "description": "חתימות על אמנת UECC של חכמי העדה — שם, עסק, תפקיד, עיר, פרטי קשר."
   },
   "options": {
     "draftAndPublish": false
@@ -13,17 +13,17 @@
   "pluginOptions": {},
   "attributes": {
     "name": {
-      "type": "json",
+      "type": "string",
       "required": true
     },
     "businessName": {
-      "type": "json"
+      "type": "string"
     },
     "role": {
-      "type": "json"
+      "type": "string"
     },
     "city": {
-      "type": "json"
+      "type": "string"
     },
     "email": {
       "type": "string",
@@ -52,10 +52,10 @@
       "required": true
     },
     "disqualifiedReason": {
-      "type": "json"
+      "type": "text"
     },
     "disqualifiedBy": {
-      "type": "json"
+      "type": "string"
     },
     "disqualifiedDate": {
       "type": "date"

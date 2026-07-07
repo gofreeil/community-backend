@@ -24,6 +24,13 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     },
     'users-permissions': {
         config: {
+            // תוקף ה-JWT: שנה (במקום ברירת המחדל 30 יום). ה-session בקהילה חי שנה,
+            // אז זו התקרה הטבעית — מעבר לכך ה-session עצמו מכריח התחברות מחדש שממילא
+            // מנפיקה טוקן חדש. מקטין דרמטית את תדירות פג-התוקף (משנתי במקום חודשי).
+            // בכל מקרה ה-jwt callback בפרונט מרענן טוקן פג לבד, אז זה שכבת הגנה נוספת.
+            jwt: {
+                expiresIn: '365d',
+            },
             // עוקפים את ה-default callback validator (שדורש origin+pathname זהים ל-provider.callback)
             // אצלנו provider.callback הוא path של ה-backend, וה-frontend callback הוא URL שונה לחלוטין.
             callback: {

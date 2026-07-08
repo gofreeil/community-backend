@@ -19,7 +19,17 @@ function currentMonth(): string {
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const toGb = (bytes: number) => round1(bytes / 1024 / 1024 / 1024);
-const utilToScore = (util: number) => clamp(Math.round(util / 10), 1, 10) || 1;
+
+// המרת "אחוז ניצולת גולמי" (0-100) ל"עומס" מכויל (0-100) בעקומה מציאותית:
+// עד 70% נוח (0-50), 70-85% התחל לעקוב (50-70), 85-95% גבוה (70-90), 95%+ קריטי.
+// כך 66% זיכרון יוצא ~5/10 (בינוני) ולא 7/10, ורק רוויה אמיתית מגיעה ל-8-10.
+const loadFromUtil = (u: number) => {
+    if (u <= 70) return (u / 70) * 50;
+    if (u <= 85) return 50 + ((u - 70) / 15) * 20;
+    if (u <= 95) return 70 + ((u - 85) / 10) * 20;
+    return 90 + ((u - 95) / 5) * 10;
+};
+const scoreFromLoad = (load: number) => clamp(Math.round(load / 10), 1, 10) || 1;
 
 // זיכרון אמיתי בשימוש: MemTotal - MemAvailable (MemAvailable מנטרל cache/buffers
 // שמשתחררים בלחץ — הלחץ האמיתי, בניגוד ל-os.freemem שמדווח MemFree).
@@ -97,23 +107,29 @@ export default factories.createCoreController(UID, () => ({
         const latency = await readDbLatencyMs();
         const respUtil = latency == null ? 0 : clamp((latency / 300) * 100, 0, 100);
 
+        // "עומס" מכויל לכל מדד (0-100) + ציון 1-10. util = ניצולת גולמית (לתצוגה).
+        const cpuLoad  = loadFromUtil(cpuUtil);
+        const ramLoad  = loadFromUtil(ramUtil);
+        const diskLoad = disk ? loadFromUtil(diskUtil) : 0;
+        const respLoad = latency == null ? 0 : loadFromUtil(respUtil);
+
         const metrics = {
             cpu: {
-                score: utilToScore(cpuUtil), util: Math.round(cpuUtil),
+                score: scoreFromLoad(cpuLoad), load: Math.round(cpuLoad), util: Math.round(cpuUtil),
                 load1: round1(load1), load5: round1(load[1] ?? 0), load15: round1(load[2] ?? 0),
                 cores, ratio: round1(cpuRatio),
             },
             ram: {
-                score: utilToScore(ramUtil), util: Math.round(ramUtil),
+                score: scoreFromLoad(ramLoad), load: Math.round(ramLoad), util: Math.round(ramUtil),
                 usedGb: toGb(mem.used), totalGb: toGb(mem.total),
             },
             disk: disk ? {
-                score: utilToScore(diskUtil), util: Math.round(diskUtil),
+                score: scoreFromLoad(diskLoad), load: Math.round(diskLoad), util: Math.round(diskUtil),
                 usedGb: toGb(disk.used), totalGb: toGb(disk.total),
             } : null,
             response: {
-                score: latency == null ? 1 : utilToScore(respUtil), util: Math.round(respUtil),
-                latencyMs: latency == null ? null : round1(latency),
+                score: latency == null ? 1 : scoreFromLoad(respLoad), load: Math.round(respLoad),
+                util: Math.round(respUtil), latencyMs: latency == null ? null : round1(latency),
             },
         };
 
@@ -124,9 +140,10 @@ export default factories.createCoreController(UID, () => ({
             ...(disk ? [{ key: 'disk', label: 'דיסק', util: diskUtil }] : []),
             { key: 'response', label: 'זמן תגובה', util: respUtil },
         ];
-        const bottleneck = parts.reduce((a, b) => (b.util > a.util ? b : a));
+        const bottleneck  = parts.reduce((a, b) => (b.util > a.util ? b : a));
         const overallUtil = bottleneck.util;
-        const score = utilToScore(overallUtil);
+        const overallLoad = loadFromUtil(overallUtil);
+        const score       = scoreFromLoad(overallLoad);
         const status =
             score >= 9 ? 'critical' :
             score >= 7 ? 'high' :
@@ -136,6 +153,7 @@ export default factories.createCoreController(UID, () => ({
             ok: true,
             timestamp: new Date().toISOString(),
             score,
+            load: Math.round(overallLoad),
             util: Math.round(overallUtil),
             status,
             bottleneck: { key: bottleneck.key, label: bottleneck.label },

@@ -169,6 +169,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // לייק/תגובה ציבוריים — כל משתמש מחובר; הזיהוי לפי ctx.state.user ב-controller
         'api::pg-satisfaction-response.pg-satisfaction-response.toggleLike',
         'api::pg-satisfaction-response.pg-satisfaction-response.addReply',
+        // חתימות אמנת חכמי העדה — "החתימה שלי" + עריכה עצמית; אכיפת בעלות/תפקיד ב-controller
+        'api::ch-charter-signature.ch-charter-signature.mine',
+        'api::ch-charter-signature.ch-charter-signature.selfUpdate',
     ],
 };
 

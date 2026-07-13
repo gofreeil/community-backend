@@ -136,6 +136,10 @@
     },
     "totp_secret": {
       "type": "string"
+    },
+    "tier_prompted": {
+      "type": "json",
+      "default": []
     }
   }
 }

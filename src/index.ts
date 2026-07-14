@@ -118,6 +118,15 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::ch-news-item.ch-news-item.find',
         'api::ch-news-item.ch-news-item.findOne',
         'api::ch-home-config.ch-home-config.find',
+        // אינדקס בעלי המקצוע (index.gofreeil.com) — collection מבודד (idx-), קריאה ציבורית
+        // + מוני צפייה/חשיפת-טלפון אטומיים (custom). יצירה אינה ציבורית — עוברת דרך
+        // שרת האתר עם STRAPI_TOKEN (anti-spam) או דרך JWT של משתמש מחובר.
+        'api::idx-business.idx-business.find',
+        'api::idx-business.idx-business.findOne',
+        'api::idx-business.idx-business.view',
+        'api::idx-business.idx-business.revealPhone',
+        'api::idx-review.idx-review.find',
+        'api::idx-review.idx-review.findOne',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -184,6 +193,20 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // חתימות אמנת חכמי העדה — "החתימה שלי" + עריכה עצמית; אכיפת בעלות/תפקיד ב-controller
         'api::ch-charter-signature.ch-charter-signature.mine',
         'api::ch-charter-signature.ch-charter-signature.selfUpdate',
+        // אינדקס בעלי המקצוע — CRUD ב-collection המבודד; בעלות/מודרציה נאכפים ב-controller
+        'api::idx-business.idx-business.find',
+        'api::idx-business.idx-business.findOne',
+        'api::idx-business.idx-business.create',
+        'api::idx-business.idx-business.update',
+        'api::idx-business.idx-business.delete',
+        'api::idx-business.idx-business.mine',
+        'api::idx-business.idx-business.view',
+        'api::idx-business.idx-business.revealPhone',
+        'api::idx-review.idx-review.find',
+        'api::idx-review.idx-review.findOne',
+        'api::idx-review.idx-review.create',
+        'api::idx-review.idx-review.update',
+        'api::idx-review.idx-review.delete',
         // ניהול אדמיני תוכן ע"י סופר-אדמין; אכיפת תפקיד ב-controller
         'plugin::users-permissions.user.chAdminList',
         'plugin::users-permissions.user.chAdminSetRole',

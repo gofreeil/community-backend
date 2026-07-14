@@ -25,6 +25,7 @@ const config: Core.Config.Middlewares = [
         'http://localhost:4173',
         'http://localhost:5174',
         'http://localhost:5175',
+        'http://localhost:5555',
         // Domain אחיד — gofreeil.com (apex) + סאב-דומיינים מפורשים
         'https://gofreeil.com',
         'https://chachmim.gofreeil.com',

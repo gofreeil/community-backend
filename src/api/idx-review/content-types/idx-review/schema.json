@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "idx_reviews",
+  "info": {
+    "singularName": "idx-review",
+    "pluralName": "idx-reviews",
+    "displayName": "Index · Review",
+    "description": "ביקורות/דירוגים על עסקים באינדקס (index.gofreeil.com). מבודד לאתר הזה בלבד."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "business": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::idx-business.idx-business"
+    },
+    "business_slug": { "type": "string" },
+    "rating": { "type": "integer", "min": 1, "max": 5, "required": true },
+    "title": { "type": "string" },
+    "body": { "type": "text" },
+    "author_name": { "type": "string" },
+    "author_city": { "type": "string" },
+    "user_id": { "type": "string" },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "admin_reply": { "type": "text" },
+    "is_featured": { "type": "boolean", "default": false },
+    "submitted_at": { "type": "datetime" }
+  }
+}

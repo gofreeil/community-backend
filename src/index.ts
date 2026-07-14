@@ -172,6 +172,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // חתימות אמנת חכמי העדה — "החתימה שלי" + עריכה עצמית; אכיפת בעלות/תפקיד ב-controller
         'api::ch-charter-signature.ch-charter-signature.mine',
         'api::ch-charter-signature.ch-charter-signature.selfUpdate',
+        // ניהול אדמיני תוכן ע"י סופר-אדמין; אכיפת תפקיד ב-controller
+        'plugin::users-permissions.user.chAdminList',
+        'plugin::users-permissions.user.chAdminSetRole',
     ],
 };
 
@@ -308,6 +311,10 @@ async function ensurePermissions(strapi: Core.Strapi) {
         for (const action of PERMISSIONS.authenticated) if (await grant(authRole.id,   action)) added++;
         if (chachmeiRole) {
             for (const action of CHACHMEI_EDITOR_PERMISSIONS) if (await grant(chachmeiRole.id, action)) added++;
+            // עורך תוכן משתמש באותו חשבון בכל אתרי gofreeil (SSO משותף) — ה-role חייב
+            // להיות סופרסט של authenticated, אחרת מינוי לאדמין ישבור לו את שאר האתרים
+            for (const action of PERMISSIONS.public)        if (await grant(chachmeiRole.id, action)) added++;
+            for (const action of PERMISSIONS.authenticated) if (await grant(chachmeiRole.id, action)) added++;
         }
 
         let removed = 0;

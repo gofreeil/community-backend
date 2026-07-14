@@ -16,6 +16,14 @@ function isPrivileged(user: any): boolean {
   return ['super_admin', 'idx_admin', 'ch_admin'].includes(user.app_role);
 }
 
+// אמון: משתמש מורשה, או קריאת שרת-לשרת עם API Token (STRAPI_TOKEN) — הפרונט של
+// index משתמש בטוקן לכל הכתיבות/הקריאות המנהליות (shim, ייבוא, מודרציה). קריאות
+// ציבוריות מהדפדפן (role public, בלי טוקן) אינן trusted → רואות רק approved.
+function isTrusted(ctx: any): boolean {
+  if (ctx?.state?.auth?.strategy?.name === 'api-token') return true;
+  return isPrivileged(ctx?.state?.user);
+}
+
 function owns(user: any, entry: any): boolean {
   if (!user) return false;
   const uid = String(user.id);
@@ -26,7 +34,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   // ציבורי/רגיל רואה רק approved; מנהל רואה הכל. משתמשים ב-$and כדי שלא ניתן
   // לעקוף את סינון הסטטוס דרך filters מהלקוח.
   async find(ctx) {
-    if (!isPrivileged(ctx.state?.user)) {
+    if (!isTrusted(ctx)) {
       const clientFilters = (ctx.query?.filters as object) ?? {};
       ctx.query = {
         ...ctx.query,
@@ -39,47 +47,44 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   async findOne(ctx) {
     const res = await super.findOne(ctx);
     const data: any = (res as any)?.data;
-    if (
-      data &&
-      data.status !== 'approved' &&
-      !isPrivileged(ctx.state?.user) &&
-      !owns(ctx.state?.user, data)
-    ) {
+    if (data && data.status !== 'approved' && !isTrusted(ctx) && !owns(ctx.state?.user, data)) {
       return ctx.notFound();
     }
     return res;
   },
 
-  // הגשה: כופים pending ומנקים שדות-מערכת שאסור ללקוח לקבוע. מצרפים בעלים אם מחובר.
+  // הגשה: משתמש-קצה (JWT) נכפה ל-pending ושדות-מערכת מאופסים. שרת מהימן (API Token)
+  // — למשל סקריפט הייבוא — רשאי לקבוע status (ברירת מחדל pending אם לא נשלח).
   async create(ctx) {
     const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
     const user = ctx.state?.user;
+    const trusted = isTrusted(ctx);
     ctx.request.body = {
       data: {
         ...body,
-        status: 'pending',
-        view_count: 0,
-        phone_reveal_count: 0,
-        rating_avg: 0,
-        rating_count: 0,
-        user: user?.id ?? (body.user as unknown) ?? null,
-        user_id: user ? String(user.id) : ((body.user_id as string) ?? null),
+        status: trusted ? ((body.status as string) ?? 'pending') : 'pending',
+        ...(trusted
+          ? {}
+          : { view_count: 0, phone_reveal_count: 0, rating_avg: 0, rating_count: 0 }),
+        user: (body.user as unknown) ?? user?.id ?? null,
+        user_id: (body.user_id as string) ?? (user ? String(user.id) : null),
       },
     };
     return super.create(ctx);
   },
 
-  // עריכה: בעל העסק או מנהל בלבד. בעלים אינו יכול לשנות status בעצמו.
+  // עריכה: שרת מהימן / מנהל / בעל העסק. בעלים (לא-מהימן) אינו יכול לשנות status/מונים.
   async update(ctx) {
+    const trusted = isTrusted(ctx);
     const user = ctx.state?.user;
-    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    if (!trusted && !user) return ctx.unauthorized('נדרשת התחברות');
     const { documentId } = ctx.params;
     const entry = await strapi.documents(UID).findOne({ documentId, populate: ['user'] });
     if (!entry) return ctx.notFound();
-    if (!isPrivileged(user) && !owns(user, entry)) return ctx.forbidden('אין הרשאה לערוך עסק זה');
+    if (!trusted && !owns(user, entry)) return ctx.forbidden('אין הרשאה לערוך עסק זה');
 
     const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
-    if (!isPrivileged(user)) {
+    if (!trusted) {
       delete (body as any).status;
       delete (body as any).rating_avg;
       delete (body as any).rating_count;
@@ -93,7 +98,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   async delete(ctx) {
-    if (!isPrivileged(ctx.state?.user)) return ctx.forbidden('רק מנהל רשאי למחוק');
+    if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי למחוק');
     return super.delete(ctx);
   },
 

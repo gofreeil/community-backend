@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "idx_reports",
+  "info": {
+    "singularName": "idx-report",
+    "pluralName": "idx-reports",
+    "displayName": "Index · Report",
+    "description": "דיווחים על עסקים המפרים את מדיניות הקהילה (index.gofreeil.com). גישה דרך STRAPI_TOKEN בלבד — לא ציבורי."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "business_name": { "type": "string" },
+    "business": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::idx-business.idx-business"
+    },
+    "business_slug": { "type": "string" },
+    "reason": {
+      "type": "enumeration",
+      "enum": ["no_discount", "cash_refused", "ethics", "other"],
+      "default": "other"
+    },
+    "details": { "type": "text" },
+    "reporter_name": { "type": "string" },
+    "reporter_contact": { "type": "string", "private": true },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "reviewing", "resolved", "dismissed"],
+      "default": "pending",
+      "required": true
+    },
+    "source": { "type": "string" }
+  }
+}

@@ -31,6 +31,17 @@ const loadFromUtil = (u: number) => {
 };
 const scoreFromLoad = (load: number) => clamp(Math.round(load / 10), 1, 10) || 1;
 
+// השהיית DB → ניצולת (0-100), בסולם לוגריתמי: השהיה מתנהגת כפול-פי-כמה ולא כפלוס-כמה.
+// 5ms בריא (0%), 500ms רוויה (100%), וביניהם 16ms≈25%, 50ms≈50%, 160ms≈75%.
+// הסולם הליניארי הקודם (latency/300) קפץ ל-100% מכל ערך מעל 300ms ולא הבחין בין
+// 301ms לחמש שניות — כל בליפ בודד של ה-DB הספיק כדי למקסם אותו.
+const RESP_GOOD_MS = 5;
+const RESP_SAT_MS = 500;
+const RESP_ALERT_MS = 150;  // מעליו ה-DB איטי באמת → דגל התרעה נפרד (responseAlert)
+const utilFromLatency = (ms: number) =>
+    ms <= RESP_GOOD_MS ? 0
+        : clamp((Math.log(ms / RESP_GOOD_MS) / Math.log(RESP_SAT_MS / RESP_GOOD_MS)) * 100, 0, 100);
+
 // זיכרון אמיתי בשימוש: MemTotal - MemAvailable (MemAvailable מנטרל cache/buffers
 // שמשתחררים בלחץ — הלחץ האמיתי, בניגוד ל-os.freemem שמדווח MemFree).
 async function readMem(): Promise<{ total: number; used: number }> {
@@ -61,14 +72,24 @@ async function readDisk(): Promise<{ total: number; used: number } | null> {
     }
 }
 
+// חציון של 3 דגימות, אחרי דגימת חימום שלא נספרת (הקריאה הראשונה משלמת גם על
+// רכישת חיבור מהבריכה). מדידה בודדת רגישה מדי: השהיית GC אחת או החלפת-הקשר
+// אקראית מספיקות כדי להקפיץ SELECT 1 לחצי שנייה, ואז מדד רגעי חסר-משמעות
+// היה צובע את כל הלוח באדום.
 async function readDbLatencyMs(): Promise<number | null> {
+    const samples: number[] = [];
     try {
-        const start = performance.now();
-        await (strapi as any).db.connection.raw('SELECT 1');
-        return performance.now() - start;
+        await (strapi as any).db.connection.raw('SELECT 1');   // חימום — לא נספר
+        for (let i = 0; i < 3; i++) {
+            const start = performance.now();
+            await (strapi as any).db.connection.raw('SELECT 1');
+            samples.push(performance.now() - start);
+        }
     } catch {
         return null;
     }
+    samples.sort((a, b) => a - b);
+    return samples[Math.floor(samples.length / 2)];
 }
 
 export default factories.createCoreController(UID, () => ({
@@ -103,9 +124,9 @@ export default factories.createCoreController(UID, () => ({
         const disk = await readDisk();
         const diskUtil = disk && disk.total ? clamp((disk.used / disk.total) * 100, 0, 100) : 0;
 
-        // זמן תגובה (DB): בריא < ~10ms; 300ms נחשב רוויה
+        // זמן תגובה (DB) — חציון דגימות, בסולם לוגריתמי (ראה utilFromLatency)
         const latency = await readDbLatencyMs();
-        const respUtil = latency == null ? 0 : clamp((latency / 300) * 100, 0, 100);
+        const respUtil = latency == null ? 0 : utilFromLatency(latency);
 
         // "עומס" מכויל לכל מדד (0-100) + ציון 1-10. util = ניצולת גולמית (לתצוגה).
         const cpuLoad  = loadFromUtil(cpuUtil);
@@ -133,12 +154,17 @@ export default factories.createCoreController(UID, () => ({
             },
         };
 
-        // ציון עומס כולל = לפי המשאב הצפוף ביותר (צוואר הבקבוק) — הוא שקובע מתי לשדרג
+        // ציון העומס הכולל נגזר מהמשאבים בלבד — מעבד/זיכרון/דיסק. הם מה שקונים
+        // כששדרגים, ולכן הצפוף שבהם (צוואר הבקבוק) הוא שקובע מתי לשדרג.
+        // זמן התגובה *אינו* משאב אלא סימפטום: SELECT 1 לא נוגע בטבלה ולא קורא מהדיסק,
+        // ואם הוא לוקח חצי שנייה זה כמעט תמיד מפני שמשאב אחר חנוק. כשהוא השתתף כאן
+        // כ"משאב רביעי" הוא גנב מהמשאבים את הכותרת: הלוח הכריז "צוואר הבקבוק: זמן
+        // תגובה" במקום להצביע על המעבד — ומכיוון שהציון הוא max, בליפ יחיד של ה-DB
+        // נעל את כל הלוח על 10/10. הוא נשאר מד לכל דבר ומקבל דגל התרעה משלו (למטה).
         const parts = [
             { key: 'cpu', label: 'מעבד', util: cpuUtil },
             { key: 'ram', label: 'זיכרון', util: ramUtil },
             ...(disk ? [{ key: 'disk', label: 'דיסק', util: diskUtil }] : []),
-            { key: 'response', label: 'זמן תגובה', util: respUtil },
         ];
         const bottleneck  = parts.reduce((a, b) => (b.util > a.util ? b : a));
         const overallUtil = bottleneck.util;
@@ -149,6 +175,11 @@ export default factories.createCoreController(UID, () => ({
             score >= 7 ? 'high' :
             score >= 5 ? 'moderate' : 'healthy';
 
+        // דגל עצמאי: הדאטהבייס איטי. עומד בפני עצמו כדי ששרת עם משאבים פנויים אבל
+        // DB שזוחל (נעילות, המתנה ל-I/O, DB מרוחק) לא ידווח "נושם בנוחות" — מצב
+        // שהחישוב הישן היה מכסה עליו רק אחרי שנחשוף אותו מה-max.
+        const responseAlert = latency != null && latency >= RESP_ALERT_MS;
+
         ctx.body = {
             ok: true,
             timestamp: new Date().toISOString(),
@@ -157,6 +188,7 @@ export default factories.createCoreController(UID, () => ({
             util: Math.round(overallUtil),
             status,
             bottleneck: { key: bottleneck.key, label: bottleneck.label },
+            responseAlert,
             metrics,
             uptimeSec: Math.round(os.uptime()),
             hostname: os.hostname(),

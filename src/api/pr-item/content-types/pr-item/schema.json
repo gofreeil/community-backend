@@ -1,0 +1,84 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pr_items",
+  "info": {
+    "singularName": "pr-item",
+    "pluralName": "pr-items",
+    "displayName": "Public-Rating · Item",
+    "description": "פריטי אתר הדירוג הציבורי (public-rating-il) — מדורגים/גורמים ציבוריים. מבנה זהה ל-Item, מבודד לאתר הזה בלבד."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "text"
+    },
+    "description": {
+      "type": "text"
+    },
+    "category": {
+      "type": "string"
+    },
+    "contact": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "neighborhood": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "float"
+    },
+    "lng": {
+      "type": "float"
+    },
+    "extra_fields": {
+      "type": "json"
+    },
+    "status1": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "inactive",
+        "deleted",
+        "resolved",
+        "pending",
+        "rejected",
+        "frozen"
+      ]
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "view_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "user_status": {
+      "type": "enumeration",
+      "enum": ["available", "not_available", "in_relationship", "taking_break"],
+      "default": "available"
+    }
+  }
+}

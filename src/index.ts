@@ -83,6 +83,11 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::revenue-config.revenue-config.find',
         'api::item.item.find',
         'api::item.item.findOne',
+        // אתר הדירוג הציבורי — מוצר נפרד לגמרי, collection מבודד משלו.
+        // (שאר האתרים — גמ"ח ארצי/אבידות/בעלי מקצוע/שידוכין — חולקים את item
+        //  עם "קהילה בשכונה" בכוונה, לצורך סנכרון דו-כיווני של פריטים.)
+        'api::pr-item.pr-item.find',
+        'api::pr-item.pr-item.findOne',
         // חתימת אמנה אנונימית - יצירה בלבד (אין find ציבורי)
         'api::charter-signature.charter-signature.create',
         // Purchasing-Groups - תוכן ציבורי לקריאה
@@ -122,6 +127,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::item.item.create',
         'api::item.item.update',
         'api::item.item.delete',
+        // אתר הדירוג הציבורי — CRUD ב-collection המבודד שלו
+        'api::pr-item.pr-item.create',
+        'api::pr-item.pr-item.update',
+        'api::pr-item.pr-item.delete',
         'api::submitted-ad.submitted-ad.create',
         'api::submitted-ad.submitted-ad.update',
         'api::coordinator-request.coordinator-request.create',
@@ -157,6 +166,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::revenue-config.revenue-config.find',
         'api::item.item.find',
         'api::item.item.findOne',
+        // אתר הדירוג הציבורי — קריאה ב-collection המבודד גם כשמחוברים
+        'api::pr-item.pr-item.find',
+        'api::pr-item.pr-item.findOne',
         // Purchasing-Groups
         'api::pg-campaign.pg-campaign.find',
         'api::pg-campaign.pg-campaign.findOne',

@@ -80,7 +80,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי לעדכן ביקורות');
     const res = await super.update(ctx);
     const { documentId } = ctx.params;
-    const rev: any = await strapi.documents(UID).findOne({ documentId, populate: ['business'] });
+    const rev: any = await strapi.db
+      .query(UID)
+      .findOne({ where: { document_id: documentId }, populate: ['business'] });
     if (rev?.business?.id) await recomputeRating(strapi, rev.business.id);
     return res;
   },
@@ -88,7 +90,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   async delete(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי למחוק');
     const { documentId } = ctx.params;
-    const rev: any = await strapi.documents(UID).findOne({ documentId, populate: ['business'] });
+    const rev: any = await strapi.db
+      .query(UID)
+      .findOne({ where: { document_id: documentId }, populate: ['business'] });
     const bizId = rev?.business?.id;
     const res = await super.delete(ctx);
     if (bizId) await recomputeRating(strapi, bizId);

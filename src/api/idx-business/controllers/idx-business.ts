@@ -74,17 +74,22 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   // עריכה: שרת מהימן / מנהל / בעל העסק. בעלים (לא-מהימן) אינו יכול לשנות status/מונים.
+  // שרת מהימן עובר ישר ל-core update (מוצא לפי documentId). בעלים — בדיקת בעלות
+  // עם strapi.db.query (אמין; documents().findOne+populate החזיר null בגרסה זו).
   async update(ctx) {
     const trusted = isTrusted(ctx);
-    const user = ctx.state?.user;
-    if (!trusted && !user) return ctx.unauthorized('נדרשת התחברות');
-    const { documentId } = ctx.params;
-    const entry = await strapi.documents(UID).findOne({ documentId, populate: ['user'] });
-    if (!entry) return ctx.notFound();
-    if (!trusted && !owns(user, entry)) return ctx.forbidden('אין הרשאה לערוך עסק זה');
-
-    const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
     if (!trusted) {
+      const user = ctx.state?.user;
+      if (!user) return ctx.unauthorized('נדרשת התחברות');
+      const { documentId } = ctx.params;
+      const entry = await strapi.db.query(UID).findOne({
+        where: { document_id: documentId },
+        populate: ['user'],
+      });
+      if (!entry) return ctx.notFound();
+      if (!owns(user, entry)) return ctx.forbidden('אין הרשאה לערוך עסק זה');
+
+      const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
       delete (body as any).status;
       delete (body as any).rating_avg;
       delete (body as any).rating_count;
@@ -92,8 +97,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       delete (body as any).phone_reveal_count;
       delete (body as any).user;
       delete (body as any).user_id;
+      ctx.request.body = { data: body };
     }
-    ctx.request.body = { data: body };
     return super.update(ctx);
   },
 

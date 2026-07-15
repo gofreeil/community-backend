@@ -93,6 +93,45 @@ export default (plugin: any) => {
         };
     };
 
+    // GET /api/ch-users?q=<חיפוש> — רשימת כל הרשומים לאתר (סופר-אדמין בלבד).
+    // מיועד לפאנל הניהול: תצוגה קומפקטית של המשתמשים + מינוי אדמין ישיר מהרשימה.
+    // המשתמשים משותפים לכל אתרי gofreeil (אין שדה שיוך-לאתר), לכן זו רשימת כל הרשומים.
+    plugin.controllers.user.chUserList = async (ctx: any) => {
+        if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
+        const q = String(ctx.query?.q ?? '').trim();
+        const where: any = q
+            ? {
+                  $or: [
+                      { email: { $containsi: q } },
+                      { username: { $containsi: q } },
+                      { nickname: { $containsi: q } },
+                      { city: { $containsi: q } },
+                      { phone: { $containsi: q } },
+                  ],
+              }
+            : {};
+        const users = await strapi.db.query('plugin::users-permissions.user').findMany({
+            where,
+            limit: 5000,
+            orderBy: { createdAt: 'desc' },
+        });
+        // מחזירים רק שדות בטוחים — לא סיסמאות/טוקנים/שאלות אבטחה
+        ctx.body = {
+            data: users.map((u: any) => ({
+                id: u.id,
+                email: u.email,
+                username: u.username,
+                nickname: u.nickname,
+                city: u.city,
+                phone: u.phone,
+                app_role: u.app_role ?? 'user',
+                confirmed: u.confirmed,
+                blocked: u.blocked,
+                createdAt: u.createdAt,
+            })),
+        };
+    };
+
     // POST /api/ch-admins/set-role { email, role: 'ch_admin' | 'user' } —
     // מינוי/הסרה של אדמין תוכן. סופר-אדמין מוגן משינוי דרך ה-endpoint הזה.
     // המינוי מחליף גם את ה-role של users-permissions ל-chachmei_editor (סופרסט של
@@ -131,6 +170,11 @@ export default (plugin: any) => {
             method: 'GET',
             path: '/ch-admins',
             handler: 'user.chAdminList',
+        },
+        {
+            method: 'GET',
+            path: '/ch-users',
+            handler: 'user.chUserList',
         },
         {
             method: 'POST',

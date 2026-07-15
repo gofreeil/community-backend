@@ -210,6 +210,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // ניהול אדמיני תוכן ע"י סופר-אדמין; אכיפת תפקיד ב-controller
         'plugin::users-permissions.user.chAdminList',
         'plugin::users-permissions.user.chAdminSetRole',
+        // רשימת כל הרשומים לפאנל הניהול; אכיפת סופר-אדמין ב-controller
+        'plugin::users-permissions.user.chUserList',
     ],
 };
 

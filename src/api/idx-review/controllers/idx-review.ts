@@ -5,7 +5,7 @@ import { factories } from '@strapi/strapi';
 // אטומי של הדירוג הממוצע על העסק. הקשר ל-business הוא relation אמיתי (FK) — ביקורת
 // לעולם לא תצביע על עסק לא-קיים או על העסק הלא-נכון.
 const UID = 'api::idx-review.idx-review' as const;
-const BIZ_TABLE = 'idx_businesses';
+const BIZ_UID = 'api::idx-business.idx-business' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 
@@ -22,31 +22,29 @@ function isTrusted(ctx: any): boolean {
   return isPrivileged(ctx?.state?.user);
 }
 
-async function recomputeRating(strapi: any, businessId: number) {
-  // סינון relation ב-Query Engine בצורה מקוננת (business: { id }) — הצורה השטוחה
-  // (business: id) זורקת. select רק rating.
-  const rows: any[] = await strapi.db.query(UID).findMany({
-    where: { business: { id: businessId }, status: 'approved' },
-    select: ['rating'],
-  });
-  const count = rows.length;
-  const avg = count ? rows.reduce((s, r) => s + Number(r.rating || 0), 0) / count : 0;
-  await strapi.db
-    .connection(BIZ_TABLE)
-    .where({ id: businessId })
-    .update({ rating_avg: Math.round(avg * 100) / 100, rating_count: count });
+// documentId של העסק המקושר לביקורת (דרך Document Service, populate object — הצורה
+// הקנונית ב-Strapi 5).
+async function businessDocIdOfReview(strapi: any, reviewDocumentId: string): Promise<string | null> {
+  const rev: any = await strapi
+    .documents(UID)
+    .findOne({ documentId: reviewDocumentId, populate: { business: true } });
+  return rev?.business?.documentId ?? null;
 }
 
-// מאתר את ה-id המספרי של העסק המקושר לביקורת (לפי documentId של הביקורת).
-async function businessIdOfReview(strapi: any, documentId: string): Promise<number | null> {
-  try {
-    const rev: any = await strapi.db
-      .query(UID)
-      .findOne({ where: { document_id: documentId }, populate: ['business'] });
-    return rev?.business?.id ?? null;
-  } catch {
-    return null;
-  }
+// חישוב-מחדש של דירוג העסק — אותו סינון relation מקונן ש-listReviews משתמש בו
+// בהצלחה (business.documentId + status=approved).
+async function recomputeForBusiness(strapi: any, bizDocId: string) {
+  const approved: any[] = await strapi.documents(UID).findMany({
+    filters: { business: { documentId: bizDocId }, status: 'approved' },
+    fields: ['rating'],
+    pagination: { pageSize: 500 },
+  });
+  const count = approved.length;
+  const avg = count ? approved.reduce((s, r) => s + Number(r.rating || 0), 0) / count : 0;
+  await strapi.documents(BIZ_UID).update({
+    documentId: bizDocId,
+    data: { rating_avg: Math.round(avg * 100) / 100, rating_count: count },
+  });
 }
 
 export default factories.createCoreController(UID, ({ strapi }) => ({
@@ -95,8 +93,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const res = await super.update(ctx);
     // חישוב-הדירוג הוא best-effort — לעולם לא מפיל את פעולת האישור.
     try {
-      const bizId = await businessIdOfReview(strapi, ctx.params.documentId);
-      if (bizId) await recomputeRating(strapi, bizId);
+      const bizDocId = await businessDocIdOfReview(strapi, ctx.params.documentId);
+      if (bizDocId) await recomputeForBusiness(strapi, bizDocId);
     } catch (e: any) {
       strapi.log.warn('[idx-review] recompute after update נכשל: ' + (e?.message ?? e));
     }
@@ -105,10 +103,16 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
 
   async delete(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי למחוק');
-    const bizId = await businessIdOfReview(strapi, ctx.params.documentId);
+    // לאתר את העסק לפני המחיקה (אחרי המחיקה הביקורת כבר לא קיימת).
+    let bizDocId: string | null = null;
+    try {
+      bizDocId = await businessDocIdOfReview(strapi, ctx.params.documentId);
+    } catch {
+      /* best-effort */
+    }
     const res = await super.delete(ctx);
     try {
-      if (bizId) await recomputeRating(strapi, bizId);
+      if (bizDocId) await recomputeForBusiness(strapi, bizDocId);
     } catch (e: any) {
       strapi.log.warn('[idx-review] recompute after delete נכשל: ' + (e?.message ?? e));
     }

@@ -214,26 +214,33 @@ export default (plugin: any) => {
         ctx.body = { ok: true, data: { id: user.id, email: user.email, app_role: role } };
     };
 
+    // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת
+    // קידומת שם-הפלאגין (‎/api/users-permissions/ch-users) במקום ‎/api/ch-users,
+    // והפרונט מקבל 404. כל ה-routes המובנים של users-permissions משתמשים בזה.
     plugin.routes['content-api'].routes.push(
         {
             method: 'GET',
             path: '/ch-admins',
             handler: 'user.chAdminList',
+            config: { prefix: '' },
         },
         {
             method: 'GET',
             path: '/ch-users',
             handler: 'user.chUserList',
+            config: { prefix: '' },
         },
         {
             method: 'POST',
             path: '/ch-users/claim-origin',
             handler: 'user.chClaimOrigin',
+            config: { prefix: '' },
         },
         {
             method: 'POST',
             path: '/ch-admins/set-role',
             handler: 'user.chAdminSetRole',
+            config: { prefix: '' },
         }
     );
 

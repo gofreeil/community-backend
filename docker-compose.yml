@@ -1,9 +1,12 @@
+# ה-image נבנה ב-GitHub Actions ונדחף ל-GHCR (ראה .github/workflows/deploy.yml).
+# אין כאן build: בשום שירות — בכוונה. ה-VPS הוא 2 ליבות שמשרתות את כל האתרים
+# החיים, ובנייה עליו חנקה אותם ל-14 דקות בכל דפלוי. הוא מושך image מוכן בלבד.
+#
+# IMAGE_TAG הוא ה-SHA של הקומיט, ומיוצא ע"י deploy/auto-deploy.sh כדי שהקוד על
+# השרת וה-image יהיו תמיד מאותו קומיט. משיכה ידנית בלי המשתנה תיפול ל-latest.
 services:
   strapi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: community-strapi:latest
+    image: ghcr.io/gofreeil/community-backend:${IMAGE_TAG:-latest}
     container_name: community-strapi
     restart: unless-stopped
     env_file:
@@ -35,8 +38,11 @@ services:
     networks:
       - strapi-net
 
+  # המופע השני. nginx מאזן ביניהם דרך upstream strapi_up (conf.d/strapi_upstream.conf),
+  # וזה מה שמאפשר רולינג-דיפלוי בלי downtime: מחליפים אחד, השני ממשיך לשרת.
+  # שניהם חייבים לרוץ על אותו IMAGE_TAG.
   strapi2:
-    image: community-strapi:latest
+    image: ghcr.io/gofreeil/community-backend:${IMAGE_TAG:-latest}
     container_name: community-strapi2
     restart: unless-stopped
     env_file:

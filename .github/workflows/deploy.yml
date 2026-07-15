@@ -1,25 +1,71 @@
-# ⚠️ Automatic deploys are NOT handled here.
+# בונה את ה-image של Strapi ודוחף אותו ל-GHCR (package ציבורי) בכל דחיפה ל-main.
 #
-# They run via a cron-pull on the VPS itself: /opt/strapi/community-backend/auto-deploy.sh
-# (cron checks origin/main every 5 min and rebuilds the `strapi` service when it changes).
+# למה כאן ולא על ה-VPS: קודם auto-deploy.sh הריץ `docker compose build` על השרת עצמו —
+# 14 דקות של npm ci + strapi build, על שתי הליבות שמשרתות את כל האתרים החיים. בזמן
+# הבנייה העומס טיפס ל-2.8, שאילתת SELECT 1 הגיעה ל-545ms ולוח הבקרה הכריז "עומס
+# קריטי". בין בנייה לבנייה השרת ישב בטלה (עומס 0.05). הבנייה עברה לכאן.
 #
-# Why: the VPS firewall drops inbound SSH from GitHub Actions runner IPs (i/o timeout),
-# so the previous appleboy/ssh-action approach could never connect. The old script also
-# used wrong paths (/opt/community) — the real path is /opt/strapi/community-backend.
-#
-# This workflow is kept disabled (manual dispatch only) so it stops failing on every push.
-name: Deploy to Production (disabled — VPS uses cron-pull, see auto-deploy.sh)
+# ה-VPS לא צריך SSH נכנס — חומת האש חוסמת את טווחי ה-runners של GitHub, וזו הסיבה
+# שה-CI הקודם ננטש. הוא ממשיך למשוך לבד ב-cron, רק שעכשיו הוא מושך image מוכן
+# במקום לבנות אותו. ראה deploy/auto-deploy.sh.
+name: Build & publish image (GHCR)
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
+# דחיפות רצופות ל-main: אין טעם לסיים build שכבר עבר עליו קומיט חדש
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
 jobs:
-  noop:
-    name: Deploys handled on the VPS
+  build:
+    name: Build and push to GHCR
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Explain
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # ה-SHA הוא התג המחייב: auto-deploy.sh מושך לפי הקומיט המדויק, כדי שלא ייווצר
+          # מצב שהקוד על השרת מקומיט אחד וה-image מקומיט אחר. latest הוא לנוחות בלבד
+          # (משיכה ידנית) — הדפלוי אף פעם לא פורס לפיו.
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          # cache בין ריצות — הבנייה הראשונה מלאה, הבאות מהירות בהרבה
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # בלי attestation manifests — הם מסבכים את docker manifest inspect בשרת
+          provenance: false
+
+      - name: Summary
         run: |
-          echo "Automatic deploys run via cron-pull on the VPS (auto-deploy.sh)."
-          echo "To deploy manually: ssh community-vps, then in /opt/strapi/community-backend run:"
-          echo "  git fetch origin && git reset --hard origin/main && docker compose build strapi && docker compose up -d strapi"
+          {
+            echo "### Image published 🚀"
+            echo '```'
+            echo "${{ env.IMAGE }}:${{ github.sha }}"
+            echo '```'
+            echo "ה-VPS ימשוך אותו בטיק ה-cron הבא (עד 5 דקות)."
+          } >> "$GITHUB_STEP_SUMMARY"

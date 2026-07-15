@@ -214,9 +214,11 @@ docker compose down
 # הפעלה מחדש
 docker compose restart strapi
 
-# עדכון קוד מ-git
-git pull
-docker compose up -d --build
+# עדכון ידני (בדרך כלל מיותר — הדפלוי אוטומטי, ראה סעיף 12)
+# שים לב: אין --build. לא בונים על השרת הזה.
+git fetch origin && git reset --hard origin/main
+IMAGE_TAG=$(git rev-parse HEAD) docker compose pull strapi strapi2
+IMAGE_TAG=$(git rev-parse HEAD) docker compose up -d --no-deps --wait strapi strapi2
 
 # לוגים
 docker compose logs -f strapi
@@ -236,4 +238,36 @@ curl http://localhost:1337/_health
 # תגובה תקינה: 204 No Content
 ```
 
-זהו — Strapi רץ עם PostgreSQL מאחורי Nginx + SSL.
+---
+
+## 12. דפלוי אוטומטי — **לא בונים על השרת**
+
+הבנייה קורית ב-GitHub Actions, לא כאן. השרת רק מושך image מוכן.
+
+**למה:** ה-VPS הוא 2 ליבות שמשרתות את כל האתרים החיים. כשהבנייה רצה עליו
+(`docker compose build` = `npm ci` + `strapi build`), היא לקחה **14 דקות** ובמהלכן
+העומס טיפס ל-2.8, `SELECT 1` הגיע ל-545ms והאתרים נחנקו. בין דפלוי לדפלוי השרת יושב
+בטלה (עומס ~0.05). הבנייה הועברה החוצה.
+
+**הזרימה:**
+
+1. דחיפה ל-`main` → `.github/workflows/deploy.yml` בונה ודוחף ל-GHCR:
+   `ghcr.io/gofreeil/community-backend:<sha>` (package ציבורי — אין צורך ב-`docker login`).
+2. cron על השרת, כל 5 דקות, מריץ את `auto-deploy.sh`. הוא מזהה קומיט חדש ב-`origin/main`,
+   **מוודא שה-image של אותו SHA כבר פורסם**, ורק אז מושך ומחליף. אם ה-build עדיין רץ —
+   הוא ממתין לטיק הבא, בלי לגעת בכלום.
+3. ההחלפה היא רולינג: `strapi` ואז `strapi2`, אחד בכל פעם, בזמן ש-nginx
+   (`conf.d/strapi_upstream.conf`) מנתב את התעבורה לשני. בלי downtime.
+
+הפריסה היא תמיד לפי ה-SHA ולא לפי `latest`, כדי שהקוד שעל השרת וה-image שרץ יהיו
+מאותו קומיט בדיוק.
+
+**הסקריפט מנוהל ב-git** (`deploy/auto-deploy.sh`). אחרי שינוי בו, להתקין:
+
+```bash
+sudo install -m 755 deploy/auto-deploy.sh /opt/strapi/community-backend/auto-deploy.sh
+```
+
+מעקב: `tail -f /opt/strapi/community-backend/auto-deploy.log`
+
+זהו — Strapi רץ עם PostgreSQL מאחורי Nginx + SSL, ונבנה מחוץ לשרת.

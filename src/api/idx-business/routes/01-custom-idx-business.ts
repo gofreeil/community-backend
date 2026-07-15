@@ -10,5 +10,10 @@ export default {
       path: '/idx-businesses/:documentId/reveal-phone',
       handler: 'idx-business.revealPhone',
     },
+    {
+      method: 'POST',
+      path: '/idx-businesses/:documentId/recompute-rating',
+      handler: 'idx-business.recomputeRating',
+    },
   ],
 };

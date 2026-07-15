@@ -136,4 +136,27 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     await strapi.db.connection(TABLE).where({ id: row.id }).increment('phone_reveal_count', 1);
     ctx.body = { ok: true, phone: row.phone ?? '' };
   },
+
+  // POST /idx-businesses/:documentId/recompute-rating — חישוב-מחדש של דירוג העסק
+  // מהביקורות המאושרות שלו. הפרונט (מסך המודרציה) קורא לזה עם ה-documentId של העסק
+  // אחרי אישור/דחיית ביקורת. משתמש באותו סינון ש-listReviews עובד איתו (business.
+  // documentId + status=approved) — בלי חיפוש-relation מצד הביקורת (שהחזיר null בגרסה זו).
+  async recomputeRating(ctx) {
+    const { documentId } = ctx.params;
+    const approved: any[] = await strapi.documents('api::idx-review.idx-review').findMany({
+      filters: { business: { documentId }, status: 'approved' },
+      fields: ['rating'],
+      pagination: { pageSize: 500 },
+    });
+    const count = approved.length;
+    const avg = count ? approved.reduce((s, r) => s + Number(r.rating || 0), 0) / count : 0;
+    const rounded = Math.round(avg * 100) / 100;
+    const row = await strapi.db.query(UID).findOne({ where: { document_id: documentId } });
+    if (!row) return ctx.notFound();
+    await strapi.db
+      .connection(TABLE)
+      .where({ id: row.id })
+      .update({ rating_avg: rounded, rating_count: count });
+    ctx.body = { ok: true, rating_avg: rounded, rating_count: count };
+  },
 }));

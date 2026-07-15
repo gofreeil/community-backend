@@ -114,6 +114,9 @@
       "type": "string",
       "default": "user"
     },
+    "registered_site": {
+      "type": "string"
+    },
     "security_question": {
       "type": "string"
     },

@@ -17,6 +17,9 @@ declare const strapi: any;
 // בעלי האתר — רשת ביטחון כמו בפרונט; app_role='super_admin' מוקצה להם ב-bootstrap
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 
+// מפתח האתר לתיוג אתר-ההרשמה (registered_site). משתמש שנרשם דרך חכמי העדה מסומן בו.
+const CH_SITE_KEY = 'chachmei';
+
 function isSuperAdminUser(user: any): boolean {
     if (!user) return false;
     const email = String(user.email ?? '').trim().toLowerCase();
@@ -93,43 +96,89 @@ export default (plugin: any) => {
         };
     };
 
-    // GET /api/ch-users?q=<חיפוש> — רשימת כל הרשומים לאתר (סופר-אדמין בלבד).
-    // מיועד לפאנל הניהול: תצוגה קומפקטית של המשתמשים + מינוי אדמין ישיר מהרשימה.
-    // המשתמשים משותפים לכל אתרי gofreeil (אין שדה שיוך-לאתר), לכן זו רשימת כל הרשומים.
+    // GET /api/ch-users?scope=community|others — רשימת הרשומים לפאנל (סופר-אדמין בלבד).
+    //   scope=community (ברירת מחדל): רק מי ש"שייך" לחכמי העדה — חתם על אמנת המוסר,
+    //     שלח שאלה לשו"ת, הגיש בקשת דיון, או אדמין תוכן/סופר-אדמין. מחזיר גם othersCount.
+    //   scope=others: שאר הרשומים (שהגיעו מאתרי gofreeil אחרים) — נטענים רק בלחיצה.
+    // הערה חשובה: מאגר המשתמשים משותף לכל אתרי gofreeil ואתר-ההרשמה אינו נשמר,
+    //   לכן אי-אפשר לדעת "היכן ההרשמה התחילה". השיוך כאן מבוסס על פעילות בחכמי העדה —
+    //   הפרוקסי הזמין הקרוב ביותר ל"משתמש של האתר הזה".
     plugin.controllers.user.chUserList = async (ctx: any) => {
         if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
-        const q = String(ctx.query?.q ?? '').trim();
-        const where: any = q
-            ? {
-                  $or: [
-                      { email: { $containsi: q } },
-                      { username: { $containsi: q } },
-                      { nickname: { $containsi: q } },
-                      { city: { $containsi: q } },
-                      { phone: { $containsi: q } },
-                  ],
-              }
-            : {};
+        const scope = String(ctx.query?.scope ?? 'community');
+        const norm = (e: any) => String(e ?? '').trim().toLowerCase();
+
+        // אוסף המיילים של מי שביצע פעולה כלשהי בחכמי העדה
+        const memberEmails = new Set<string>();
+        const collect = async (uid: string, field: string) => {
+            const rows = await strapi.db.query(uid).findMany({ limit: 100000 });
+            for (const r of rows) {
+                const e = norm(r[field]);
+                if (e) memberEmails.add(e);
+            }
+        };
+        await collect('api::ch-charter-signature.ch-charter-signature', 'email');
+        await collect('api::ch-question-submission.ch-question-submission', 'askerEmail');
+        await collect('api::ch-hearing-request.ch-hearing-request', 'requesterEmail');
+
         const users = await strapi.db.query('plugin::users-permissions.user').findMany({
-            where,
-            limit: 5000,
+            limit: 20000,
             orderBy: { createdAt: 'desc' },
         });
+        const isMember = (u: any) =>
+            norm(u.registered_site) === CH_SITE_KEY ||
+            memberEmails.has(norm(u.email)) ||
+            u.app_role === 'ch_admin' ||
+            u.app_role === 'super_admin';
+
         // מחזירים רק שדות בטוחים — לא סיסמאות/טוקנים/שאלות אבטחה
+        const safe = (u: any) => ({
+            id: u.id,
+            email: u.email,
+            username: u.username,
+            nickname: u.nickname,
+            city: u.city,
+            phone: u.phone,
+            app_role: u.app_role ?? 'user',
+            confirmed: u.confirmed,
+            blocked: u.blocked,
+            createdAt: u.createdAt,
+        });
+
+        if (scope === 'others') {
+            ctx.body = { data: users.filter((u: any) => !isMember(u)).map(safe) };
+            return;
+        }
+        const community = users.filter(isMember);
         ctx.body = {
-            data: users.map((u: any) => ({
-                id: u.id,
-                email: u.email,
-                username: u.username,
-                nickname: u.nickname,
-                city: u.city,
-                phone: u.phone,
-                app_role: u.app_role ?? 'user',
-                confirmed: u.confirmed,
-                blocked: u.blocked,
-                createdAt: u.createdAt,
-            })),
+            data: community.map(safe),
+            othersCount: users.length - community.length,
         };
+    };
+
+    // POST /api/ch-users/claim-origin { site } — מסמן את אתר-ההרשמה של המשתמש הנוכחי.
+    // רק פעם אחת (אם אין ערך) ורק לחשבון חדש (נוצר ב-15 הדקות האחרונות) — כדי לא לתייג
+    // בטעות משתמשים ותיקים שרק מתחברים. הפרונט קורא לזה מיד אחרי הרשמה (מקומית / Google).
+    plugin.controllers.user.chClaimOrigin = async (ctx: any) => {
+        const authed = ctx.state?.user;
+        if (!authed) return ctx.unauthorized('נדרשת התחברות');
+        const site = String((ctx.request.body ?? {}).site ?? '').trim().toLowerCase().slice(0, 40);
+        if (!site) return ctx.badRequest('site חסר');
+        const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+            where: { id: authed.id },
+        });
+        if (!user) return ctx.notFound('משתמש לא נמצא');
+        const created = user.createdAt ? new Date(user.createdAt).getTime() : 0;
+        const isFresh = created > 0 && Date.now() - created < 15 * 60 * 1000;
+        if (user.registered_site || !isFresh) {
+            ctx.body = { ok: true, registered_site: user.registered_site ?? null, changed: false };
+            return;
+        }
+        await strapi.db.query('plugin::users-permissions.user').update({
+            where: { id: user.id },
+            data: { registered_site: site },
+        });
+        ctx.body = { ok: true, registered_site: site, changed: true };
     };
 
     // POST /api/ch-admins/set-role { email, role: 'ch_admin' | 'user' } —
@@ -175,6 +224,11 @@ export default (plugin: any) => {
             method: 'GET',
             path: '/ch-users',
             handler: 'user.chUserList',
+        },
+        {
+            method: 'POST',
+            path: '/ch-users/claim-origin',
+            handler: 'user.chClaimOrigin',
         },
         {
             method: 'POST',

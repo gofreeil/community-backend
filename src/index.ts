@@ -212,6 +212,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'plugin::users-permissions.user.chAdminSetRole',
         // רשימת כל הרשומים לפאנל הניהול; אכיפת סופר-אדמין ב-controller
         'plugin::users-permissions.user.chUserList',
+        // סימון אתר-ההרשמה של המשתמש הנוכחי (כל משתמש מחובר, לחשבונו בלבד)
+        'plugin::users-permissions.user.chClaimOrigin',
     ],
 };
 

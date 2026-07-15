@@ -5,7 +5,6 @@ import { factories } from '@strapi/strapi';
 // אטומי של הדירוג הממוצע על העסק. הקשר ל-business הוא relation אמיתי (FK) — ביקורת
 // לעולם לא תצביע על עסק לא-קיים או על העסק הלא-נכון.
 const UID = 'api::idx-review.idx-review' as const;
-const BIZ_UID = 'api::idx-business.idx-business' as const;
 const BIZ_TABLE = 'idx_businesses';
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
@@ -24,15 +23,30 @@ function isTrusted(ctx: any): boolean {
 }
 
 async function recomputeRating(strapi: any, businessId: number) {
-  const rows: any[] = await strapi.db
-    .query(UID)
-    .findMany({ where: { business: businessId, status: 'approved' } });
+  // סינון relation ב-Query Engine בצורה מקוננת (business: { id }) — הצורה השטוחה
+  // (business: id) זורקת. select רק rating.
+  const rows: any[] = await strapi.db.query(UID).findMany({
+    where: { business: { id: businessId }, status: 'approved' },
+    select: ['rating'],
+  });
   const count = rows.length;
   const avg = count ? rows.reduce((s, r) => s + Number(r.rating || 0), 0) / count : 0;
   await strapi.db
     .connection(BIZ_TABLE)
     .where({ id: businessId })
     .update({ rating_avg: Math.round(avg * 100) / 100, rating_count: count });
+}
+
+// מאתר את ה-id המספרי של העסק המקושר לביקורת (לפי documentId של הביקורת).
+async function businessIdOfReview(strapi: any, documentId: string): Promise<number | null> {
+  try {
+    const rev: any = await strapi.db
+      .query(UID)
+      .findOne({ where: { document_id: documentId }, populate: ['business'] });
+    return rev?.business?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export default factories.createCoreController(UID, ({ strapi }) => ({
@@ -79,23 +93,25 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   async update(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי לעדכן ביקורות');
     const res = await super.update(ctx);
-    const { documentId } = ctx.params;
-    const rev: any = await strapi.db
-      .query(UID)
-      .findOne({ where: { document_id: documentId }, populate: ['business'] });
-    if (rev?.business?.id) await recomputeRating(strapi, rev.business.id);
+    // חישוב-הדירוג הוא best-effort — לעולם לא מפיל את פעולת האישור.
+    try {
+      const bizId = await businessIdOfReview(strapi, ctx.params.documentId);
+      if (bizId) await recomputeRating(strapi, bizId);
+    } catch (e: any) {
+      strapi.log.warn('[idx-review] recompute after update נכשל: ' + (e?.message ?? e));
+    }
     return res;
   },
 
   async delete(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי למחוק');
-    const { documentId } = ctx.params;
-    const rev: any = await strapi.db
-      .query(UID)
-      .findOne({ where: { document_id: documentId }, populate: ['business'] });
-    const bizId = rev?.business?.id;
+    const bizId = await businessIdOfReview(strapi, ctx.params.documentId);
     const res = await super.delete(ctx);
-    if (bizId) await recomputeRating(strapi, bizId);
+    try {
+      if (bizId) await recomputeRating(strapi, bizId);
+    } catch (e: any) {
+      strapi.log.warn('[idx-review] recompute after delete נכשל: ' + (e?.message ?? e));
+    }
     return res;
   },
 }));

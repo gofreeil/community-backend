@@ -17,6 +17,12 @@ function isPrivileged(user: any): boolean {
   return ['super_admin', 'idx_admin', 'ch_admin'].includes(user.app_role);
 }
 
+// אמון: משתמש מורשה, או שרת-לשרת עם API Token (מודרציה מהפרונט של index).
+function isTrusted(ctx: any): boolean {
+  if (ctx?.state?.auth?.strategy?.name === 'api-token') return true;
+  return isPrivileged(ctx?.state?.user);
+}
+
 async function recomputeRating(strapi: any, businessId: number) {
   const rows: any[] = await strapi.db
     .query(UID)
@@ -31,7 +37,7 @@ async function recomputeRating(strapi: any, businessId: number) {
 
 export default factories.createCoreController(UID, ({ strapi }) => ({
   async find(ctx) {
-    if (!isPrivileged(ctx.state?.user)) {
+    if (!isTrusted(ctx)) {
       const clientFilters = (ctx.query?.filters as object) ?? {};
       ctx.query = {
         ...ctx.query,
@@ -69,9 +75,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     return super.create(ctx);
   },
 
-  // עדכון (אישור/פסילה/מענה) — מנהל בלבד. אחרי עדכון מחשבים מחדש את דירוג העסק.
+  // עדכון (אישור/פסילה/מענה) — מנהל/שרת-מהימן בלבד. אחרי עדכון מחשבים מחדש דירוג העסק.
   async update(ctx) {
-    if (!isPrivileged(ctx.state?.user)) return ctx.forbidden('רק מנהל רשאי לעדכן ביקורות');
+    if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי לעדכן ביקורות');
     const res = await super.update(ctx);
     const { documentId } = ctx.params;
     const rev: any = await strapi.documents(UID).findOne({ documentId, populate: ['business'] });
@@ -80,7 +86,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   async delete(ctx) {
-    if (!isPrivileged(ctx.state?.user)) return ctx.forbidden('רק מנהל רשאי למחוק');
+    if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל רשאי למחוק');
     const { documentId } = ctx.params;
     const rev: any = await strapi.documents(UID).findOne({ documentId, populate: ['business'] });
     const bizId = rev?.business?.id;

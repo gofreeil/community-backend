@@ -42,8 +42,10 @@ docker compose pull strapi strapi2
 
 # רולינג: מחליפים מופע אחד בכל פעם, בזמן ש-nginx (upstream strapi_up) מנתב את
 # התעבורה לשני. --wait חוסם עד ש-healthcheck עובר, כך שלא נפיל את שניהם יחד.
-docker compose up -d --no-deps --wait strapi
-docker compose up -d --no-deps --wait strapi2
+# --force-recreate חובה: בלעדיו compose לא תמיד מזהה ש-IMAGE_TAG השתנה (תג image
+# דרך env var), והקונטיינר נשאר על ה-image הישן — הקוד נבנה אבל לא רץ.
+docker compose up -d --no-deps --force-recreate --wait strapi
+docker compose up -d --no-deps --force-recreate --wait strapi2
 
 docker image prune -f
 echo "=== $(date -u) deploy done ($REMOTE) ==="

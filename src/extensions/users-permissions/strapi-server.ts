@@ -183,5 +183,76 @@ export default (plugin: any) => {
         }
     );
 
+    // ── חיבור חשבונות בהתחברות חברתית (Google/Facebook) ──
+    // ברירת המחדל של Strapi: אם מתחברים עם Google/Facebook עם מייל שכבר קיים
+    // במערכת תחת provider אחר (בד"כ 'local' — מישהו שנרשם פעם עם אימייל+סיסמה),
+    // הפלאגין זורק "Email is already taken" ומכשיל את ההתחברות. מכיוון שכל אתרי
+    // gofreeil חולקים את אותם משתמשים, זה קורה הרבה (נרשם באתר אחד, מתחבר עם
+    // גוגל באתר אחר).
+    //
+    // כאן, במקום לזרוק — מחברים: מחזירים את החשבון הקיים כך שהמשתמש נכנס אליו.
+    // בטוח כי Google/Facebook מחזירים רק מייל מאומת — אותה רמת אמון שבה Strapi
+    // עצמו יוצר חשבון חדש עם confirmed:true. לא-הרסני: לא משנים את החשבון הקיים
+    // (הסיסמה המקומית ממשיכה לעבוד), רק מחזירים אותו כמות שהוא.
+    // שכפול נאמן של connect המקורי (users-permissions 5.38) עם שינוי בודד:
+    // ענף "Email is already taken" הוחלף בחיבור החשבון.
+    const originalProvidersFactory = plugin.services.providers;
+    plugin.services.providers = (ctx: any) => {
+        const base = originalProvidersFactory(ctx);
+
+        const getProfile = async (provider: string, query: any) => {
+            const accessToken = query.access_token || query.code || query.oauth_token;
+            const grant = await strapi
+                .store({ type: 'plugin', name: 'users-permissions', key: 'grant' })
+                .get();
+            return strapi
+                .plugin('users-permissions')
+                .service('providers-registry')
+                .run({ provider, query, accessToken, providers: grant });
+        };
+
+        const connect = async (provider: string, query: any) => {
+            const accessToken = query.access_token || query.code || query.oauth_token;
+            if (!accessToken) throw new Error('No access_token.');
+
+            const profile = await getProfile(provider, query);
+            const email = String(profile?.email ?? '').toLowerCase();
+            if (!email) throw new Error('Email was not available.');
+
+            const users = await strapi.db
+                .query('plugin::users-permissions.user')
+                .findMany({ where: { email } });
+
+            const advancedSettings = await strapi
+                .store({ type: 'plugin', name: 'users-permissions', key: 'advanced' })
+                .get();
+
+            // חשבון עם אותו provider כבר קיים → התחברות רגילה (התנהגות מקורית).
+            const matched = users.find((u: any) => u.provider === provider);
+            if (matched) return matched;
+
+            // ★ השינוי: אותו מייל (מאומת) קיים תחת provider אחר → מחברים חשבונות
+            //   ומחזירים את הקיים, במקום throw 'Email is already taken.'.
+            if (users.length && advancedSettings.unique_email) {
+                return users[0];
+            }
+
+            // מכאן והלאה: מייל חדש לגמרי → רישום משתמש חדש (התנהגות מקורית).
+            if (!advancedSettings.allow_register) {
+                throw new Error('Register action is actually not available.');
+            }
+
+            const defaultRole = await strapi.db
+                .query('plugin::users-permissions.role')
+                .findOne({ where: { type: advancedSettings.default_role } });
+
+            return strapi.db.query('plugin::users-permissions.user').create({
+                data: { ...profile, email, provider, role: defaultRole.id, confirmed: true },
+            });
+        };
+
+        return { ...base, connect };
+    };
+
     return plugin;
 };

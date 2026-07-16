@@ -214,6 +214,41 @@ export default (plugin: any) => {
         ctx.body = { ok: true, data: { id: user.id, email: user.email, app_role: role } };
     };
 
+    // ── אדמיני אתרי הרשת (פאנל הניהול של gofreeil.com) ──
+    // הפורטל רץ על Vercel (מערכת קבצים לקריאה בלבד) ולכן שומר כאן, ב-core_store.
+    // המבנה: מפה { [siteId]: { adminName, adminEmail?, role?, phone?, avatarUrl?, ... } }.
+    const SITE_ADMINS_STORE_KEY = 'gofreeil-site-admins';
+    const siteAdminsStore = () => strapi.store({ type: 'plugin', name: 'users-permissions' });
+
+    // GET /api/site-admins — כל המינויים (סופר-אדמין בלבד; כולל מיילים/טלפונים)
+    plugin.controllers.user.siteAdminsGet = async (ctx: any) => {
+        if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
+        const map = (await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {};
+        ctx.body = { data: map };
+    };
+
+    // PUT /api/site-admins { siteId, admin } — עדכון מינוי לאתר בודד; admin=null מוחק.
+    // עדכון פר-אתר (ולא כל המפה) כדי לא להתנגש במגבלת גודל ה-body של Strapi
+    // (תמונות נשמרות כ-data URL בתוך admin.avatarUrl).
+    plugin.controllers.user.siteAdminsSet = async (ctx: any) => {
+        if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
+        const body = (ctx.request.body ?? {}) as any;
+        const siteId = String(body.siteId ?? '').trim();
+        if (!siteId || siteId.length > 60) return ctx.badRequest('siteId חסר או ארוך מדי');
+        const admin = body.admin ?? null;
+        if (admin !== null && (typeof admin !== 'object' || Array.isArray(admin))) {
+            return ctx.badRequest('admin חייב להיות אובייקט או null');
+        }
+        if (admin && JSON.stringify(admin).length > 900_000) {
+            return ctx.badRequest('הנתונים גדולים מדי');
+        }
+        const map = ((await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {}) as any;
+        if (admin === null) delete map[siteId];
+        else map[siteId] = admin;
+        await siteAdminsStore().set({ key: SITE_ADMINS_STORE_KEY, value: map });
+        ctx.body = { ok: true, data: { siteId, removed: admin === null } };
+    };
+
     // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת
     // קידומת שם-הפלאגין (‎/api/users-permissions/ch-users) במקום ‎/api/ch-users,
     // והפרונט מקבל 404. כל ה-routes המובנים של users-permissions משתמשים בזה.
@@ -240,6 +275,18 @@ export default (plugin: any) => {
             method: 'POST',
             path: '/ch-admins/set-role',
             handler: 'user.chAdminSetRole',
+            config: { prefix: '' },
+        },
+        {
+            method: 'GET',
+            path: '/site-admins',
+            handler: 'user.siteAdminsGet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'PUT',
+            path: '/site-admins',
+            handler: 'user.siteAdminsSet',
             config: { prefix: '' },
         }
     );

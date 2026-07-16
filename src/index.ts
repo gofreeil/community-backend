@@ -214,6 +214,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'plugin::users-permissions.user.chUserList',
         // סימון אתר-ההרשמה של המשתמש הנוכחי (כל משתמש מחובר, לחשבונו בלבד)
         'plugin::users-permissions.user.chClaimOrigin',
+        // אדמיני אתרי הרשת לפאנל של gofreeil.com; אכיפת סופר-אדמין ב-controller
+        'plugin::users-permissions.user.siteAdminsGet',
+        'plugin::users-permissions.user.siteAdminsSet',
     ],
 };
 

@@ -506,6 +506,47 @@ export interface ApiAdvertisementAdvertisement
   };
 }
 
+export interface ApiCardExchangeCardExchange
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'card_exchanges';
+  info: {
+    displayName: 'Card Exchange';
+    pluralName: 'card-exchanges';
+    singularName: 'card-exchange';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::card-exchange.card-exchange'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'accepted', 'rejected', 'completed']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user1: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    user2: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiChActivityItemChActivityItem
   extends Struct.CollectionTypeSchema {
   collectionName: 'ch_activity_items';
@@ -588,7 +629,7 @@ export interface ApiChCharterSignatureChCharterSignature
   extends Struct.CollectionTypeSchema {
   collectionName: 'ch_charter_signatures';
   info: {
-    description: '\u05D7\u05EA\u05D9\u05DE\u05D5\u05EA \u05E2\u05DC \u05D0\u05DE\u05E0\u05EA UECC \u05E9\u05DC \u05D7\u05DB\u05DE\u05D9 \u05D4\u05E2\u05D3\u05D4 \u2014 \u05E9\u05DD, \u05E2\u05E1\u05E7, \u05EA\u05E4\u05E7\u05D9\u05D3, \u05E2\u05D9\u05E8, \u05E4\u05E8\u05D8\u05D9 \u05E7\u05E9\u05E8. \u05E9\u05D3\u05D5\u05EA \u05DE\u05D5\u05DC\u05DE\u05D3\u05D9\u05DD \u05DE\u05D0\u05D5\u05D7\u05E1\u05E0\u05D9\u05DD \u05DB-JSON (he/en/ru).';
+    description: '\u05D7\u05EA\u05D9\u05DE\u05D5\u05EA \u05E2\u05DC \u05D0\u05DE\u05E0\u05EA UECC \u05E9\u05DC \u05D7\u05DB\u05DE\u05D9 \u05D4\u05E2\u05D3\u05D4 \u2014 \u05E9\u05DD, \u05E2\u05E1\u05E7, \u05EA\u05E4\u05E7\u05D9\u05D3, \u05E2\u05D9\u05E8, \u05E4\u05E8\u05D8\u05D9 \u05E7\u05E9\u05E8.';
     displayName: 'Chachmei \u00B7 Charter Signature';
     pluralName: 'ch-charter-signatures';
     singularName: 'ch-charter-signature';
@@ -599,14 +640,14 @@ export interface ApiChCharterSignatureChCharterSignature
   attributes: {
     acceptedTerms: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     birthDate: Schema.Attribute.String & Schema.Attribute.Private;
-    businessName: Schema.Attribute.JSON;
-    city: Schema.Attribute.JSON;
+    businessName: Schema.Attribute.String;
+    city: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    disqualifiedBy: Schema.Attribute.JSON;
+    disqualifiedBy: Schema.Attribute.String;
     disqualifiedDate: Schema.Attribute.Date;
-    disqualifiedReason: Schema.Attribute.JSON;
+    disqualifiedReason: Schema.Attribute.Text;
     email: Schema.Attribute.String & Schema.Attribute.Private;
     idNumber: Schema.Attribute.String & Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -615,10 +656,10 @@ export interface ApiChCharterSignatureChCharterSignature
       'api::ch-charter-signature.ch-charter-signature'
     > &
       Schema.Attribute.Private;
-    name: Schema.Attribute.JSON & Schema.Attribute.Required;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
     phone: Schema.Attribute.String & Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    role: Schema.Attribute.JSON;
+    role: Schema.Attribute.String;
     signedDate: Schema.Attribute.Date & Schema.Attribute.Required;
     status: Schema.Attribute.Enumeration<['signed', 'disqualified']> &
       Schema.Attribute.Required &
@@ -763,6 +804,50 @@ export interface ApiChNewsItemChNewsItem extends Struct.CollectionTypeSchema {
     order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<100>;
     publishedAt: Schema.Attribute.DateTime;
     sourceUrl: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiChPendingChangeChPendingChange
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ch_pending_changes';
+  info: {
+    description: "\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05E9\u05DC \u05D0\u05D3\u05DE\u05D9\u05E0\u05D9\u05DD \u05DE\u05D5\u05D2\u05D1\u05DC\u05D9\u05DD \u05D1\u05D7\u05DB\u05DE\u05D9 \u05D4\u05E2\u05D3\u05D4 \u05D4\u05DE\u05DE\u05EA\u05D9\u05E0\u05D9\u05DD \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E6\u05D3 \u05D1' (\u05E2\u05D9\u05E7\u05E8\u05D5\u05DF \u05D0\u05E8\u05D1\u05E2 \u05E2\u05D9\u05E0\u05D9\u05D9\u05DD)";
+    displayName: 'Chachmei \u00B7 Pending Change';
+    pluralName: 'ch-pending-changes';
+    singularName: 'ch-pending-change';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    action: Schema.Attribute.Enumeration<['create', 'update', 'delete']> &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decidedAt: Schema.Attribute.DateTime;
+    decidedBy: Schema.Attribute.String;
+    kind: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ch-pending-change.ch-pending-change'
+    > &
+      Schema.Attribute.Private;
+    payload: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    rejectReason: Schema.Attribute.Text;
+    requestedBy: Schema.Attribute.String & Schema.Attribute.Required;
+    requestedByName: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    summary: Schema.Attribute.Text;
+    targetId: Schema.Attribute.String;
+    targetUid: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1050,6 +1135,47 @@ export interface ApiCommunityUserCommunityUser
   };
 }
 
+export interface ApiContactRequestContactRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'contact_requests';
+  info: {
+    displayName: 'Contact Request';
+    pluralName: 'contact-requests';
+    singularName: 'contact-request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::contact-request.contact-request'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    receiver: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    requester: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'accepted', 'rejected', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCoordinatorRequestCoordinatorRequest
   extends Struct.CollectionTypeSchema {
   collectionName: 'coordinator_requests';
@@ -1091,6 +1217,35 @@ export interface ApiCoordinatorRequestCoordinatorRequest
   };
 }
 
+export interface ApiDiscountConfigDiscountConfig
+  extends Struct.SingleTypeSchema {
+  collectionName: 'discount_config';
+  info: {
+    displayName: 'Discount Config';
+    pluralName: 'discount-configs';
+    singularName: 'discount-config';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    codes: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::discount-config.discount-config'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
@@ -1111,6 +1266,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     date: Schema.Attribute.Date & Schema.Attribute.Required;
     description: Schema.Attribute.Text;
     icon: Schema.Attribute.String & Schema.Attribute.DefaultTo<'\uD83D\uDCC5'>;
+    image: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'> &
       Schema.Attribute.Private;
@@ -1130,6 +1286,229 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiGatheringGathering extends Struct.CollectionTypeSchema {
+  collectionName: 'gatherings';
+  info: {
+    displayName: 'Gathering';
+    pluralName: 'gatherings';
+    singularName: 'gathering';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    attendees: Schema.Attribute.JSON;
+    city: Schema.Attribute.String;
+    color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'amber'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    creator_id: Schema.Attribute.String;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text;
+    food_items: Schema.Attribute.JSON;
+    host_name: Schema.Attribute.String;
+    icon: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\uD83C\uDF7D\uFE0F'>;
+    image: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::gathering.gathering'
+    > &
+      Schema.Attribute.Private;
+    location: Schema.Attribute.String;
+    manager_ids: Schema.Attribute.JSON;
+    neighborhood: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.DefaultTo<'approved'>;
+    time: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiIdxBusinessIdxBusiness extends Struct.CollectionTypeSchema {
+  collectionName: 'idx_businesses';
+  info: {
+    description: '\u05E2\u05E1\u05E7\u05D9\u05DD \u05D1\u05D0\u05D9\u05E0\u05D3\u05E7\u05E1 \u05D1\u05E2\u05DC\u05D9 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2 (index.gofreeil.com). \u05DE\u05D1\u05D5\u05D3\u05D3 \u05DC\u05D0\u05EA\u05E8 \u05D4\u05D6\u05D4 \u05D1\u05DC\u05D1\u05D3 \u2014 \u05DC\u05D0 \u05DC\u05E2\u05E8\u05D1\u05D1 \u05E2\u05DD item.';
+    displayName: 'Index \u00B7 Business';
+    pluralName: 'idx-businesses';
+    singularName: 'idx-business';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    accepted_terms: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    address: Schema.Attribute.String;
+    banners: Schema.Attribute.Media<'images', true>;
+    banners_urls: Schema.Attribute.Text;
+    category: Schema.Attribute.String;
+    city: Schema.Attribute.String;
+    contact_name: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    discount: Schema.Attribute.Text & Schema.Attribute.Required;
+    email: Schema.Attribute.String & Schema.Attribute.Private;
+    external_id: Schema.Attribute.String;
+    extra_fields: Schema.Attribute.JSON;
+    facebook: Schema.Attribute.String;
+    instagram: Schema.Attribute.String;
+    lat: Schema.Attribute.Float;
+    lng: Schema.Attribute.Float;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::idx-business.idx-business'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'>;
+    logo_url: Schema.Attribute.Text;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    neighborhood: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    phone_reveal_count: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    rating_avg: Schema.Attribute.Float & Schema.Attribute.DefaultTo<0>;
+    rating_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    sales_area: Schema.Attribute.String;
+    slug: Schema.Attribute.UID<'name'>;
+    source: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'approved', 'rejected', 'frozen']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    subcategory: Schema.Attribute.String;
+    unique_content: Schema.Attribute.Text;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    user_id: Schema.Attribute.String;
+    view_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    website: Schema.Attribute.String;
+    whatsapp: Schema.Attribute.String;
+    youtube: Schema.Attribute.String;
+  };
+}
+
+export interface ApiIdxReportIdxReport extends Struct.CollectionTypeSchema {
+  collectionName: 'idx_reports';
+  info: {
+    description: '\u05D3\u05D9\u05D5\u05D5\u05D7\u05D9\u05DD \u05E2\u05DC \u05E2\u05E1\u05E7\u05D9\u05DD \u05D4\u05DE\u05E4\u05E8\u05D9\u05DD \u05D0\u05EA \u05DE\u05D3\u05D9\u05E0\u05D9\u05D5\u05EA \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4 (index.gofreeil.com). \u05D2\u05D9\u05E9\u05D4 \u05D3\u05E8\u05DA STRAPI_TOKEN \u05D1\u05DC\u05D1\u05D3 \u2014 \u05DC\u05D0 \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9.';
+    displayName: 'Index \u00B7 Report';
+    pluralName: 'idx-reports';
+    singularName: 'idx-report';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    business: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::idx-business.idx-business'
+    >;
+    business_name: Schema.Attribute.String;
+    business_slug: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    details: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::idx-report.idx-report'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    reason: Schema.Attribute.Enumeration<
+      ['no_discount', 'cash_refused', 'ethics', 'other']
+    > &
+      Schema.Attribute.DefaultTo<'other'>;
+    reporter_contact: Schema.Attribute.String & Schema.Attribute.Private;
+    reporter_name: Schema.Attribute.String;
+    source: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'reviewing', 'resolved', 'dismissed']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiIdxReviewIdxReview extends Struct.CollectionTypeSchema {
+  collectionName: 'idx_reviews';
+  info: {
+    description: '\u05D1\u05D9\u05E7\u05D5\u05E8\u05D5\u05EA/\u05D3\u05D9\u05E8\u05D5\u05D2\u05D9\u05DD \u05E2\u05DC \u05E2\u05E1\u05E7\u05D9\u05DD \u05D1\u05D0\u05D9\u05E0\u05D3\u05E7\u05E1 (index.gofreeil.com). \u05DE\u05D1\u05D5\u05D3\u05D3 \u05DC\u05D0\u05EA\u05E8 \u05D4\u05D6\u05D4 \u05D1\u05DC\u05D1\u05D3.';
+    displayName: 'Index \u00B7 Review';
+    pluralName: 'idx-reviews';
+    singularName: 'idx-review';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_reply: Schema.Attribute.Text;
+    author_city: Schema.Attribute.String;
+    author_name: Schema.Attribute.String;
+    body: Schema.Attribute.Text;
+    business: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::idx-business.idx-business'
+    >;
+    business_slug: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::idx-review.idx-review'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    submitted_at: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    user_id: Schema.Attribute.String;
+  };
+}
+
 export interface ApiItemItem extends Struct.CollectionTypeSchema {
   collectionName: 'items';
   info: {
@@ -1142,30 +1521,7 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
   };
   attributes: {
     address: Schema.Attribute.String;
-    category: Schema.Attribute.Enumeration<
-      [
-        'gemachim',
-        'giveaway',
-        'business',
-        'minyanim',
-        'education',
-        'realestate',
-        'security',
-        'shops',
-        'restaurants',
-        'rides',
-        'jobs',
-        'singles',
-        'events',
-        'for_kids',
-        'attractions',
-        'safe-space',
-        'category ',
-        'lost_and_found',
-        'message',
-        'raise_hand',
-      ]
-    >;
+    category: Schema.Attribute.String;
     city: Schema.Attribute.String;
     color: Schema.Attribute.String;
     contact: Schema.Attribute.String;
@@ -1176,6 +1532,8 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
     extra_fields: Schema.Attribute.JSON;
     icon: Schema.Attribute.String;
     label: Schema.Attribute.Text;
+    lat: Schema.Attribute.Float;
+    lng: Schema.Attribute.Float;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::item.item'> &
       Schema.Attribute.Private;
@@ -1183,7 +1541,15 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
     phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     status1: Schema.Attribute.Enumeration<
-      ['active', 'inactive', 'deleted', 'resolved']
+      [
+        'active',
+        'inactive',
+        'deleted',
+        'resolved',
+        'pending',
+        'rejected',
+        'frozen',
+      ]
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1193,6 +1559,10 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     user_id: Schema.Attribute.String;
+    user_status: Schema.Attribute.Enumeration<
+      ['available', 'not_available', 'in_relationship', 'taking_break']
+    > &
+      Schema.Attribute.DefaultTo<'available'>;
     view_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
   };
 }
@@ -1229,6 +1599,84 @@ export interface ApiLostFoundRequestLostFoundRequest
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiMessageMessage extends Struct.CollectionTypeSchema {
+  collectionName: 'messages';
+  info: {
+    displayName: 'Message';
+    pluralName: 'messages';
+    singularName: 'message';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.Text & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::message.message'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    read: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    receiver: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    sender: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiNeighborhoodNeighborhood
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'neighborhoods';
+  info: {
+    description: '\u05E9\u05DB\u05D5\u05E0\u05D5\u05EA \u05E9\u05D4\u05D5\u05E6\u05E2\u05D5 \u05E2"\u05D9 \u05EA\u05D5\u05E9\u05D1\u05D9\u05DD \u05E2\u05DD \u05DE\u05D9\u05E7\u05D5\u05DD \u05DE\u05D3\u05D5\u05D9\u05E7 \u05E2\u05DC \u05D4\u05DE\u05E4\u05D4 - \u05DE\u05D0\u05D5\u05E9\u05E8\u05D5\u05EA \u05E2"\u05D9 \u05D1\u05E2\u05DC \u05D4\u05D0\u05EA\u05E8';
+    displayName: 'Neighborhood';
+    pluralName: 'neighborhoods';
+    singularName: 'neighborhood';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    city: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
+    lat: Schema.Attribute.Float & Schema.Attribute.Required;
+    lng: Schema.Attribute.Float & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::neighborhood.neighborhood'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    requester_name: Schema.Attribute.String;
+    requester_phone: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user_id: Schema.Attribute.String;
   };
 }
 
@@ -1349,6 +1797,8 @@ export interface ApiPgSatisfactionResponsePgSatisfactionResponse
         },
         number
       >;
+    liked_by: Schema.Attribute.JSON;
+    likes: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1356,6 +1806,7 @@ export interface ApiPgSatisfactionResponsePgSatisfactionResponse
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    replies: Schema.Attribute.JSON;
     submitted_at: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1364,6 +1815,56 @@ export interface ApiPgSatisfactionResponsePgSatisfactionResponse
     user_id: Schema.Attribute.String;
     user_name: Schema.Attribute.String;
     user_phone: Schema.Attribute.String;
+  };
+}
+
+export interface ApiPgSubmittedAdPgSubmittedAd
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'pg_submitted_ads';
+  info: {
+    description: '\u05E4\u05E8\u05E1\u05D5\u05DE\u05D5\u05EA \u05E9\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05E9\u05DC\u05D7\u05D5 \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D1\u05D0\u05EA\u05E8 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D4\u05E8\u05DB\u05D9\u05E9\u05D4 - pending / approved / rejected';
+    displayName: 'PG \u00B7 Submitted Ad';
+    pluralName: 'pg-submitted-ads';
+    singularName: 'pg-submitted-ad';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    ad_status: Schema.Attribute.Enumeration<
+      ['pending', 'approved', 'rejected']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    cta: Schema.Attribute.String;
+    decided_at: Schema.Attribute.DateTime;
+    duration_days: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<30>;
+    expires_at: Schema.Attribute.DateTime;
+    gradient: Schema.Attribute.String;
+    hover_text: Schema.Attribute.Text;
+    landing: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pg-submitted-ad.pg-submitted-ad'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Text;
+    main_image: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    rejection_reason: Schema.Attribute.Text;
+    submitted_at: Schema.Attribute.DateTime;
+    submitted_by_email: Schema.Attribute.String;
+    submitted_by_id: Schema.Attribute.String;
+    submitted_by_name: Schema.Attribute.String;
+    subtitle: Schema.Attribute.Text;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1395,6 +1896,68 @@ export interface ApiPostPost extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPrItemPrItem extends Struct.CollectionTypeSchema {
+  collectionName: 'pr_items';
+  info: {
+    description: '\u05E4\u05E8\u05D9\u05D8\u05D9 \u05D0\u05EA\u05E8 \u05D4\u05D3\u05D9\u05E8\u05D5\u05D2 \u05D4\u05E6\u05D9\u05D1\u05D5\u05E8\u05D9 (public-rating-il) \u2014 \u05DE\u05D3\u05D5\u05E8\u05D2\u05D9\u05DD/\u05D2\u05D5\u05E8\u05DE\u05D9\u05DD \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD. \u05DE\u05D1\u05E0\u05D4 \u05D6\u05D4\u05D4 \u05DC-Item, \u05DE\u05D1\u05D5\u05D3\u05D3 \u05DC\u05D0\u05EA\u05E8 \u05D4\u05D6\u05D4 \u05D1\u05DC\u05D1\u05D3.';
+    displayName: 'Public-Rating \u00B7 Item';
+    pluralName: 'pr-items';
+    singularName: 'pr-item';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Schema.Attribute.String;
+    category: Schema.Attribute.String;
+    city: Schema.Attribute.String;
+    color: Schema.Attribute.String;
+    contact: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    extra_fields: Schema.Attribute.JSON;
+    icon: Schema.Attribute.String;
+    label: Schema.Attribute.Text;
+    lat: Schema.Attribute.Float;
+    lng: Schema.Attribute.Float;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pr-item.pr-item'
+    > &
+      Schema.Attribute.Private;
+    neighborhood: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    status1: Schema.Attribute.Enumeration<
+      [
+        'active',
+        'inactive',
+        'deleted',
+        'resolved',
+        'pending',
+        'rejected',
+        'frozen',
+      ]
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    user_id: Schema.Attribute.String;
+    user_status: Schema.Attribute.Enumeration<
+      ['available', 'not_available', 'in_relationship', 'taking_break']
+    > &
+      Schema.Attribute.DefaultTo<'available'>;
+    view_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
   };
 }
 
@@ -1552,6 +2115,37 @@ export interface ApiSubmittedAdSubmittedAd extends Struct.CollectionTypeSchema {
     submitted_by_name: Schema.Attribute.String;
     subtitle: Schema.Attribute.Text;
     title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiVisitStatVisitStat extends Struct.CollectionTypeSchema {
+  collectionName: 'visit_stats';
+  info: {
+    displayName: 'Visit Stat';
+    pluralName: 'visit-stats';
+    singularName: 'visit-stat';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::visit-stat.visit-stat'
+    > &
+      Schema.Attribute.Private;
+    month: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2055,6 +2649,7 @@ export interface PluginUsersPermissionsUser
     phone: Schema.Attribute.String;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    registered_site: Schema.Attribute.String;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
@@ -2065,6 +2660,8 @@ export interface PluginUsersPermissionsUser
     security_question: Schema.Attribute.String;
     security_question_2: Schema.Attribute.String;
     status: Schema.Attribute.String & Schema.Attribute.DefaultTo<'active'>;
+    tier_prompted: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    totp_secret: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2090,6 +2687,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::advertisement-order.advertisement-order': ApiAdvertisementOrderAdvertisementOrder;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
+      'api::card-exchange.card-exchange': ApiCardExchangeCardExchange;
       'api::ch-activity-item.ch-activity-item': ApiChActivityItemChActivityItem;
       'api::ch-article.ch-article': ApiChArticleChArticle;
       'api::ch-charter-signature.ch-charter-signature': ApiChCharterSignatureChCharterSignature;
@@ -2097,6 +2695,7 @@ declare module '@strapi/strapi' {
       'api::ch-hearing.ch-hearing': ApiChHearingChHearing;
       'api::ch-home-config.ch-home-config': ApiChHomeConfigChHomeConfig;
       'api::ch-news-item.ch-news-item': ApiChNewsItemChNewsItem;
+      'api::ch-pending-change.ch-pending-change': ApiChPendingChangeChPendingChange;
       'api::ch-qa-item.ch-qa-item': ApiChQaItemChQaItem;
       'api::ch-question-submission.ch-question-submission': ApiChQuestionSubmissionChQuestionSubmission;
       'api::ch-rabbi.ch-rabbi': ApiChRabbiChRabbi;
@@ -2105,18 +2704,29 @@ declare module '@strapi/strapi' {
       'api::city.city': ApiCityCity;
       'api::community-fund.community-fund': ApiCommunityFundCommunityFund;
       'api::community-user.community-user': ApiCommunityUserCommunityUser;
+      'api::contact-request.contact-request': ApiContactRequestContactRequest;
       'api::coordinator-request.coordinator-request': ApiCoordinatorRequestCoordinatorRequest;
+      'api::discount-config.discount-config': ApiDiscountConfigDiscountConfig;
       'api::event.event': ApiEventEvent;
+      'api::gathering.gathering': ApiGatheringGathering;
+      'api::idx-business.idx-business': ApiIdxBusinessIdxBusiness;
+      'api::idx-report.idx-report': ApiIdxReportIdxReport;
+      'api::idx-review.idx-review': ApiIdxReviewIdxReview;
       'api::item.item': ApiItemItem;
       'api::lost-found-request.lost-found-request': ApiLostFoundRequestLostFoundRequest;
+      'api::message.message': ApiMessageMessage;
+      'api::neighborhood.neighborhood': ApiNeighborhoodNeighborhood;
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
       'api::pg-campaign.pg-campaign': ApiPgCampaignPgCampaign;
       'api::pg-satisfaction-response.pg-satisfaction-response': ApiPgSatisfactionResponsePgSatisfactionResponse;
+      'api::pg-submitted-ad.pg-submitted-ad': ApiPgSubmittedAdPgSubmittedAd;
       'api::post.post': ApiPostPost;
+      'api::pr-item.pr-item': ApiPrItemPrItem;
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
+      'api::visit-stat.visit-stat': ApiVisitStatVisitStat;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

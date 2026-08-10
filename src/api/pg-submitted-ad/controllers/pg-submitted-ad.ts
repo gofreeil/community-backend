@@ -8,10 +8,14 @@
 
 import { factories } from '@strapi/strapi';
 
+// בקשות שרת-לשרת (סנכרון "פרסם בכל האתרים") מאומתות ב-API token ואין להן
+// ctx.state.user — הטוקנים שמורים רק בצד השרת של האתרים, לכן מותר לסמוך עליהן.
+const isServerApiToken = (ctx) => ctx.state?.auth?.strategy?.name === 'api-token';
+
 export default factories.createCoreController('api::pg-submitted-ad.pg-submitted-ad', () => ({
   async update(ctx) {
     const user = ctx.state.user;
-    if (!user || user.app_role !== 'super_admin') {
+    if (!isServerApiToken(ctx) && (!user || user.app_role !== 'super_admin')) {
       return ctx.forbidden('רק super_admin רשאי לאשר או לדחות פרסומת');
     }
     return await super.update(ctx);
@@ -19,7 +23,7 @@ export default factories.createCoreController('api::pg-submitted-ad.pg-submitted
 
   async delete(ctx) {
     const user = ctx.state.user;
-    if (!user || user.app_role !== 'super_admin') {
+    if (!isServerApiToken(ctx) && (!user || user.app_role !== 'super_admin')) {
       return ctx.forbidden('רק super_admin רשאי למחוק פרסומת');
     }
     return await super.delete(ctx);

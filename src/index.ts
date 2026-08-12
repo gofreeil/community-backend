@@ -140,6 +140,13 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::pr-item.pr-item.create',
         'api::pr-item.pr-item.update',
         'api::pr-item.pr-item.delete',
+        // אינדקס בעלי המקצוע — כתיבת חוות דעת בשם המשתמש המחובר. ההרשאה הזו היא
+        // מה שמאפשר ל-controller להצמיד זהות (user/user_id) מ-ctx.state.user; בלעדיה
+        // הבקשה עם ה-JWT נדחית ב-403, האתר נופל ל-STRAPI_TOKEN, ולביקורת אין בעלים —
+        // ואז גם בדיקת "חוות דעת אחת לעסק" באתר לא מוצאת לפי מה לזהות.
+        // אין כאן עקיפת מודרציה: ה-controller כופה status=pending בכל מסלול,
+        // ו-update (אישור/דחייה) נשאר חסום לאדמין/טוקן-שרת בלבד.
+        'api::idx-review.idx-review.create',
         'api::submitted-ad.submitted-ad.create',
         'api::submitted-ad.submitted-ad.update',
         'api::coordinator-request.coordinator-request.create',

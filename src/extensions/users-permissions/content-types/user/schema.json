@@ -78,6 +78,12 @@
     "neighborhood": {
       "type": "string"
     },
+    "street": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
     "phone": {
       "type": "string"
     },

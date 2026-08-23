@@ -127,6 +127,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::idx-business.idx-business.revealPhone',
         'api::idx-review.idx-review.find',
         'api::idx-review.idx-review.findOne',
+        // אדמיני אתרי הרשת — תצוגה ציבורית קריאה-בלבד בכרטיסיית "ניהול הרשת"
+        // שב-gofreeil.com/about (ללא communityId ונתוני ביקורת; הכתיבה נשארת בסופר-אדמין).
+        'plugin::users-permissions.user.siteAdminsPublicGet',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו

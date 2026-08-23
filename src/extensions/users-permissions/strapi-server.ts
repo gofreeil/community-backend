@@ -249,6 +249,26 @@ export default (plugin: any) => {
         ctx.body = { ok: true, data: { siteId, removed: admin === null } };
     };
 
+    // GET /api/site-admins/public — התצוגה הציבורית של אדמיני הרשת (כרטיסיית
+    // "ניהול הרשת" ב-gofreeil.com/about): פתוחה לכולם, קריאה בלבד.
+    // מוחזרים רק שדות תצוגה ויצירת קשר; communityId (קישור לפאנל הניהול של
+    // קהילה בשכונה) ונתוני הביקורת (updatedBy/updatedAt) נשארים לסופר-אדמין בלבד.
+    plugin.controllers.user.siteAdminsPublicGet = async (ctx: any) => {
+        const map = ((await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {}) as Record<string, any>;
+        const out: Record<string, any> = {};
+        for (const [siteId, admin] of Object.entries(map)) {
+            if (!admin || typeof admin !== 'object') continue;
+            out[siteId] = {
+                adminName: String(admin.adminName ?? ''),
+                role: String(admin.role ?? ''),
+                adminEmail: String(admin.adminEmail ?? ''),
+                phone: String(admin.phone ?? ''),
+                avatarUrl: String(admin.avatarUrl ?? ''),
+            };
+        }
+        ctx.body = { data: out };
+    };
+
     // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת
     // קידומת שם-הפלאגין (‎/api/users-permissions/ch-users) במקום ‎/api/ch-users,
     // והפרונט מקבל 404. כל ה-routes המובנים של users-permissions משתמשים בזה.
@@ -287,6 +307,12 @@ export default (plugin: any) => {
             method: 'PUT',
             path: '/site-admins',
             handler: 'user.siteAdminsSet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'GET',
+            path: '/site-admins/public',
+            handler: 'user.siteAdminsPublicGet',
             config: { prefix: '' },
         }
     );

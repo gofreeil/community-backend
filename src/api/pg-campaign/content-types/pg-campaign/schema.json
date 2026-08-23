@@ -89,6 +89,10 @@
     },
     "plans_table_diesel_note": {
       "type": "text"
+    },
+    "edited_fields": {
+      "type": "json",
+      "description": "אילו שדות נערכו בפאנל הניהול של האתר. רק הם דורסים את התוכן שב-campaigns.js; רשומה בלי הרשימה הזו (למשל ה-seed הישן) אינה משפיעה על האתר כלל."
     }
   }
 }

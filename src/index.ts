@@ -188,6 +188,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // Purchasing-Groups
         'api::pg-campaign.pg-campaign.find',
         'api::pg-campaign.pg-campaign.findOne',
+        // עריכת תוכן עסקה מפאנל הניהול של האתר. ה-controller דוחה כל מי
+        // שאינו צוות; ההרשאה כאן רק פותחת את ה-endpoint לטיפול בו.
+        'api::pg-campaign.pg-campaign.create',
+        'api::pg-campaign.pg-campaign.update',
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
         'api::pg-satisfaction-response.pg-satisfaction-response.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.findOne',

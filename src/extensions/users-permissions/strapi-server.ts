@@ -218,13 +218,20 @@ export default (plugin: any) => {
     // הפורטל רץ על Vercel (מערכת קבצים לקריאה בלבד) ולכן שומר כאן, ב-core_store.
     // המבנה: מפה { [siteId]: { adminName, adminEmail?, role?, phone?, avatarUrl?, ... } }.
     const SITE_ADMINS_STORE_KEY = 'gofreeil-site-admins';
+    // סדר הצגת האתרים ברשימה — מערך של siteId. נשמר בשרת (ולא בדפדפן) כדי
+    // שהסידור שהסופר-אדמין עושה יהיה זהה בכל המכשירים ולכל המבקרים.
+    const SITE_ADMINS_ORDER_KEY = 'gofreeil-site-admins-order';
     const siteAdminsStore = () => strapi.store({ type: 'plugin', name: 'users-permissions' });
+    const readOrder = async (): Promise<string[]> => {
+        const raw = await siteAdminsStore().get({ key: SITE_ADMINS_ORDER_KEY });
+        return Array.isArray(raw) ? raw.filter((id: any) => typeof id === 'string') : [];
+    };
 
     // GET /api/site-admins — כל המינויים (סופר-אדמין בלבד; כולל מיילים/טלפונים)
     plugin.controllers.user.siteAdminsGet = async (ctx: any) => {
         if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
         const map = (await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {};
-        ctx.body = { data: map };
+        ctx.body = { data: map, order: await readOrder() };
     };
 
     // PUT /api/site-admins { siteId, admin } — עדכון מינוי לאתר בודד; admin=null מוחק.
@@ -233,6 +240,19 @@ export default (plugin: any) => {
     plugin.controllers.user.siteAdminsSet = async (ctx: any) => {
         if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
         const body = (ctx.request.body ?? {}) as any;
+
+        // { order: [siteId, ...] } — שמירת סדר ההצגה בלבד
+        if (Array.isArray(body.order)) {
+            const order = body.order
+                .filter((id: any) => typeof id === 'string')
+                .map((id: string) => id.trim())
+                .filter((id: string) => id && id.length <= 60)
+                .slice(0, 200);
+            await siteAdminsStore().set({ key: SITE_ADMINS_ORDER_KEY, value: order });
+            ctx.body = { ok: true, data: { order } };
+            return;
+        }
+
         const siteId = String(body.siteId ?? '').trim();
         if (!siteId || siteId.length > 60) return ctx.badRequest('siteId חסר או ארוך מדי');
         const admin = body.admin ?? null;
@@ -266,7 +286,7 @@ export default (plugin: any) => {
                 avatarUrl: String(admin.avatarUrl ?? ''),
             };
         }
-        ctx.body = { data: out };
+        ctx.body = { data: out, order: await readOrder() };
     };
 
     // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת

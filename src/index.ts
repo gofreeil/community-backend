@@ -118,6 +118,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::ch-news-item.ch-news-item.find',
         'api::ch-news-item.ch-news-item.findOne',
         'api::ch-home-config.ch-home-config.find',
+        // דריסות-טקסט לדפי תוכן קבועים — האתר טוען אותן בכל רינדור, קריאה ציבורית
+        'api::ch-text-override.ch-text-override.find',
+        'api::ch-text-override.ch-text-override.findOne',
         // אינדקס בעלי המקצוע (index.gofreeil.com) — collection מבודד (idx-), קריאה ציבורית
         // + מוני צפייה/חשיפת-טלפון אטומיים (custom). יצירה אינה ציבורית — עוברת דרך
         // שרת האתר עם STRAPI_TOKEN (anti-spam) או דרך JWT של משתמש מחובר.
@@ -297,6 +300,11 @@ const CHACHMEI_EDITOR_PERMISSIONS: string[] = [
     'api::ch-news-item.ch-news-item.delete',
     'api::ch-home-config.ch-home-config.find',
     'api::ch-home-config.ch-home-config.update',
+    'api::ch-text-override.ch-text-override.find',
+    'api::ch-text-override.ch-text-override.findOne',
+    'api::ch-text-override.ch-text-override.create',
+    'api::ch-text-override.ch-text-override.update',
+    'api::ch-text-override.ch-text-override.delete',
     // קריאת פרטי המשתמש המחובר (לבדיקת תפקיד)
     'plugin::users-permissions.user.me',
 ];

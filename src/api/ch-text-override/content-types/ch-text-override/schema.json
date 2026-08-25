@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ch_text_overrides",
+  "info": {
+    "singularName": "ch-text-override",
+    "pluralName": "ch-text-overrides",
+    "displayName": "Chachmei · Text Override",
+    "description": "דריסות טקסט לדפי תוכן קבועים בחכמי העדה — key = מפתח i18n באתר, values = JSON רב-לשוני {he, en, ru, es, ps}. דריסה גוברת על הטקסט המוטמע בקוד האתר."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "key": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "values": {
+      "type": "json",
+      "required": true
+    }
+  }
+}

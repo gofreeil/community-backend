@@ -25,11 +25,19 @@ function isTrusted(ctx: any): boolean {
   return isPrivileged(ctx?.state?.user);
 }
 
-// השדות שמותר לציבור לראות על מוצר מאושר. seller_display = שם העסק (או שם
-// המוכר אם אין עסק) - כמו "נמכר על ידי" בכל מרקטפלייס. שאר פרטי המוכר פרטיים.
+// השדות שמותר לציבור לראות על מוצר מאושר. הקניון השיתופי: פרטי החנות של המוכר
+// (store_* - שם, לוגו, טלפון, וואטסאפ, עיר, אתר, תיאור) ציבוריים כמו שלט בקניון;
+// seller_display = שם החנות. פרטי הזיהוי של המוכר (ת"ז, אימייל, כתובת) פרטיים.
 function publicView(row: any) {
   if (!row) return row;
   return {
+    store_name: row.store_name || row.seller_business || '',
+    store_logo: row.store_logo || '',
+    store_phone: row.store_phone || '',
+    store_whatsapp: row.store_whatsapp || '',
+    store_city: row.store_city || '',
+    store_website: row.store_website || '',
+    store_description: row.store_description || '',
     id: row.id,
     documentId: row.documentId,
     status: row.status,
@@ -43,7 +51,7 @@ function publicView(row: any) {
     link: row.link,
     quantity: row.quantity,
     delivery_days: row.delivery_days,
-    seller_display: row.seller_business || row.seller_name || '',
+    seller_display: row.store_name || row.seller_business || row.seller_name || '',
     decided_at: row.decided_at,
     createdAt: row.createdAt,
   };
@@ -92,8 +100,16 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const sellerPhone = S(body.seller_phone, 40);
     const sellerId = S(body.seller_id_number, 20);
     const contractVersion = S(body.contract_version, 40);
+    const storeName = S(body.store_name, 80);
+    const storePhone = S(body.store_phone, 40);
+    const storeLogo = typeof body.store_logo === 'string' ? body.store_logo : '';
+    const storeWebsite = S(body.store_website, 300);
 
     if (!name) return ctx.badRequest('שם המוצר חובה');
+    if (!storeName) return ctx.badRequest('שם החנות חובה');
+    if (!storePhone) return ctx.badRequest('טלפון החנות חובה');
+    if (storeLogo && (storeLogo.length > 400_000 || !/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(storeLogo))) return ctx.badRequest('לוגו לא תקין (עד ~300KB, תמונה)');
+    if (storeWebsite && !/^https?:\/\/[^\s"'<>]+$/.test(storeWebsite)) return ctx.badRequest('כתובת האתר צריכה להתחיל ב-http(s)://');
     if (!price || !Number.isFinite(price) || price <= 0 || price > 1_000_000) return ctx.badRequest('מחיר לא תקין');
     if (!sellerName || !sellerEmail || !sellerPhone || !sellerId) return ctx.badRequest('פרטי המוכר חסרים (שם, אימייל, טלפון, ת"ז/ח.פ)');
     if (!/^\S+@\S+\.\S+$/.test(sellerEmail)) return ctx.badRequest('אימייל לא תקין');
@@ -121,8 +137,17 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         delivery_days: N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,
         commission_percent: 10,
 
+        store_name: storeName,
+        store_logo: storeLogo,
+        store_phone: storePhone,
+        store_whatsapp: S(body.store_whatsapp, 40) || storePhone,
+        store_city: S(body.store_city, 80),
+        store_website: storeWebsite,
+        store_description: S(body.store_description, 600),
+
         seller_name: sellerName,
-        seller_business: S(body.seller_business, 120),
+        // שם החנות הוא גם "שם העסק" בהזמנות ובמיילים למוכר
+        seller_business: storeName,
         seller_email: sellerEmail,
         seller_phone: sellerPhone,
         seller_id_number: sellerId,

@@ -5,7 +5,7 @@
     "singularName": "shop-seller-product",
     "pluralName": "shop-seller-products",
     "displayName": "Shop · Seller Product",
-    "description": "מוצרים שהקהל הגיש למכירה בחנות החירות (shop.gofreeil.com) - pending / approved / rejected. כולל תיעוד קבלת הסכם המוכר (גרסה, זמן, IP)."
+    "description": "מוצרים שהקהל הגיש למכירה בקניון השיתופי חנות החירות (shop.gofreeil.com) - pending / approved / rejected. כל מוצר נושא את פרטי החנות של המוכר (store_*: שם, לוגו, טלפון - ציבוריים) ותיעוד קבלת הסכם המוכר (גרסה, זמן, IP)."
   },
   "options": {
     "draftAndPublish": false
@@ -30,6 +30,14 @@
     "quantity": { "type": "integer" },
     "delivery_days": { "type": "integer" },
     "commission_percent": { "type": "decimal", "default": 10 },
+
+    "store_name": { "type": "string" },
+    "store_logo": { "type": "text" },
+    "store_phone": { "type": "string" },
+    "store_whatsapp": { "type": "string" },
+    "store_city": { "type": "string" },
+    "store_website": { "type": "string" },
+    "store_description": { "type": "text" },
 
     "seller_name": { "type": "string" },
     "seller_business": { "type": "string" },

@@ -2155,7 +2155,7 @@ export interface ApiShopSellerProductShopSellerProduct
   extends Struct.CollectionTypeSchema {
   collectionName: 'shop_seller_products';
   info: {
-    description: '\u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05E9\u05D4\u05E7\u05D4\u05DC \u05D4\u05D2\u05D9\u05E9 \u05DC\u05DE\u05DB\u05D9\u05E8\u05D4 \u05D1\u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - pending / approved / rejected. \u05DB\u05D5\u05DC\u05DC \u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP).';
+    description: '\u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05E9\u05D4\u05E7\u05D4\u05DC \u05D4\u05D2\u05D9\u05E9 \u05DC\u05DE\u05DB\u05D9\u05E8\u05D4 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - pending / approved / rejected. \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E0\u05D5\u05E9\u05D0 \u05D0\u05EA \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (store_*: \u05E9\u05DD, \u05DC\u05D5\u05D2\u05D5, \u05D8\u05DC\u05E4\u05D5\u05DF - \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP).';
     displayName: 'Shop \u00B7 Seller Product';
     pluralName: 'shop-seller-products';
     singularName: 'shop-seller-product';
@@ -2206,6 +2206,13 @@ export interface ApiShopSellerProductShopSellerProduct
     status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'pending'>;
+    store_city: Schema.Attribute.String;
+    store_description: Schema.Attribute.Text;
+    store_logo: Schema.Attribute.Text;
+    store_name: Schema.Attribute.String;
+    store_phone: Schema.Attribute.String;
+    store_website: Schema.Attribute.String;
+    store_whatsapp: Schema.Attribute.String;
     submitted_at: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

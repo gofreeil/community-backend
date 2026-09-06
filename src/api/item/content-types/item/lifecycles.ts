@@ -19,7 +19,7 @@ const INBOX_CATEGORIES = new Set(['message', 'admin_alert']);
 export default {
     async afterCreate(event: any) {
         const r = event?.result as
-            | { category?: string; user_id?: string | null; label?: string; description?: string; icon?: string }
+            | { category?: string; user_id?: string | null; label?: string; description?: string; icon?: string; extra_fields?: unknown }
             | undefined;
         if (!r || !INBOX_CATEGORIES.has(String(r.category ?? ''))) return;
         const uid = String(r.user_id ?? '').trim();
@@ -28,7 +28,9 @@ export default {
             const label = oneLine(r.label ?? '') || 'התראת ניהול חדשה';
             const title = `קהילה בשכונה · ${label}`;
             const link = extractLink(r.description ?? '', COMMUNITY_SITE_URL) ?? `${COMMUNITY_SITE_URL}/messages`;
-            await notifyAdminBySms({ externalId: uid, title, link, source: 'item' });
+            const ef = r.extra_fields && typeof r.extra_fields === 'object' ? (r.extra_fields as { type?: unknown }) : null;
+            const efType = ef && typeof ef.type === 'string' ? ef.type : null;
+            await notifyAdminBySms({ externalId: uid, title, link, source: 'item', category: r.category, efType });
         } catch (err) {
             strapi.log.warn(`[item] admin SMS hook failed: ${err instanceof Error ? err.message : String(err)}`);
         }

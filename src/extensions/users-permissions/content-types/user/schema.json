@@ -113,6 +113,9 @@
       "type": "boolean",
       "default": true
     },
+    "sms_prefs": {
+      "type": "json"
+    },
     "external_id": {
       "type": "string"
     },

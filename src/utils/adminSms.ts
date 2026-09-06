@@ -120,6 +120,55 @@ export function extractLink(content: string, base: string): string | undefined {
 
 export const COMMUNITY_SITE_URL = (process.env.COMMUNITY_SITE_URL ?? 'https://community.gofreeil.com').replace(/\/$/, '');
 
+// ------------------------------------------------------------
+// קבוצות התראה — מה שהמנהל בוחר בפרופיל ("התראות לנייד"). הרשימה חייבת
+// להישאר זהה ל-my_new_project/src/lib/smsPrefs.ts. העדפה חסרה = הכל.
+// ------------------------------------------------------------
+export type SmsGroup = 'ads' | 'coordinators' | 'locations' | 'content' | 'errors' | 'other';
+
+/** סיווג לפי extra_fields.type של ה-item בקהילה */
+const GROUP_BY_TYPE: Record<string, SmsGroup> = {
+    ad_submission:        'ads',
+    ad_landing_ready:     'ads',
+    design_help_request:  'ads',
+    order_failed:         'ads',
+    coordinator_request:  'coordinators',
+    neighborhood_request: 'locations',
+    location_request:     'locations',
+    location_task:        'locations',
+    event_pending:        'content',
+    wish_request:         'content',
+    singles_review:       'content',
+    singles_access:       'content',
+    matchmaker_request:   'content',
+    server_error:         'errors',
+    client_error:         'errors',
+    totp_reset:           'errors',
+};
+
+export function classifyGroup(input: { source: string; category?: string | null; efType?: string | null }): SmsGroup {
+    // אוסף messages משמש את אתרי הרשת רק לבקשות פרסום
+    if (input.source === 'message') return 'ads';
+    const byType = GROUP_BY_TYPE[String(input.efType ?? '')];
+    if (byType) return byType;
+    if (input.category === 'admin_alert') return 'errors';
+    return 'other';
+}
+
+interface SmsPrefs {
+    enabled?: unknown;
+    groups?: unknown;
+}
+
+/** האם הנמען מסכים לקבל SMS מהקבוצה הזו. בלי העדפות (null/זבל) — כן. */
+function prefsAllow(raw: unknown, group: SmsGroup): boolean {
+    if (!raw || typeof raw !== 'object') return true;
+    const p = raw as SmsPrefs;
+    if (p.enabled === false) return false;
+    if (!Array.isArray(p.groups)) return true;
+    return p.groups.map(String).includes(group);
+}
+
 interface AdminUserRow {
     id: number;
     email?: string | null;
@@ -127,6 +176,7 @@ interface AdminUserRow {
     app_role?: string | null;
     blocked?: boolean | null;
     coordinator_of?: unknown;
+    sms_prefs?: unknown;
 }
 
 /** שולף את הנמען לפי מזהה Strapi מספרי או לפי external_id/אימייל (ה-user_id של items) */
@@ -146,7 +196,7 @@ async function resolveUser(ref: { userId?: number | string | null; externalId?: 
     if (or.length === 0) return null;
     const row = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: or.length === 1 ? or[0] : { $or: or },
-        select: ['id', 'email', 'phone', 'app_role', 'blocked', 'coordinator_of'],
+        select: ['id', 'email', 'phone', 'app_role', 'blocked', 'coordinator_of', 'sms_prefs'],
     });
     return (row as AdminUserRow | null) ?? null;
 }
@@ -160,8 +210,12 @@ export interface AdminSmsInput {
     title: string;
     /** קישור מלא שהנמען יפתח; ברירת מחדל: תיבת ההודעות בקהילה */
     link?: string;
-    /** מקור ללוג בלבד ("message" / "item") */
+    /** מקור: "message" (אוסף אתרי הרשת) / "item" (תיבת הקהילה). משמש גם לסיווג. */
     source: string;
+    /** category של ה-item (message / admin_alert) — לסיווג */
+    category?: string | null;
+    /** extra_fields.type של ה-item — לסיווג */
+    efType?: string | null;
 }
 
 /**
@@ -176,6 +230,13 @@ export async function notifyAdminBySms(input: AdminSmsInput): Promise<boolean> {
         if (!user) return false;
         if (user.blocked) return false;
         if (!allowedRoles().has(String(user.app_role ?? '')) && !isCoordinator(user)) return false;
+
+        // ההעדפות שהמנהל בחר בפרופיל: כיבוי כללי או רק קבוצות מסוימות
+        const group = classifyGroup(input);
+        if (!prefsAllow(user.sms_prefs, group)) {
+            strapi.log.info(`${tag} ${user.email ?? user.id}: קבוצה "${group}" כבויה בהעדפות — מדלג`);
+            return false;
+        }
 
         const to = toMobileE164(user.phone);
         if (!to) {

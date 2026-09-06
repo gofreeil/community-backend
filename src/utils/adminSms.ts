@@ -12,7 +12,8 @@
 //
 // כללי בטיחות — SMS זה ערוץ יקר ורועש, ולכן:
 //   * נשלח רק למי ש-app_role שלו ברשימת התפקידים (ברירת מחדל: super_admin +
-//     neighborhood_admin), לא חסום, ועם נייד ישראלי תקין בפרופיל.
+//     neighborhood_admin) או שהוא רכז שכונה (coordinator_of לא ריק;
+//     ADMIN_SMS_INCLUDE_COORDINATORS=false מבטל), לא חסום, ועם נייד ישראלי תקין.
 //   * ריסון: אותה הודעה לאותו נמען לא נשלחת פעמיים ב-10 דק'; לכל היותר
 //     ADMIN_SMS_MAX_PER_HOUR לנמען בשעה; ותקרה גלובלית לאינסטנס — כדי שבאג
 //     שמייצר התראות בלולאה לא ירוקן חבילת SMS.
@@ -38,6 +39,16 @@ function allowedRoles(): Set<string> {
 
 function enabled(): boolean {
     return process.env.ADMIN_SMS_ENABLED !== 'false' && smsEnabled();
+}
+
+/** רכזי שכונות מזוהים לפי coordinator_of (ולא לפי app_role) — גם הם מנהלים,
+ *  של השכונה שלהם, ומקבלים התראות (למשל אירוע שממתין לאישור באזורם). */
+function includeCoordinators(): boolean {
+    return process.env.ADMIN_SMS_INCLUDE_COORDINATORS !== 'false';
+}
+
+function isCoordinator(u: AdminUserRow): boolean {
+    return includeCoordinators() && Array.isArray(u.coordinator_of) && u.coordinator_of.length > 0;
 }
 
 // זיכרון-תהליך בלבד: יש שני מופעי Strapi מאחורי ה-nginx, ולכן התקרות בפועל
@@ -115,6 +126,7 @@ interface AdminUserRow {
     phone?: string | null;
     app_role?: string | null;
     blocked?: boolean | null;
+    coordinator_of?: unknown;
 }
 
 /** שולף את הנמען לפי מזהה Strapi מספרי או לפי external_id/אימייל (ה-user_id של items) */
@@ -134,7 +146,7 @@ async function resolveUser(ref: { userId?: number | string | null; externalId?: 
     if (or.length === 0) return null;
     const row = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: or.length === 1 ? or[0] : { $or: or },
-        select: ['id', 'email', 'phone', 'app_role', 'blocked'],
+        select: ['id', 'email', 'phone', 'app_role', 'blocked', 'coordinator_of'],
     });
     return (row as AdminUserRow | null) ?? null;
 }
@@ -163,7 +175,7 @@ export async function notifyAdminBySms(input: AdminSmsInput): Promise<boolean> {
         const user = await resolveUser(input);
         if (!user) return false;
         if (user.blocked) return false;
-        if (!allowedRoles().has(String(user.app_role ?? ''))) return false;
+        if (!allowedRoles().has(String(user.app_role ?? '')) && !isCoordinator(user)) return false;
 
         const to = toMobileE164(user.phone);
         if (!to) {

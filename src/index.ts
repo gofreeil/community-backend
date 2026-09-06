@@ -142,6 +142,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // הזמנה מהצ'קאאוט — יצירה ציבורית (ה-controller מאמת ומחשב מחדש; afterCreate
         // מודיע למנהלים, למוכרים וללקוח). קריאה/עדכון — מנהל חנות בלבד.
         'api::shop-order.shop-order.create',
+        // "רכשו גם" - ספירות אנונימיות של מוצרים שנרכשו יחד (מזהים בלבד)
+        'api::shop-order.shop-order.related',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -257,6 +259,7 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.findOne',
         'api::shop-order.shop-order.update',
         'api::shop-order.shop-order.delete',
+        'api::shop-order.shop-order.related',
     ],
 };
 

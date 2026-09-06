@@ -40,6 +40,12 @@ echo "=== $(date -u) deploying $REMOTE ==="
 # (למשל שכבה פגומה ב-GHCR אחרי בנייה שנפלה בשלב הקאש) משאירה HEAD == origin/main,
 # וכל הריצות הבאות יוצאות מיד ב"אין מה לפרוס" - והשרת תקוע על הגרסה הישנה
 # בלי שאף אחד יודע. עכשיו כישלון משיכה = exit 1 וניסיון חוזר בטיק הבא.
+# פינוי לפני המשיכה, לא רק אחריה: image של Strapi שוקל ~1.7GB, והדיסק 38GB.
+# משיכות שנכשלו (ולכן לא הגיעו ל-prune שבסוף) השאירו שכבות חלקיות ו-images
+# ישנים עד 97% תפוסה - ואז כל משיכה נכשלת ב"no space left" והשרת תקוע.
+# מוחקים images שאינם בשימוש ובני יותר משבוע (ה-image הרץ לעולם לא נמחק).
+docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
+
 export IMAGE_TAG="$REMOTE"
 if ! docker compose pull strapi strapi2; then
     echo "=== $(date -u) $REMOTE — משיכת ה-image נכשלה, ננסה שוב בטיק הבא ==="

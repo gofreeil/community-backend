@@ -60,7 +60,51 @@ function customerView(row: any) {
   return rest;
 }
 
+// ------------------------------------------------------------
+// "רכשו גם": ספירת מוצרים שנרכשו יחד, מתוך ההזמנות שלא בוטלו. מחושב בזיכרון
+// ומוטמן 5 דקות - ההזמנות מעטות יחסית ואין צורך בשאילתת JSON מסובכת.
+// הפלט אנונימי: { [productId]: [{ id, count }] } בלבד.
+// ------------------------------------------------------------
+const RELATED_TTL_MS = 5 * 60_000;
+let relatedCache: { at: number; map: Map<number, Map<number, number>> } | null = null;
+
+async function coPurchaseMap(): Promise<Map<number, Map<number, number>>> {
+  if (relatedCache && Date.now() - relatedCache.at < RELATED_TTL_MS) return relatedCache.map;
+  const rows: any[] = await strapi.documents(UID).findMany({
+    filters: { status: { $ne: 'cancelled' } },
+    fields: ['items'],
+    sort: { createdAt: 'desc' },
+    limit: 1000,
+  });
+  const map = new Map<number, Map<number, number>>();
+  for (const row of rows) {
+    const ids = [...new Set((Array.isArray(row.items) ? row.items : []).map((it: any) => Number(it?.id)).filter((n: number) => Number.isFinite(n) && n > 0))] as number[];
+    for (const a of ids) {
+      let inner = map.get(a);
+      if (!inner) { inner = new Map(); map.set(a, inner); }
+      for (const b of ids) if (b !== a) inner.set(b, (inner.get(b) ?? 0) + 1);
+    }
+  }
+  relatedCache = { at: Date.now(), map };
+  return map;
+}
+
 export default factories.createCoreController(UID, ({ strapi }) => ({
+  // GET /shop-orders/related?ids=1,2 - ציבורי, אנונימי
+  async related(ctx) {
+    const ids = String(ctx.query?.ids ?? '').split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n) && n > 0).slice(0, 20);
+    const map = await coPurchaseMap();
+    const out: Record<string, { id: number; count: number }[]> = {};
+    for (const id of ids) {
+      out[id] = [...(map.get(id)?.entries() ?? [])]
+        .map(([other, count]) => ({ id: other, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+    }
+    ctx.set('Cache-Control', 'public, max-age=300');
+    ctx.body = { data: out };
+  },
+
   async find(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל החנות רואה הזמנות');
     return super.find(ctx);

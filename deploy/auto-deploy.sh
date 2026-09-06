@@ -35,10 +35,17 @@ if ! docker manifest inspect "$IMAGE:$REMOTE" >/dev/null 2>&1; then
 fi
 
 echo "=== $(date -u) deploying $REMOTE ==="
-git reset --hard origin/main
 
+# קודם מושכים, ורק אחרי משיכה מוצלחת מעדכנים את git. אחרת משיכה שנכשלת
+# (למשל שכבה פגומה ב-GHCR אחרי בנייה שנפלה בשלב הקאש) משאירה HEAD == origin/main,
+# וכל הריצות הבאות יוצאות מיד ב"אין מה לפרוס" - והשרת תקוע על הגרסה הישנה
+# בלי שאף אחד יודע. עכשיו כישלון משיכה = exit 1 וניסיון חוזר בטיק הבא.
 export IMAGE_TAG="$REMOTE"
-docker compose pull strapi strapi2
+if ! docker compose pull strapi strapi2; then
+    echo "=== $(date -u) $REMOTE — משיכת ה-image נכשלה, ננסה שוב בטיק הבא ==="
+    exit 1
+fi
+git reset --hard origin/main
 
 # רולינג: מחליפים מופע אחד בכל פעם, בזמן ש-nginx (upstream strapi_up) מנתב את
 # התעבורה לשני. --wait חוסם עד ש-healthcheck עובר, כך שלא נפיל את שניהם יחד.

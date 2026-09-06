@@ -133,6 +133,12 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // אדמיני אתרי הרשת — תצוגה ציבורית קריאה-בלבד בכרטיסיית "ניהול הרשת"
         // שב-gofreeil.com/about (ללא communityId ונתוני ביקורת; הכתיבה נשארת בסופר-אדמין).
         'plugin::users-permissions.user.siteAdminsPublicGet',
+        // חנות החירות (shop-) — מוצרים שהקהל מגיש למכירה. ציבורי רואה רק approved
+        // ורק שדות מוצר (ה-controller מסנן); הגשה אנונימית מותרת (נכפה pending +
+        // תיעוד קבלת הסכם המוכר). אישור/דחייה — מנהל חנות בלבד.
+        'api::shop-seller-product.shop-seller-product.find',
+        'api::shop-seller-product.shop-seller-product.findOne',
+        'api::shop-seller-product.shop-seller-product.create',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -234,6 +240,14 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // אדמיני אתרי הרשת לפאנל של gofreeil.com; אכיפת סופר-אדמין ב-controller
         'plugin::users-permissions.user.siteAdminsGet',
         'plugin::users-permissions.user.siteAdminsSet',
+        // חנות החירות — הגשת מוצר בשם משתמש מחובר (מצמיד seller_user_id), "המוצרים
+        // שלי", ואישור/דחייה/מחיקה שה-controller פותח רק ל-super_admin / shop_admin.
+        'api::shop-seller-product.shop-seller-product.find',
+        'api::shop-seller-product.shop-seller-product.findOne',
+        'api::shop-seller-product.shop-seller-product.create',
+        'api::shop-seller-product.shop-seller-product.update',
+        'api::shop-seller-product.shop-seller-product.delete',
+        'api::shop-seller-product.shop-seller-product.mine',
     ],
 };
 

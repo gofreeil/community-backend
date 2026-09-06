@@ -995,6 +995,39 @@ export interface ApiChRulingChRuling extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiChTextOverrideChTextOverride
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ch_text_overrides';
+  info: {
+    description: '\u05D3\u05E8\u05D9\u05E1\u05D5\u05EA \u05D8\u05E7\u05E1\u05D8 \u05DC\u05D3\u05E4\u05D9 \u05EA\u05D5\u05DB\u05DF \u05E7\u05D1\u05D5\u05E2\u05D9\u05DD \u05D1\u05D7\u05DB\u05DE\u05D9 \u05D4\u05E2\u05D3\u05D4 \u2014 key = \u05DE\u05E4\u05EA\u05D7 i18n \u05D1\u05D0\u05EA\u05E8, values = JSON \u05E8\u05D1-\u05DC\u05E9\u05D5\u05E0\u05D9 {he, en, ru, es, ps}. \u05D3\u05E8\u05D9\u05E1\u05D4 \u05D2\u05D5\u05D1\u05E8\u05EA \u05E2\u05DC \u05D4\u05D8\u05E7\u05E1\u05D8 \u05D4\u05DE\u05D5\u05D8\u05DE\u05E2 \u05D1\u05E7\u05D5\u05D3 \u05D4\u05D0\u05EA\u05E8.';
+    displayName: 'Chachmei \u00B7 Text Override';
+    pluralName: 'ch-text-overrides';
+    singularName: 'ch-text-override';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    key: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ch-text-override.ch-text-override'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    values: Schema.Attribute.JSON & Schema.Attribute.Required;
+  };
+}
+
 export interface ApiCharterSignatureCharterSignature
   extends Struct.CollectionTypeSchema {
   collectionName: 'charter_signatures';
@@ -1730,6 +1763,7 @@ export interface ApiPgCampaignPgCampaign extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
+    edited_fields: Schema.Attribute.JSON;
     faq_override: Schema.Attribute.JSON;
     find_section: Schema.Attribute.JSON;
     icon: Schema.Attribute.String;
@@ -2062,6 +2096,68 @@ export interface ApiRevenueConfigRevenueConfig extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     stats: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiShopSellerProductShopSellerProduct
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_seller_products';
+  info: {
+    description: '\u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05E9\u05D4\u05E7\u05D4\u05DC \u05D4\u05D2\u05D9\u05E9 \u05DC\u05DE\u05DB\u05D9\u05E8\u05D4 \u05D1\u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - pending / approved / rejected. \u05DB\u05D5\u05DC\u05DC \u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP).';
+    displayName: 'Shop \u00B7 Seller Product';
+    pluralName: 'shop-seller-products';
+    singularName: 'shop-seller-product';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_note: Schema.Attribute.Text;
+    category: Schema.Attribute.String;
+    commission_percent: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<10>;
+    contract_accepted: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    contract_accepted_at: Schema.Attribute.DateTime;
+    contract_ip: Schema.Attribute.String;
+    contract_user_agent: Schema.Attribute.Text;
+    contract_version: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
+    delivery_days: Schema.Attribute.Integer;
+    description: Schema.Attribute.Text;
+    emoji: Schema.Attribute.String;
+    image: Schema.Attribute.Text;
+    link: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-seller-product.shop-seller-product'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    old_price: Schema.Attribute.Decimal;
+    price: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer;
+    rejection_reason: Schema.Attribute.Text;
+    seller_address: Schema.Attribute.String;
+    seller_business: Schema.Attribute.String;
+    seller_email: Schema.Attribute.String;
+    seller_id_number: Schema.Attribute.String;
+    seller_name: Schema.Attribute.String;
+    seller_phone: Schema.Attribute.String;
+    seller_user_id: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    submitted_at: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2610,6 +2706,7 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
+    address: Schema.Attribute.String;
     app_role: Schema.Attribute.String & Schema.Attribute.DefaultTo<'user'>;
     avatar_url: Schema.Attribute.Text;
     balance: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -2659,7 +2756,9 @@ export interface PluginUsersPermissionsUser
     security_answer_2: Schema.Attribute.String;
     security_question: Schema.Attribute.String;
     security_question_2: Schema.Attribute.String;
+    sms_prefs: Schema.Attribute.JSON;
     status: Schema.Attribute.String & Schema.Attribute.DefaultTo<'active'>;
+    street: Schema.Attribute.String;
     tier_prompted: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     totp_secret: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
@@ -2700,6 +2799,7 @@ declare module '@strapi/strapi' {
       'api::ch-question-submission.ch-question-submission': ApiChQuestionSubmissionChQuestionSubmission;
       'api::ch-rabbi.ch-rabbi': ApiChRabbiChRabbi;
       'api::ch-ruling.ch-ruling': ApiChRulingChRuling;
+      'api::ch-text-override.ch-text-override': ApiChTextOverrideChTextOverride;
       'api::charter-signature.charter-signature': ApiCharterSignatureCharterSignature;
       'api::city.city': ApiCityCity;
       'api::community-fund.community-fund': ApiCommunityFundCommunityFund;
@@ -2725,6 +2825,7 @@ declare module '@strapi/strapi' {
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
+      'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
       'api::visit-stat.visit-stat': ApiVisitStatVisitStat;
       'plugin::content-releases.release': PluginContentReleasesRelease;

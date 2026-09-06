@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shop_seller_products",
+  "info": {
+    "singularName": "shop-seller-product",
+    "pluralName": "shop-seller-products",
+    "displayName": "Shop · Seller Product",
+    "description": "מוצרים שהקהל הגיש למכירה בחנות החירות (shop.gofreeil.com) - pending / approved / rejected. כולל תיעוד קבלת הסכם המוכר (גרסה, זמן, IP)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+
+    "name": { "type": "string", "required": true },
+    "category": { "type": "string" },
+    "emoji": { "type": "string" },
+    "price": { "type": "decimal", "required": true },
+    "old_price": { "type": "decimal" },
+    "description": { "type": "text" },
+    "image": { "type": "text" },
+    "link": { "type": "string" },
+    "quantity": { "type": "integer" },
+    "delivery_days": { "type": "integer" },
+    "commission_percent": { "type": "decimal", "default": 10 },
+
+    "seller_name": { "type": "string" },
+    "seller_business": { "type": "string" },
+    "seller_email": { "type": "string" },
+    "seller_phone": { "type": "string" },
+    "seller_id_number": { "type": "string" },
+    "seller_address": { "type": "string" },
+    "seller_user_id": { "type": "string" },
+
+    "contract_accepted": { "type": "boolean", "default": false },
+    "contract_version": { "type": "string" },
+    "contract_accepted_at": { "type": "datetime" },
+    "contract_ip": { "type": "string" },
+    "contract_user_agent": { "type": "text" },
+
+    "submitted_at": { "type": "datetime" },
+    "decided_at": { "type": "datetime" },
+    "decided_by": { "type": "string" },
+    "rejection_reason": { "type": "text" },
+    "admin_note": { "type": "text" }
+  }
+}

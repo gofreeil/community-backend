@@ -11,6 +11,7 @@ import { factories } from '@strapi/strapi';
 const UID = 'api::shop-seller-product.shop-seller-product' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
+const MAX_IMAGES = 6;
 
 function isPrivileged(user: any): boolean {
   if (!user) return false;
@@ -48,6 +49,7 @@ function publicView(row: any) {
     old_price: row.old_price,
     description: row.description,
     image: row.image,
+    images: Array.isArray(row.images) ? row.images : (row.image ? [row.image] : []),
     link: row.link,
     quantity: row.quantity,
     delivery_days: row.delivery_days,
@@ -115,10 +117,21 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     if (!/^\S+@\S+\.\S+$/.test(sellerEmail)) return ctx.badRequest('אימייל לא תקין');
     if (body.contract_accepted !== true || !contractVersion) return ctx.badRequest('יש לאשר את הסכם המוכר');
 
-    const image = typeof body.image === 'string' ? body.image : '';
-    // תמונה מוקטנת בצד הלקוח ~150KB; הגבלה קשיחה בשרת נגד הצפה.
-    if (image.length > 1_200_000) return ctx.badRequest('התמונה גדולה מדי');
-    if (image && !/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(image)) return ctx.badRequest('פורמט תמונה לא נתמך');
+    // גלריית תמונות: עד 6 תמונות, הראשונה היא התמונה הראשית (image - נשמר גם
+    // בנפרד לתאימות). כל תמונה מוקטנת בצד הלקוח ל-1200x900 (~עד 450KB);
+    // הגבלה קשיחה בשרת נגד הצפה. body.image לבד (לקוח ישן) = גלריה של אחת.
+    const DATA_IMAGE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+    let images: string[] = Array.isArray(body.images) ? (body.images.filter((x) => typeof x === 'string' && x) as string[]) : [];
+    if (!images.length && typeof body.image === 'string' && body.image) images = [body.image];
+    if (images.length > MAX_IMAGES) return ctx.badRequest(`עד ${MAX_IMAGES} תמונות למוצר`);
+    let totalBytes = 0;
+    for (const img of images) {
+      if (img.length > 1_200_000) return ctx.badRequest('אחת התמונות גדולה מדי');
+      if (!DATA_IMAGE.test(img)) return ctx.badRequest('פורמט תמונה לא נתמך');
+      totalBytes += img.length;
+    }
+    if (totalBytes > 4_500_000) return ctx.badRequest('סך התמונות גדול מדי');
+    const image = images[0] || '';
 
     const now = new Date().toISOString();
     const forwardedIp = S(body.contract_ip, 80);
@@ -132,6 +145,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         old_price: N(body.old_price) && Number(body.old_price) > price ? Math.round(Number(body.old_price) * 100) / 100 : null,
         description: S(body.description, 2000),
         image,
+        images,
         link: S(body.link, 300),
         quantity: N(body.quantity) ? Math.max(0, Math.floor(Number(body.quantity))) : null,
         delivery_days: N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,

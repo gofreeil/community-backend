@@ -59,7 +59,14 @@ const config: Core.Config.Middlewares = [
   },
   'strapi::poweredBy',
   'strapi::query',
-  'strapi::body',
+  {
+    name: 'strapi::body',
+    config: {
+      // גלריית תמונות של מוצר בחנות החירות: עד 6 תמונות כ-data URL (~450KB
+      // כל אחת) בבקשת JSON אחת. ברירת המחדל (1mb) חסמה יותר מתמונה אחת.
+      jsonLimit: '8mb',
+    },
+  },
   {
     name: 'strapi::session',
     config: {

@@ -26,6 +26,7 @@
     "old_price": { "type": "decimal" },
     "description": { "type": "text" },
     "image": { "type": "text" },
+    "images": { "type": "json" },
     "link": { "type": "string" },
     "quantity": { "type": "integer" },
     "delivery_days": { "type": "integer" },

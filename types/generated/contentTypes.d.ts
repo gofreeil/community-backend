@@ -2102,6 +2102,55 @@ export interface ApiRevenueConfigRevenueConfig extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiShopOrderShopOrder extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_orders';
+  info: {
+    description: "\u05D4\u05D6\u05DE\u05E0\u05D5\u05EA \u05DE\u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com). \u05D9\u05E6\u05D9\u05E8\u05D4 \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05EA \u05DE\u05D4\u05E6'\u05E7\u05D0\u05D0\u05D5\u05D8; afterCreate \u05E9\u05D5\u05DC\u05D7 \u05D4\u05EA\u05E8\u05D0\u05D4 \u05DC\u05DE\u05E0\u05D4\u05DC\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA (\u05EA\u05D9\u05D1\u05D4 + SMS + \u05DE\u05D9\u05D9\u05DC), \u05DE\u05D9\u05D9\u05DC \u05DC\u05DB\u05DC \u05DE\u05D5\u05DB\u05E8 \u05E9\u05DE\u05D5\u05E6\u05E8 \u05E9\u05DC\u05D5 \u05E0\u05DE\u05DB\u05E8, \u05D5\u05D0\u05D9\u05E9\u05D5\u05E8 \u05DC\u05DC\u05E7\u05D5\u05D7.";
+    displayName: 'Shop \u00B7 Order';
+    pluralName: 'shop-orders';
+    singularName: 'shop-order';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_note: Schema.Attribute.Text;
+    buyer_user_id: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer_address: Schema.Attribute.String;
+    customer_city: Schema.Attribute.String;
+    customer_email: Schema.Attribute.String & Schema.Attribute.Required;
+    customer_name: Schema.Attribute.String & Schema.Attribute.Required;
+    customer_phone: Schema.Attribute.String & Schema.Attribute.Required;
+    customer_zip: Schema.Attribute.String;
+    items: Schema.Attribute.JSON & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-order.shop-order'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    notifications: Schema.Attribute.JSON;
+    order_number: Schema.Attribute.String & Schema.Attribute.Required;
+    payment_method: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    shipping: Schema.Attribute.Decimal;
+    status: Schema.Attribute.Enumeration<
+      ['new', 'confirmed', 'shipped', 'completed', 'cancelled']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'new'>;
+    subtotal: Schema.Attribute.Decimal;
+    total: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiShopSellerProductShopSellerProduct
   extends Struct.CollectionTypeSchema {
   collectionName: 'shop_seller_products';
@@ -2825,6 +2874,7 @@ declare module '@strapi/strapi' {
       'api::profile.profile': ApiProfileProfile;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
+      'api::shop-order.shop-order': ApiShopOrderShopOrder;
       'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
       'api::visit-stat.visit-stat': ApiVisitStatVisitStat;

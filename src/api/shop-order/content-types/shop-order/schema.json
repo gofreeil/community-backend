@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shop_orders",
+  "info": {
+    "singularName": "shop-order",
+    "pluralName": "shop-orders",
+    "displayName": "Shop · Order",
+    "description": "הזמנות מחנות החירות (shop.gofreeil.com). יצירה ציבורית מהצ'קאאוט; afterCreate שולח התראה למנהלי החנות (תיבה + SMS + מייל), מייל לכל מוכר שמוצר שלו נמכר, ואישור ללקוח."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "order_number": { "type": "string", "required": true },
+    "status": {
+      "type": "enumeration",
+      "enum": ["new", "confirmed", "shipped", "completed", "cancelled"],
+      "default": "new",
+      "required": true
+    },
+
+    "customer_name": { "type": "string", "required": true },
+    "customer_email": { "type": "string", "required": true },
+    "customer_phone": { "type": "string", "required": true },
+    "customer_address": { "type": "string" },
+    "customer_city": { "type": "string" },
+    "customer_zip": { "type": "string" },
+    "note": { "type": "text" },
+    "buyer_user_id": { "type": "string" },
+
+    "items": { "type": "json", "required": true },
+    "subtotal": { "type": "decimal" },
+    "shipping": { "type": "decimal" },
+    "total": { "type": "decimal" },
+    "payment_method": { "type": "string" },
+
+    "notifications": { "type": "json" },
+    "admin_note": { "type": "text" }
+  }
+}

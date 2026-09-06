@@ -139,6 +139,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-seller-product.shop-seller-product.find',
         'api::shop-seller-product.shop-seller-product.findOne',
         'api::shop-seller-product.shop-seller-product.create',
+        // הזמנה מהצ'קאאוט — יצירה ציבורית (ה-controller מאמת ומחשב מחדש; afterCreate
+        // מודיע למנהלים, למוכרים וללקוח). קריאה/עדכון — מנהל חנות בלבד.
+        'api::shop-order.shop-order.create',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -248,6 +251,12 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-seller-product.shop-seller-product.update',
         'api::shop-seller-product.shop-seller-product.delete',
         'api::shop-seller-product.shop-seller-product.mine',
+        // הזמנות החנות — ה-controller פותח find/update/delete רק ל-super_admin / shop_admin
+        'api::shop-order.shop-order.create',
+        'api::shop-order.shop-order.find',
+        'api::shop-order.shop-order.findOne',
+        'api::shop-order.shop-order.update',
+        'api::shop-order.shop-order.delete',
     ],
 };
 

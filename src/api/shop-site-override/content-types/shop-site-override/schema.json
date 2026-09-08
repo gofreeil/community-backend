@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shop_site_overrides",
+  "info": {
+    "singularName": "shop-site-override",
+    "pluralName": "shop-site-overrides",
+    "displayName": "Shop · Site Override",
+    "description": "דריסות תוכן בחנות החירות (shop.gofreeil.com) שסופר-אדמין עורך מתוך האתר עצמו: key = דף + נתיב האלמנט (או product:<id> לתמונת מוצר), kind = text/image, data = {html, style} לטקסט או {src, alt, style} לתמונה. דריסה גוברת על ה-HTML הקבוע בזמן טעינת הדף."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "key": { "type": "string", "required": true, "unique": true },
+    "page": { "type": "string" },
+    "kind": {
+      "type": "enumeration",
+      "enum": ["text", "image"],
+      "default": "text",
+      "required": true
+    },
+    "data": { "type": "json", "required": true },
+    "updated_by_email": { "type": "string" }
+  }
+}

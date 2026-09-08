@@ -144,6 +144,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.create',
         // "רכשו גם" - ספירות אנונימיות של מוצרים שנרכשו יחד (מזהים בלבד)
         'api::shop-order.shop-order.related',
+        // דריסות תוכן של חנות החירות (טקסטים/תמונות שסופר-אדמין ערך מתוך האתר) —
+        // האתר טוען אותן בכל טעינת דף, קריאה ציבורית
+        'api::shop-site-override.shop-site-override.find',
+        'api::shop-site-override.shop-site-override.findOne',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -260,6 +264,13 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.update',
         'api::shop-order.shop-order.delete',
         'api::shop-order.shop-order.related',
+        // דריסות תוכן של החנות — ה-controller פותח כתיבה (upsert/update/delete) רק לסופר-אדמין
+        'api::shop-site-override.shop-site-override.find',
+        'api::shop-site-override.shop-site-override.findOne',
+        'api::shop-site-override.shop-site-override.upsert',
+        'api::shop-site-override.shop-site-override.create',
+        'api::shop-site-override.shop-site-override.update',
+        'api::shop-site-override.shop-site-override.delete',
     ],
 };
 

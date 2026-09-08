@@ -2220,6 +2220,44 @@ export interface ApiShopSellerProductShopSellerProduct
   };
 }
 
+export interface ApiShopSiteOverrideShopSiteOverride
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_site_overrides';
+  info: {
+    description: 'Shop site content overrides edited by super admin from the live site';
+    displayName: 'Shop · Site Override';
+    pluralName: 'shop-site-overrides';
+    singularName: 'shop-site-override';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    data: Schema.Attribute.JSON & Schema.Attribute.Required;
+    key: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    kind: Schema.Attribute.Enumeration<['text', 'image']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'text'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-site-override.shop-site-override'
+    > &
+      Schema.Attribute.Private;
+    page: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updated_by_email: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSubmittedAdSubmittedAd extends Struct.CollectionTypeSchema {
   collectionName: 'submitted_ads';
   info: {
@@ -2883,6 +2921,7 @@ declare module '@strapi/strapi' {
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
       'api::shop-order.shop-order': ApiShopOrderShopOrder;
       'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
+      'api::shop-site-override.shop-site-override': ApiShopSiteOverrideShopSiteOverride;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
       'api::visit-stat.visit-stat': ApiVisitStatVisitStat;
       'plugin::content-releases.release': PluginContentReleasesRelease;

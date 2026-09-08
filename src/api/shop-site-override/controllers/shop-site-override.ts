@@ -54,7 +54,14 @@ function cleanData(kind: string, raw: unknown): { ok: true; data: Record<string,
     const src = typeof d.src === 'string' ? d.src : '';
     if (src && (src.length > 1_600_000 || !DATA_IMAGE.test(src))) return { ok: false, error: 'תמונה לא תקינה (עד ~1.2MB, PNG/JPEG/WebP/GIF)' };
     const alt = typeof d.alt === 'string' ? d.alt.slice(0, 200) : '';
-    return { ok: true, data: { src, alt, style: cleanStyle('image', d.style) } };
+    // שדות טקסט פשוט של ישות (product:/category: - שם, תיאור): בלי HTML, עד 300 תווים
+    const fields: Record<string, string> = {};
+    if (d.fields && typeof d.fields === 'object') {
+      for (const [k, v] of Object.entries(d.fields as Record<string, unknown>).slice(0, 10)) {
+        if (/^[a-z_]{1,30}$/.test(k) && typeof v === 'string' && v.trim()) fields[k] = v.replace(/<[^>]*>/g, '').trim().slice(0, 300);
+      }
+    }
+    return { ok: true, data: { src, alt, style: cleanStyle('image', d.style), fields } };
   }
   return { ok: false, error: 'kind לא מוכר' };
 }

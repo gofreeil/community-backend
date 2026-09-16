@@ -146,6 +146,17 @@ const GROUP_BY_TYPE: Record<string, SmsGroup> = {
     totp_reset:           'errors',
 };
 
+/**
+ * סוגי התראה שנשארים בלוח ההודעות בלבד — בלי SMS בכלל, בלי קשר להעדפות.
+ * new_user: הצטרפות של משתמש/ת חדש/ה היא מידע, לא משהו שדורש טיפול מיידי
+ * (בקשת המשתמש, 16.9.2026).
+ */
+const INBOX_ONLY_TYPES = new Set(['new_user']);
+
+export function isInboxOnly(efType?: string | null): boolean {
+    return INBOX_ONLY_TYPES.has(String(efType ?? ''));
+}
+
 export function classifyGroup(input: { source: string; category?: string | null; efType?: string | null }): SmsGroup {
     // אוסף messages משמש את אתרי הרשת רק לבקשות פרסום
     if (input.source === 'message') return 'ads';
@@ -225,6 +236,10 @@ export interface AdminSmsInput {
 export async function notifyAdminBySms(input: AdminSmsInput): Promise<boolean> {
     if (!enabled()) return false;
     const tag = `[admin-sms:${input.source}]`;
+    if (isInboxOnly(input.efType)) {
+        strapi.log.info(`${tag} סוג "${input.efType}" הוא הודעה-בלבד — בלי SMS`);
+        return false;
+    }
     try {
         const user = await resolveUser(input);
         if (!user) return false;

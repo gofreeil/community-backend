@@ -3,6 +3,19 @@
  */
 
 import { factories } from '@strapi/strapi';
+import { phoneOtpEnabled, requestPhoneOtp, verifyPhoneOtp } from '../../../utils/phoneOtp';
+
+/** אימות שרת-לשרת בלבד (API Token) — אותו כלל כמו issueSsoJwt: fail-closed */
+function requireServerToken(ctx: any): boolean {
+    const strat = ctx.state?.auth?.strategy?.name;
+    return !!strat && strat !== 'users-permissions';
+}
+
+/** קוד-שגיאה של phoneOtp → סטטוס HTTP (הפרונט מתרגם את הקוד למשתמש) */
+const OTP_STATUS: Record<string, number> = {
+    unavailable: 503, invalid_phone: 400, too_soon: 429, too_many: 429, sms_failed: 502,
+    no_code: 400, expired: 400, wrong_code: 400, blocked: 403, server: 500,
+};
 
 export default factories.createCoreController('api::community-user.community-user', () => ({
     /**
@@ -43,5 +56,42 @@ export default factories.createCoreController('api::community-user.community-use
             .issue({ id: user.id });
 
         ctx.body = { jwt, userId: user.id };
+    },
+
+    /** האם כניסה בקוד SMS זמינה (ספק SMS מוגדר) — לאתר הקהילה, להצגת הכפתור */
+    async phoneOtpStatus(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        ctx.body = { enabled: phoneOtpEnabled() };
+    },
+
+    /** שליחת קוד לנייד. גוף: { phone } */
+    async phoneOtpRequest(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        const phone = String((ctx.request.body as { phone?: unknown })?.phone ?? '');
+        try {
+            const r = await requestPhoneOtp(phone);
+            // 'in' ולא r.ok: ה-tsconfig כאן בלי strictNullChecks, ושם צמצום לפי דגל בוליאני לא עובד
+            ctx.status = 'error' in r ? (OTP_STATUS[r.error] ?? 400) : 200;
+            ctx.body = r;
+        } catch (e) {
+            strapi.log.error(`[phone-otp] request failed: ${e instanceof Error ? e.message : e}`);
+            ctx.status = 500;
+            ctx.body = { ok: false, error: 'server' };
+        }
+    },
+
+    /** אימות קוד → JWT (ויצירת משתמש אם אין). גוף: { phone, code } */
+    async phoneOtpVerify(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        const body = (ctx.request.body ?? {}) as { phone?: unknown; code?: unknown };
+        try {
+            const r = await verifyPhoneOtp(String(body.phone ?? ''), String(body.code ?? ''));
+            ctx.status = 'error' in r ? (OTP_STATUS[r.error] ?? 400) : 200;
+            ctx.body = r;
+        } catch (e) {
+            strapi.log.error(`[phone-otp] verify failed: ${e instanceof Error ? e.message : e}`);
+            ctx.status = 500;
+            ctx.body = { ok: false, error: 'server' };
+        }
     },
 }));

@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pg_site_events",
+  "info": {
+    "singularName": "pg-site-event",
+    "pluralName": "pg-site-events",
+    "displayName": "PG · Site Event",
+    "description": "מוני תנועה של אתר קבוצות הרכישה: שורה אחת לכל יום × סוג אירוע × מזהה (כניסות, צפיות בדפים, לחיצות על מבצע, לחיצות על טופס הצטרפות). נכתב רק דרך /pg-site-events/track."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "day": {
+      "type": "string",
+      "required": true
+    },
+    "kind": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "string"
+    },
+    "count": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

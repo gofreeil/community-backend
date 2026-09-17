@@ -97,6 +97,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
         'api::pg-satisfaction-response.pg-satisfaction-response.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.findOne',
+        // מוני התנועה של אתר קבוצות הרכישה - רישום אירוע בלבד (נקרא משרת
+        // האתר, בלי טוקן). הקריאה (summary) אינה ציבורית.
+        'api::pg-site-event.pg-site-event.track',
         // Chachmei-Haeda (ch-) - תוכן ציבורי לקריאה
         'api::ch-charter-signature.ch-charter-signature.find',
         'api::ch-charter-signature.ch-charter-signature.findOne',
@@ -216,6 +219,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::pg-satisfaction-response.pg-satisfaction-response.create',
         'api::pg-satisfaction-response.pg-satisfaction-response.find',
         'api::pg-satisfaction-response.pg-satisfaction-response.findOne',
+        // מוני התנועה: גם משתמש מחובר רושם אירועים; הסיכום למסך הניהול
+        // נפתח כאן לכל מחובר, וה-controller דוחה כל מי שאינו צוות (app_role).
+        'api::pg-site-event.pg-site-event.track',
+        'api::pg-site-event.pg-site-event.summary',
         // ה-controller שלנו דוחה כל מי שאינו super_admin; ההרשאה כאן רק פותחת את ה-endpoint לטיפול ב-controller
         'api::pg-satisfaction-response.pg-satisfaction-response.update',
         'api::pg-satisfaction-response.pg-satisfaction-response.delete',

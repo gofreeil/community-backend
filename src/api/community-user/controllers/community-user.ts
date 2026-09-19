@@ -4,6 +4,13 @@
 
 import { factories } from '@strapi/strapi';
 import { phoneOtpEnabled, requestPhoneOtp, verifyPhoneOtp } from '../../../utils/phoneOtp';
+import { sendSms, smsEnabled, smsProviderName, toMobileE164 } from '../../../utils/sms';
+
+// SMS קבוצתי מהמנהל: מנה אחת לכל קריאה (הפרונט קורא שוב ושוב עד שנגמר), עם השהיה
+// בין הודעות — הספקים החינמיים הם טלפון אנדרואיד עם SIM, וצרור מהיר נחסם.
+const ADMIN_SMS_MAX_PER_CALL = 20;
+const ADMIN_SMS_GAP_MS = 400;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** אימות שרת-לשרת בלבד (API Token) — אותו כלל כמו issueSsoJwt: fail-closed */
 function requireServerToken(ctx: any): boolean {
@@ -93,5 +100,54 @@ export default factories.createCoreController('api::community-user.community-use
             ctx.status = 500;
             ctx.body = { ok: false, error: 'server' };
         }
+    },
+
+    /** GET /admin/sms/status — האם מוגדר ספק SMS, ואיזה (למסך הניהול, לפני שמציעים לשלוח) */
+    async adminSmsStatus(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        ctx.body = { enabled: smsEnabled(), provider: smsProviderName(), maxPerCall: ADMIN_SMS_MAX_PER_CALL };
+    },
+
+    /**
+     * POST /admin/sms/send — שליחת SMS יזומה לרשימת נמענים.
+     * body: { message: string, recipients: [{ phone: string, name?: string }] }
+     * "{name}" בתוך ההודעה מוחלף בשם הנמען (או נמחק אם אין שם).
+     * מחזיר תוצאה לכל נמען: { phone, ok, error? } — הפרונט מסמן אצלו רק את מי שהצליח.
+     */
+    async adminSmsSend(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        if (!smsEnabled()) {
+            ctx.status = 503;
+            ctx.body = { ok: false, error: 'unavailable' };
+            return;
+        }
+        const body = (ctx.request.body ?? {}) as { message?: unknown; recipients?: unknown };
+        const template = typeof body.message === 'string' ? body.message.trim() : '';
+        const list = Array.isArray(body.recipients) ? body.recipients : [];
+        if (!template) return ctx.badRequest('message required');
+        if (!list.length) return ctx.badRequest('recipients required');
+        if (list.length > ADMIN_SMS_MAX_PER_CALL) return ctx.badRequest(`max ${ADMIN_SMS_MAX_PER_CALL} recipients per call`);
+
+        const results: { phone: string; ok: boolean; error?: string }[] = [];
+        for (const r of list as { phone?: unknown; name?: unknown }[]) {
+            const phone = typeof r?.phone === 'string' ? r.phone : '';
+            const name  = typeof r?.name  === 'string' ? r.name.trim() : '';
+            const e164 = toMobileE164(phone);
+            if (!e164) { results.push({ phone, ok: false, error: 'invalid_phone' }); continue; }
+            // "{name}" → השם; בלי שם מוחקים גם את הרווח שלפניו כדי שלא יישאר "שלום ,"
+            const text = name
+                ? template.replace(/\{name\}/g, name)
+                : template.replace(/\s?\{name\}/g, '');
+            try {
+                await sendSms(e164, text);
+                results.push({ phone, ok: true });
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e);
+                strapi.log.error(`[admin-sms] send to ${e164} failed: ${msg}`);
+                results.push({ phone, ok: false, error: msg.slice(0, 200) });
+            }
+            if (results.length < list.length) await sleep(ADMIN_SMS_GAP_MS);
+        }
+        ctx.body = { ok: true, provider: smsProviderName(), results };
     },
 }));

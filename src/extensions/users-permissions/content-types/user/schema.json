@@ -152,6 +152,9 @@
     "tier_prompted": {
       "type": "json",
       "default": []
+    },
+    "sms_profile_nudge_at": {
+      "type": "datetime"
     }
   }
 }

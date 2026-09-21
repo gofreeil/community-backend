@@ -129,15 +129,20 @@ export default factories.createCoreController('api::community-user.community-use
         if (list.length > ADMIN_SMS_MAX_PER_CALL) return ctx.badRequest(`max ${ADMIN_SMS_MAX_PER_CALL} recipients per call`);
 
         const results: { phone: string; ok: boolean; error?: string }[] = [];
-        for (const r of list as { phone?: unknown; name?: unknown }[]) {
+        for (const r of list as { phone?: unknown; name?: unknown; city?: unknown }[]) {
             const phone = typeof r?.phone === 'string' ? r.phone : '';
             const name  = typeof r?.name  === 'string' ? r.name.trim() : '';
+            const city  = typeof r?.city  === 'string' ? r.city.trim() : '';
             const e164 = toMobileE164(phone);
             if (!e164) { results.push({ phone, ok: false, error: 'invalid_phone' }); continue; }
             // "{name}" → השם; בלי שם מוחקים גם את הרווח שלפניו כדי שלא יישאר "שלום ,"
-            const text = name
+            // "{city}" → העיר; בלי עיר מוחקים גם מילת יחס צמודה ("ב{city}" → "")
+            let text = name
                 ? template.replace(/\{name\}/g, name)
                 : template.replace(/\s?\{name\}/g, '');
+            text = city
+                ? text.replace(/\{city\}/g, city)
+                : text.replace(/\s?[בלמ]?\{city\}/g, '');
             try {
                 await sendSms(e164, text);
                 results.push({ phone, ok: true });

@@ -158,6 +158,10 @@
     },
     "import_source": {
       "type": "string"
+    },
+    "sms_campaigns": {
+      "type": "json",
+      "default": []
     }
   }
 }

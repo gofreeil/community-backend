@@ -105,6 +105,31 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     ctx.body = { data: out };
   },
 
+  // GET /shop-orders/mine-seller - ההזמנות שכוללות מוצר של המוכר המחובר, לוח
+  // המכוונים שלו (מכירות, אנליטיקה, ריכוז ליקוט/משלוח). כל הזמנה מצטמצמת לפריטים
+  // שלו בלבד (my_subtotal = הסכום שלו בהזמנה); פרטי לקוח נשארים כי הוא זה שמספק.
+  async mineSeller(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const uid = String(user.id);
+    const rows: any[] = await strapi.documents(UID).findMany({
+      sort: { createdAt: 'desc' },
+      limit: 500,
+    });
+    const mine = rows
+      .map((row: any) => {
+        const items = (Array.isArray(row.items) ? row.items : []).filter(
+          (it: OrderItem) => String(it?.seller_user_id || '') === uid
+        );
+        if (!items.length) return null;
+        const my_subtotal = money(items.reduce((s: number, it: OrderItem) => s + Number(it.price) * Number(it.qty), 0));
+        const { admin_note, notifications, items: _all, ...rest } = row;
+        return { ...rest, items, my_subtotal };
+      })
+      .filter(Boolean);
+    ctx.body = { data: mine };
+  },
+
   async find(ctx) {
     if (!isTrusted(ctx)) return ctx.forbidden('רק מנהל החנות רואה הזמנות');
     return super.find(ctx);

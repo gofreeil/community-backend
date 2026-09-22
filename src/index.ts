@@ -264,6 +264,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-seller-product.shop-seller-product.update',
         'api::shop-seller-product.shop-seller-product.delete',
         'api::shop-seller-product.shop-seller-product.mine',
+        // ניהול מלאי עצמי - המוכר מעדכן כמות/מחיר/אספקה על המוצר שלו בלבד; אכיפת בעלות ב-controller
+        'api::shop-seller-product.shop-seller-product.updateMine',
         // הזמנות החנות — ה-controller פותח find/update/delete רק ל-super_admin / shop_admin
         'api::shop-order.shop-order.create',
         'api::shop-order.shop-order.find',
@@ -271,6 +273,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.update',
         'api::shop-order.shop-order.delete',
         'api::shop-order.shop-order.related',
+        // ההזמנות שכוללות מוצר של המוכר המחובר (לוח המכוונים שלו) - אכיפת סינון ב-controller
+        'api::shop-order.shop-order.mineSeller',
         // דריסות תוכן של החנות — ה-controller פותח כתיבה (upsert/update/delete) רק לסופר-אדמין
         'api::shop-site-override.shop-site-override.find',
         'api::shop-site-override.shop-site-override.findOne',

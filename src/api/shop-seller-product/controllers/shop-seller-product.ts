@@ -222,4 +222,48 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     });
     ctx.body = { data: entries.map(ownerView) };
   },
+
+  // PUT /shop-seller-products/mine/:documentId - ניהול מלאי עצמי: המוכר מעדכן
+  // כמות/מחיר/אספקה/תיאור/קישור על המוצר שלו בלבד. סטטוס, תיעוד ההסכם וזהות
+  // המוכר קפואים - רק מנהל חנות (update למעלה) יכול לגעת בהם.
+  async updateMine(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const documentId = String(ctx.params?.documentId || '').trim();
+    if (!documentId) return ctx.badRequest('missing id');
+    const row: any = await strapi.documents(UID).findOne({ documentId });
+    if (!row || String(row.seller_user_id || '') !== String(user.id)) return ctx.forbidden('המוצר הזה אינו שלך');
+
+    const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
+    const data: Record<string, unknown> = {};
+    if (body.quantity !== undefined) {
+      const q = N(body.quantity);
+      if (q == null || q < 0 || q > 1_000_000) return ctx.badRequest('כמות לא תקינה');
+      data.quantity = Math.floor(q);
+    }
+    if (body.price !== undefined) {
+      const p = N(body.price);
+      if (!p || p <= 0 || p > 1_000_000) return ctx.badRequest('מחיר לא תקין');
+      data.price = Math.round(p * 100) / 100;
+    }
+    if (body.old_price !== undefined) {
+      const op = N(body.old_price);
+      const basePrice = (data.price as number) ?? Number(row.price);
+      data.old_price = op && op > basePrice ? Math.round(op * 100) / 100 : null;
+    }
+    if (body.delivery_days !== undefined) {
+      const d = N(body.delivery_days);
+      data.delivery_days = d ? Math.max(1, Math.floor(d)) : null;
+    }
+    if (typeof body.description === 'string') data.description = S(body.description, 2000);
+    if (typeof body.link === 'string') {
+      const link = S(body.link, 300);
+      if (link && !/^https?:\/\/[^\s"'<>]+$/.test(link)) return ctx.badRequest('קישור לא תקין');
+      data.link = link;
+    }
+    if (!Object.keys(data).length) return ctx.badRequest('אין מה לעדכן');
+
+    const updated = await strapi.documents(UID).update({ documentId, data: data as any });
+    ctx.body = { data: ownerView(updated) };
+  },
 }));

@@ -2287,6 +2287,7 @@ export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
     slug: Schema.Attribute.String;
     store_city: Schema.Attribute.String;
     store_description: Schema.Attribute.Text;
+    store_design: Schema.Attribute.Text;
     store_logo: Schema.Attribute.Text;
     store_name: Schema.Attribute.String & Schema.Attribute.Required;
     store_phone: Schema.Attribute.String;

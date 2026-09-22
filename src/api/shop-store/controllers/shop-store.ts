@@ -13,12 +13,15 @@ import { factories } from '@strapi/strapi';
 // עולה למדף ישירות. מוכר אינו מגיש מוצר לאישור - לעולם.
 //
 // גישה: רק המשתמש המחובר, ורק לרשומה של עצמו (mine / upsert). מנהל חנות
-// וסופר-אדמין רואים הכל ומכריעים (find/findOne/update); הציבור - כלום
-// (דף החנות הציבורי נגזר מהמוצרים המאושרים, לא מכאן).
+// וסופר-אדמין רואים הכל ומכריעים (find/findOne/update); הציבור - רק עיצוב
+// דף החנות של חנות מאושרת (design), כדי שמי שנכנס לדף יראה את מה שהמוכר
+// בנה בסטודיו. שאר הדף הציבורי נגזר מהמוצרים המאושרים, לא מכאן.
 const UID = 'api::shop-store.shop-store' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 const DATA_IMAGE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+// העיצוב נושא עד שתי תמונות כ-data URL (באנר + סיפור) ולכן החסם נדיב, אבל סופי
+const DESIGN_MAX = 1_600_000;
 
 function isPrivileged(user: any): boolean {
   if (!user) return false;
@@ -91,6 +94,21 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     ctx.body = { data: rows[0] ? ownerView(rows[0]) : null };
   },
 
+  // GET /shop-stores/design?s=<slug> - עיצוב דף החנות, ציבורי.
+  // מחזיר רק את השדה הזה, ורק לחנות מאושרת: מה שהמוכר עיצב בסטודיו הוא מה
+  // שכל מי שנכנס לדף החנות רואה. חנות שטרם אושרה אינה חושפת דבר.
+  async design(ctx) {
+    const slug = S(ctx.query?.s, 200);
+    if (!slug) return ctx.badRequest('missing slug');
+    const rows: any[] = await strapi.documents(UID).findMany({
+      filters: { slug: { $eq: slug }, status: { $eq: 'approved' } },
+      fields: ['slug', 'store_design'],
+      limit: 1,
+    });
+    const row = rows[0];
+    ctx.body = { data: row?.store_design ? { slug: row.slug, design: row.store_design } : null };
+  },
+
   // POST /shop-stores/upsert { data: {...} } - פתיחת חנות או עדכון פרטיה.
   // ולידציה כמו בהגשת מוצר; תיעוד ההסכם נחתם כאן בשרת בפעם הראשונה בלבד
   // (או כשגרסת ההסכם השתנתה) - עדכון פרטים לא "חותם מחדש".
@@ -146,6 +164,16 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       seller_address: S(body.seller_address, 200),
       opened_at: prev?.opened_at || now,
     };
+    // עיצוב דף החנות (הסטודיו) - JSON כמחרוזת. נשמר רק כשהוא נשלח בבקשה,
+    // כדי שעריכת פרטי החנות (sell.html, שלא שולחת אותו) לא תמחק עיצוב קיים.
+    if ('store_design' in body) {
+      const design = typeof body.store_design === 'string' ? body.store_design : '';
+      if (design.length > DESIGN_MAX) return ctx.badRequest('העיצוב כבד מדי - הקטינו את התמונות שבבאנר ובסיפור');
+      if (design) {
+        try { JSON.parse(design); } catch { return ctx.badRequest('עיצוב לא תקין'); }
+      }
+      data.store_design = design;
+    }
     if (!prev || prev.status === 'rejected') {
       data.status = 'pending';
       data.decided_at = null;

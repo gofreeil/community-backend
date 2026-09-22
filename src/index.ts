@@ -149,6 +149,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.related',
         // דריסות תוכן של חנות החירות (טקסטים/תמונות שסופר-אדמין ערך מתוך האתר) —
         // האתר טוען אותן בכל טעינת דף, קריאה ציבורית
+        // עיצוב דף החנות שהמוכר בנה בסטודיו - קריאה ציבורית של שדה אחד
+        // (store_design) ורק לחנות מאושרת, כדי שכל מי שנכנס לדף החנות יראה את
+        // מה שהמוכר עיצב. שאר רשומת החנות אינה ציבורית.
+        'api::shop-store.shop-store.design',
         'api::shop-site-override.shop-site-override.find',
         'api::shop-site-override.shop-site-override.findOne',
     ],
@@ -270,6 +274,7 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // של המשתמש עצמו בלבד (mine/upsert); find/findOne/update/delete נפתחים ב-controller רק למנהל חנות
         'api::shop-store.shop-store.mine',
         'api::shop-store.shop-store.upsert',
+        'api::shop-store.shop-store.design',
         'api::shop-store.shop-store.find',
         'api::shop-store.shop-store.findOne',
         // אישור/דחיית חנות - ההכרעה היחידה בקניון; ה-controller פותח אותה רק למנהל חנות

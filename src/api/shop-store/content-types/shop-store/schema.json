@@ -5,7 +5,7 @@
     "singularName": "shop-store",
     "pluralName": "shop-stores",
     "displayName": "Shop · Store",
-    "description": "החנות של מוכר בקניון השיתופי חנות החירות (shop.gofreeil.com) - רשומה אחת למשתמש. נשמרת בשלב 'פתיחת חנות' (לפני העלאת מוצרים): פרטי החנות הציבוריים (store_*), פרטי הזיהוי של המוכר (seller_* - פרטיים) ותיעוד קבלת הסכם המוכר (גרסה, זמן, IP). החנות היא מה שעובר אישור מנהל (status: pending/approved/rejected); כל מוצר שהמוכר מעלה אחר כך מעתיק ממנה את הפרטים ועולה למדף לפי סטטוס החנות."
+    "description": "החנות של מוכר בקניון השיתופי חנות החירות (shop.gofreeil.com) - רשומה אחת למשתמש. נשמרת בשלב 'פתיחת חנות' (לפני העלאת מוצרים): פרטי החנות הציבוריים (store_*), פרטי הזיהוי של המוכר (seller_* - פרטיים) ותיעוד קבלת הסכם המוכר (גרסה, זמן, IP). החנות היא מה שעובר אישור מנהל (status: pending/approved/rejected); כל מוצר שהמוכר מעלה אחר כך מעתיק ממנה את הפרטים ועולה למדף לפי סטטוס החנות. store_design הוא עיצוב דף החנות שהמוכר בנה בסטודיו (JSON כמחרוזת) - הוא נקרא ציבורית (GET /shop-stores/design?s=<slug>) לחנות מאושרת, כדי שכל מי שנכנס לדף החנות יראה את מה שהמוכר עיצב."
   },
   "options": {
     "draftAndPublish": false
@@ -32,6 +32,7 @@
     "store_city": { "type": "string" },
     "store_website": { "type": "string" },
     "store_description": { "type": "text" },
+    "store_design": { "type": "text" },
 
     "seller_name": { "type": "string" },
     "seller_email": { "type": "string" },

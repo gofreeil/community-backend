@@ -75,7 +75,16 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const clientFilters = (ctx.query?.filters as object) ?? {};
     ctx.query = {
       ...ctx.query,
-      filters: { $and: [clientFilters, { status: { $eq: 'approved' } }] },
+      // הרשימה הציבורית הרגילה (shop.gofreeil.com) מציגה רק מוצרים מאושרים
+      // עם תצוגה="visible" - "לא מופיע" ו"בשכונות בלבד" נגישים רק דרך גישה
+      // מאומתת (isTrusted), למשל אתר קהילה-בשכונה שמושך מוצרי "בשכונות בלבד".
+      filters: {
+        $and: [
+          clientFilters,
+          { status: { $eq: 'approved' } },
+          { $or: [{ visibility: { $eq: 'visible' } }, { visibility: { $null: true } }] },
+        ],
+      },
     };
     const res: any = await super.find(ctx);
     if (res?.data && Array.isArray(res.data)) res.data = res.data.map(publicView);
@@ -85,7 +94,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   async findOne(ctx) {
     const res: any = await super.findOne(ctx);
     if (isTrusted(ctx)) return res;
-    if (!res?.data || res.data.status !== 'approved') return ctx.notFound();
+    if (!res?.data || res.data.status !== 'approved' || (res.data.visibility && res.data.visibility !== 'visible')) return ctx.notFound();
     res.data = publicView(res.data);
     return res;
   },
@@ -138,6 +147,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     ctx.request.body = {
       data: {
         status: 'pending',
+        visibility: 'visible',
+        neighborhoods: '',
         name,
         category: S(body.category, 40) || 'home',
         emoji: S(body.emoji, 8) || '📦',
@@ -261,6 +272,12 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       if (link && !/^https?:\/\/[^\s"'<>]+$/.test(link)) return ctx.badRequest('קישור לא תקין');
       data.link = link;
     }
+    if (body.visibility !== undefined) {
+      const v = String(body.visibility);
+      if (!['visible', 'hidden', 'neighborhoods'].includes(v)) return ctx.badRequest('סטטוס תצוגה לא תקין');
+      data.visibility = v;
+    }
+    if (typeof body.neighborhoods === 'string') data.neighborhoods = S(body.neighborhoods, 300);
     if (!Object.keys(data).length) return ctx.badRequest('אין מה לעדכן');
 
     const updated = await strapi.documents(UID).update({ documentId, data: data as any });

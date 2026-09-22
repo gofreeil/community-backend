@@ -18,6 +18,13 @@
       "default": "pending",
       "required": true
     },
+    "visibility": {
+      "type": "enumeration",
+      "enum": ["visible", "hidden", "neighborhoods"],
+      "default": "visible",
+      "required": true
+    },
+    "neighborhoods": { "type": "string" },
 
     "name": { "type": "string", "required": true },
     "category": { "type": "string" },

@@ -2,8 +2,10 @@ import { factories } from '@strapi/strapi';
 
 // מוצרים שהקהל מגיש למכירה בחנות החירות (shop.gofreeil.com).
 //
-// זרימה: מי שחתום על אמנת המוסר העולמית (UECC) מגיש → המוצר הראשון של חנות
-// חדשה נכנס כ-pending למנהל, ומוצר נוסף של חנות שכבר אושרה עולה למדף לבד →
+// זרימה: **מאשרים חנות, לא מוצר.** מי שחתום על אמנת המוסר העולמית (UECC)
+// ופתח חנות (shop-store) מעלה מוצר → המוצר עולה למדף מיד אם החנות מאושרת,
+// וממתין (pending) רק כל עוד החנות עצמה ממתינה לאישור. ברגע שהמנהל מאשר את
+// החנות, ה-lifecycle שלה מעלה את כל מוצריה הממתינים למדף בבת אחת →
 // הציבור רואה רק approved, ורק שדות המוצר (בלי פרטי הקשר/ת"ז/IP של המוכר).
 //
 // ההגשה תקפה רק עם קבלת הסכם המוכר: contract_accepted=true + גרסת ההסכם,
@@ -11,6 +13,9 @@ import { factories } from '@strapi/strapi';
 // נוצרת כלל, כלומר גם לא מגיעה להנהלה. זמן קבלת ההסכם והחתימה נחתמים כאן
 // בשרת (לא מהלקוח) כדי שהתיעוד יהיה ראייתי.
 const UID = 'api::shop-seller-product.shop-seller-product' as const;
+
+// החנות של המוכר - היא שנושאת את סטטוס האישור שהמוצר יורש
+const STORE_UID = 'api::shop-store.shop-store' as const;
 
 // אמנת המוסר העולמית (UECC) של חכמי העדה - תנאי סף לפתיחת חנות בקניון.
 // אותן חתימות שמוצגות במדד החותמים בחכמי העדה; ההתאמה לפי אימייל.
@@ -106,7 +111,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     return res;
   },
 
-  // הגשה: ולידציה, כפיית pending, חתימת זמן ההסכם בשרת, צירוף המשתמש אם מחובר.
+  // העלאת מוצר: ולידציה, גזירת הסטטוס מהחנות (לא מהלקוח), חתימת זמן ההסכם
+  // בשרת, צירוף המשתמש אם מחובר.
   async create(ctx) {
     const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
     const user = ctx.state?.user;
@@ -171,14 +177,24 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       );
     }
 
-    // אישור ידני רק לחנות חדשה: מוכר שכבר יש לו מוצר מאושר באותה חנות מעלה
-    // מוצרים נוספים ישירות למדף, בלי להמתין למנהל. הזיהוי לפי המשתמש/האימייל
-    // *וגם* שם החנות - שם חנות חדש הוא חנות חדשה, וחוזר לאישור ידני.
+    // הסטטוס נגזר מהחנות בלבד: חנות מאושרת → המוצר עולה למדף מיד; חנות
+    // שממתינה → המוצר ממתין *איתה*, ויעלה אוטומטית ברגע שהמנהל יאשר אותה
+    // (lifecycle של shop-store). חנות שנדחתה חוסמת העלאה בכלל.
+    // מוכר ותיק בלי רשומת חנות (לפני שלב "פתיחת חנות") נמדד לפי מוצר מאושר קיים.
     const identity: Record<string, unknown>[] = [];
     if (user) identity.push({ seller_user_id: String(user.id) });
     if (sellerEmail) identity.push({ seller_email: { $eqi: sellerEmail } });
-    let approvedStore = false;
+
+    let storeStatus: string | null = null;
     if (identity.length) {
+      const stores = await strapi.documents(STORE_UID).findMany({ filters: { $or: identity } as any, limit: 1 });
+      storeStatus = (stores[0] as any)?.status ?? null;
+    }
+    if (storeStatus === 'rejected') {
+      return ctx.badRequest('החנות שלך לא אושרה, ולכן אי אפשר להעלות מוצרים. אפשר לתקן את פרטי החנות ולשלוח אותה שוב לאישור.');
+    }
+    let approvedStore = storeStatus === 'approved';
+    if (!storeStatus && identity.length) {
       const prev = await strapi.documents(UID).findMany({
         filters: { $and: [{ status: 'approved' }, { store_name: storeName }, { $or: identity }] },
         limit: 1,
@@ -233,7 +249,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
 
         submitted_at: now,
         decided_at: approvedStore ? now : null,
-        decided_by: approvedStore ? 'אישור אוטומטי - חנות מאושרת' : null,
+        decided_by: approvedStore ? 'אישור אוטומטי - החנות מאושרת' : null,
         rejection_reason: null,
         admin_note: null,
       },

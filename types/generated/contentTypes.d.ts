@@ -810,50 +810,6 @@ export interface ApiChNewsItemChNewsItem extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiChPendingChangeChPendingChange
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'ch_pending_changes';
-  info: {
-    description: "\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05E9\u05DC \u05D0\u05D3\u05DE\u05D9\u05E0\u05D9\u05DD \u05DE\u05D5\u05D2\u05D1\u05DC\u05D9\u05DD \u05D1\u05D7\u05DB\u05DE\u05D9 \u05D4\u05E2\u05D3\u05D4 \u05D4\u05DE\u05DE\u05EA\u05D9\u05E0\u05D9\u05DD \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E6\u05D3 \u05D1' (\u05E2\u05D9\u05E7\u05E8\u05D5\u05DF \u05D0\u05E8\u05D1\u05E2 \u05E2\u05D9\u05E0\u05D9\u05D9\u05DD)";
-    displayName: 'Chachmei \u00B7 Pending Change';
-    pluralName: 'ch-pending-changes';
-    singularName: 'ch-pending-change';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    action: Schema.Attribute.Enumeration<['create', 'update', 'delete']> &
-      Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    decidedAt: Schema.Attribute.DateTime;
-    decidedBy: Schema.Attribute.String;
-    kind: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::ch-pending-change.ch-pending-change'
-    > &
-      Schema.Attribute.Private;
-    payload: Schema.Attribute.JSON;
-    publishedAt: Schema.Attribute.DateTime;
-    rejectReason: Schema.Attribute.Text;
-    requestedBy: Schema.Attribute.String & Schema.Attribute.Required;
-    requestedByName: Schema.Attribute.String;
-    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'pending'>;
-    summary: Schema.Attribute.Text;
-    targetId: Schema.Attribute.String;
-    targetUid: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiChQaItemChQaItem extends Struct.CollectionTypeSchema {
   collectionName: 'ch_qa_items';
   info: {
@@ -1852,6 +1808,38 @@ export interface ApiPgSatisfactionResponsePgSatisfactionResponse
   };
 }
 
+export interface ApiPgSiteEventPgSiteEvent extends Struct.CollectionTypeSchema {
+  collectionName: 'pg_site_events';
+  info: {
+    description: '\u05DE\u05D5\u05E0\u05D9 \u05EA\u05E0\u05D5\u05E2\u05D4 \u05E9\u05DC \u05D0\u05EA\u05E8 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D4\u05E8\u05DB\u05D9\u05E9\u05D4: \u05E9\u05D5\u05E8\u05D4 \u05D0\u05D7\u05EA \u05DC\u05DB\u05DC \u05D9\u05D5\u05DD \u00D7 \u05E1\u05D5\u05D2 \u05D0\u05D9\u05E8\u05D5\u05E2 \u00D7 \u05DE\u05D6\u05D4\u05D4 (\u05DB\u05E0\u05D9\u05E1\u05D5\u05EA, \u05E6\u05E4\u05D9\u05D5\u05EA \u05D1\u05D3\u05E4\u05D9\u05DD, \u05DC\u05D7\u05D9\u05E6\u05D5\u05EA \u05E2\u05DC \u05DE\u05D1\u05E6\u05E2, \u05DC\u05D7\u05D9\u05E6\u05D5\u05EA \u05E2\u05DC \u05D8\u05D5\u05E4\u05E1 \u05D4\u05E6\u05D8\u05E8\u05E4\u05D5\u05EA). \u05E0\u05DB\u05EA\u05D1 \u05E8\u05E7 \u05D3\u05E8\u05DA /pg-site-events/track.';
+    displayName: 'PG \u00B7 Site Event';
+    pluralName: 'pg-site-events';
+    singularName: 'pg-site-event';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    day: Schema.Attribute.String & Schema.Attribute.Required;
+    kind: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pg-site-event.pg-site-event'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPgSubmittedAdPgSubmittedAd
   extends Struct.CollectionTypeSchema {
   collectionName: 'pg_submitted_ads';
@@ -2183,6 +2171,7 @@ export interface ApiShopSellerProductShopSellerProduct
     description: Schema.Attribute.Text;
     emoji: Schema.Attribute.String;
     image: Schema.Attribute.Text;
+    images: Schema.Attribute.JSON;
     link: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -2224,8 +2213,8 @@ export interface ApiShopSiteOverrideShopSiteOverride
   extends Struct.CollectionTypeSchema {
   collectionName: 'shop_site_overrides';
   info: {
-    description: 'Shop site content overrides edited by super admin from the live site';
-    displayName: 'Shop · Site Override';
+    description: '\u05D3\u05E8\u05D9\u05E1\u05D5\u05EA \u05EA\u05D5\u05DB\u05DF \u05D1\u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) \u05E9\u05E1\u05D5\u05E4\u05E8-\u05D0\u05D3\u05DE\u05D9\u05DF \u05E2\u05D5\u05E8\u05DA \u05DE\u05EA\u05D5\u05DA \u05D4\u05D0\u05EA\u05E8 \u05E2\u05E6\u05DE\u05D5: key = \u05D3\u05E3 + \u05E0\u05EA\u05D9\u05D1 \u05D4\u05D0\u05DC\u05DE\u05E0\u05D8 (\u05D0\u05D5 product:<id> \u05DC\u05EA\u05DE\u05D5\u05E0\u05EA \u05DE\u05D5\u05E6\u05E8), kind = text/image, data = {html, style} \u05DC\u05D8\u05E7\u05E1\u05D8 \u05D0\u05D5 {src, alt, style} \u05DC\u05EA\u05DE\u05D5\u05E0\u05D4. \u05D3\u05E8\u05D9\u05E1\u05D4 \u05D2\u05D5\u05D1\u05E8\u05EA \u05E2\u05DC \u05D4-HTML \u05D4\u05E7\u05D1\u05D5\u05E2 \u05D1\u05D6\u05DE\u05DF \u05D8\u05E2\u05D9\u05E0\u05EA \u05D4\u05D3\u05E3.';
+    displayName: 'Shop \u00B7 Site Override';
     pluralName: 'shop-site-overrides';
     singularName: 'shop-site-override';
   };
@@ -2252,6 +2241,57 @@ export interface ApiShopSiteOverrideShopSiteOverride
     page: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     updated_by_email: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_stores';
+  info: {
+    description: "\u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05DE\u05D5\u05DB\u05E8 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - \u05E8\u05E9\u05D5\u05DE\u05D4 \u05D0\u05D7\u05EA \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9. \u05E0\u05E9\u05DE\u05E8\u05EA \u05D1\u05E9\u05DC\u05D1 '\u05E4\u05EA\u05D9\u05D7\u05EA \u05D7\u05E0\u05D5\u05EA' (\u05DC\u05E4\u05E0\u05D9 \u05D4\u05E2\u05DC\u05D0\u05EA \u05DE\u05D5\u05E6\u05E8\u05D9\u05DD): \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05D4\u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD (store_*), \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D6\u05D9\u05D4\u05D5\u05D9 \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (seller_* - \u05E4\u05E8\u05D8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP). \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E9\u05D4\u05DE\u05D5\u05DB\u05E8 \u05DE\u05E2\u05DC\u05D4 \u05D0\u05D7\u05E8 \u05DB\u05DA \u05DE\u05E2\u05EA\u05D9\u05E7 \u05DE\u05DE\u05E0\u05D4 \u05D0\u05EA \u05D4\u05E4\u05E8\u05D8\u05D9\u05DD.";
+    displayName: 'Shop \u00B7 Store';
+    pluralName: 'shop-stores';
+    singularName: 'shop-store';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    contract_accepted: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    contract_accepted_at: Schema.Attribute.DateTime;
+    contract_ip: Schema.Attribute.String;
+    contract_user_agent: Schema.Attribute.Text;
+    contract_version: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-store.shop-store'
+    > &
+      Schema.Attribute.Private;
+    opened_at: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    seller_address: Schema.Attribute.String;
+    seller_email: Schema.Attribute.String;
+    seller_id_number: Schema.Attribute.String;
+    seller_name: Schema.Attribute.String;
+    seller_phone: Schema.Attribute.String;
+    seller_user_id: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    slug: Schema.Attribute.String;
+    store_city: Schema.Attribute.String;
+    store_description: Schema.Attribute.Text;
+    store_logo: Schema.Attribute.Text;
+    store_name: Schema.Attribute.String & Schema.Attribute.Required;
+    store_phone: Schema.Attribute.String;
+    store_website: Schema.Attribute.String;
+    store_whatsapp: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2888,7 +2928,6 @@ declare module '@strapi/strapi' {
       'api::ch-hearing.ch-hearing': ApiChHearingChHearing;
       'api::ch-home-config.ch-home-config': ApiChHomeConfigChHomeConfig;
       'api::ch-news-item.ch-news-item': ApiChNewsItemChNewsItem;
-      'api::ch-pending-change.ch-pending-change': ApiChPendingChangeChPendingChange;
       'api::ch-qa-item.ch-qa-item': ApiChQaItemChQaItem;
       'api::ch-question-submission.ch-question-submission': ApiChQuestionSubmissionChQuestionSubmission;
       'api::ch-rabbi.ch-rabbi': ApiChRabbiChRabbi;
@@ -2913,6 +2952,7 @@ declare module '@strapi/strapi' {
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
       'api::pg-campaign.pg-campaign': ApiPgCampaignPgCampaign;
       'api::pg-satisfaction-response.pg-satisfaction-response': ApiPgSatisfactionResponsePgSatisfactionResponse;
+      'api::pg-site-event.pg-site-event': ApiPgSiteEventPgSiteEvent;
       'api::pg-submitted-ad.pg-submitted-ad': ApiPgSubmittedAdPgSubmittedAd;
       'api::post.post': ApiPostPost;
       'api::pr-item.pr-item': ApiPrItemPrItem;
@@ -2922,6 +2962,7 @@ declare module '@strapi/strapi' {
       'api::shop-order.shop-order': ApiShopOrderShopOrder;
       'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
       'api::shop-site-override.shop-site-override': ApiShopSiteOverrideShopSiteOverride;
+      'api::shop-store.shop-store': ApiShopStoreShopStore;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
       'api::visit-stat.visit-stat': ApiVisitStatVisitStat;
       'plugin::content-releases.release': PluginContentReleasesRelease;

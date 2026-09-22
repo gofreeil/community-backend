@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shop_stores",
+  "info": {
+    "singularName": "shop-store",
+    "pluralName": "shop-stores",
+    "displayName": "Shop · Store",
+    "description": "החנות של מוכר בקניון השיתופי חנות החירות (shop.gofreeil.com) - רשומה אחת למשתמש. נשמרת בשלב 'פתיחת חנות' (לפני העלאת מוצרים): פרטי החנות הציבוריים (store_*), פרטי הזיהוי של המוכר (seller_* - פרטיים) ותיעוד קבלת הסכם המוכר (גרסה, זמן, IP). החנות היא מה שעובר אישור מנהל (status: pending/approved/rejected); כל מוצר שהמוכר מעלה אחר כך מעתיק ממנה את הפרטים ועולה למדף לפי סטטוס החנות."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "decided_at": { "type": "datetime" },
+    "decided_by": { "type": "string" },
+    "rejection_reason": { "type": "text" },
+
+    "seller_user_id": { "type": "string", "required": true, "unique": true },
+    "slug": { "type": "string" },
+
+    "store_name": { "type": "string", "required": true },
+    "store_logo": { "type": "text" },
+    "store_phone": { "type": "string" },
+    "store_whatsapp": { "type": "string" },
+    "store_city": { "type": "string" },
+    "store_website": { "type": "string" },
+    "store_description": { "type": "text" },
+
+    "seller_name": { "type": "string" },
+    "seller_email": { "type": "string" },
+    "seller_phone": { "type": "string" },
+    "seller_id_number": { "type": "string" },
+    "seller_address": { "type": "string" },
+
+    "contract_accepted": { "type": "boolean", "default": false },
+    "contract_version": { "type": "string" },
+    "contract_accepted_at": { "type": "datetime" },
+    "contract_ip": { "type": "string" },
+    "contract_user_agent": { "type": "text" },
+
+    "opened_at": { "type": "datetime" }
+  }
+}

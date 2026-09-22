@@ -2,13 +2,20 @@ import { factories } from '@strapi/strapi';
 
 // מוצרים שהקהל מגיש למכירה בחנות החירות (shop.gofreeil.com).
 //
-// זרימה: כל אחד (גם אנונימי) יכול להגיש → status=pending נכפה תמיד → מנהל
-// החנות מאשר/דוחה (update) → הציבור רואה רק approved, ורק שדות המוצר
-// (בלי פרטי הקשר/ת"ז/IP של המוכר).
+// זרימה: מי שחתום על אמנת המוסר העולמית (UECC) מגיש → המוצר הראשון של חנות
+// חדשה נכנס כ-pending למנהל, ומוצר נוסף של חנות שכבר אושרה עולה למדף לבד →
+// הציבור רואה רק approved, ורק שדות המוצר (בלי פרטי הקשר/ת"ז/IP של המוכר).
 //
-// ההגשה תקפה רק עם קבלת הסכם המוכר: contract_accepted=true + גרסת ההסכם.
-// זמן הקבלה נחתם כאן בשרת (לא מהלקוח) כדי שהתיעוד יהיה ראייתי.
+// ההגשה תקפה רק עם קבלת הסכם המוכר: contract_accepted=true + גרסת ההסכם,
+// ורק אם קיימת חתימה על האמנה באותו אימייל - בלי חתימה ההגשה נדחית ואינה
+// נוצרת כלל, כלומר גם לא מגיעה להנהלה. זמן קבלת ההסכם והחתימה נחתמים כאן
+// בשרת (לא מהלקוח) כדי שהתיעוד יהיה ראייתי.
 const UID = 'api::shop-seller-product.shop-seller-product' as const;
+
+// אמנת המוסר העולמית (UECC) של חכמי העדה - תנאי סף לפתיחת חנות בקניון.
+// אותן חתימות שמוצגות במדד החותמים בחכמי העדה; ההתאמה לפי אימייל.
+const CHARTER_UID = 'api::ch-charter-signature.ch-charter-signature' as const;
+const CHARTER_SIGN_URL = 'https://chachmim.gofreeil.com/heichal-hamaaseh/ethical-code';
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 const MAX_IMAGES = 6;
@@ -145,6 +152,25 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const now = new Date().toISOString();
     const forwardedIp = S(body.contract_ip, 80);
 
+    // תנאי סף לפני הכל: המוכר חתום על אמנת המוסר העולמית (UECC) של חכמי העדה.
+    // בלי חתימה ההגשה לא נוצרת בכלל - כלומר היא גם לא מגיעה להנהלה לאישור.
+    // ההתאמה לפי אימייל (כך גם ch-charter-signature/mine מזהה חותם), ומי שנפסל
+    // (status=disqualified) נחשב כמי שאינו חתום.
+    const charterEmails = [sellerEmail, String(user?.email ?? '').trim().toLowerCase()].filter(Boolean);
+    const signatures = charterEmails.length
+      ? await strapi.documents(CHARTER_UID).findMany({
+          filters: { status: 'signed', $or: charterEmails.map((e) => ({ email: { $eqi: e } })) },
+          sort: { createdAt: 'desc' },
+          limit: 1,
+        })
+      : [];
+    const charter: any = signatures[0];
+    if (!charter) {
+      return ctx.badRequest(
+        `כדי לפתוח חנות בקניון צריך לחתום על אמנת המוסר העולמית (UECC). החתימה נעשית כאן: ${CHARTER_SIGN_URL} — צריך לחתום עם אותו אימייל (${sellerEmail}). אחרי החתימה חוזרים לכאן ושולחים את המוצר, וההגשה תעבור לאישור ההנהלה.`
+      );
+    }
+
     // אישור ידני רק לחנות חדשה: מוכר שכבר יש לו מוצר מאושר באותה חנות מעלה
     // מוצרים נוספים ישירות למדף, בלי להמתין למנהל. הזיהוי לפי המשתמש/האימייל
     // *וגם* שם החנות - שם חנות חדש הוא חנות חדשה, וחוזר לאישור ידני.
@@ -201,6 +227,10 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         contract_ip: forwardedIp || ctx.request.ip || '',
         contract_user_agent: S(ctx.request.headers['user-agent'], 400),
 
+        // תיעוד החתימה על אמנת המוסר, כדי שהמנהל יראה בפאנל על מה הסתמך האישור
+        charter_signed_at: charter.signedDate || charter.createdAt || null,
+        charter_signer: S(charter.name, 120),
+
         submitted_at: now,
         decided_at: approvedStore ? now : null,
         decided_by: approvedStore ? 'אישור אוטומטי - חנות מאושרת' : null,
@@ -222,7 +252,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       body.decided_by = String(ctx.state?.user?.email ?? 'api-token');
     }
     // תיעוד ההסכם אינו ניתן לשינוי בדיעבד - גם לא על ידי מנהל.
-    for (const k of ['contract_accepted', 'contract_version', 'contract_accepted_at', 'contract_ip', 'contract_user_agent', 'submitted_at', 'seller_user_id']) {
+    for (const k of ['contract_accepted', 'contract_version', 'contract_accepted_at', 'contract_ip', 'contract_user_agent', 'submitted_at', 'seller_user_id', 'charter_signed_at', 'charter_signer']) {
       delete body[k];
     }
     ctx.request.body = { data: body };

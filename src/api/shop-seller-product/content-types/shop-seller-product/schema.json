@@ -61,6 +61,9 @@
     "contract_ip": { "type": "string" },
     "contract_user_agent": { "type": "text" },
 
+    "charter_signed_at": { "type": "datetime" },
+    "charter_signer": { "type": "string" },
+
     "submitted_at": { "type": "datetime" },
     "decided_at": { "type": "datetime" },
     "decided_by": { "type": "string" },

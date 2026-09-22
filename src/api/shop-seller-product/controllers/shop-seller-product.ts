@@ -144,9 +144,25 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
 
     const now = new Date().toISOString();
     const forwardedIp = S(body.contract_ip, 80);
+
+    // אישור ידני רק לחנות חדשה: מוכר שכבר יש לו מוצר מאושר באותה חנות מעלה
+    // מוצרים נוספים ישירות למדף, בלי להמתין למנהל. הזיהוי לפי המשתמש/האימייל
+    // *וגם* שם החנות - שם חנות חדש הוא חנות חדשה, וחוזר לאישור ידני.
+    const identity: Record<string, unknown>[] = [];
+    if (user) identity.push({ seller_user_id: String(user.id) });
+    if (sellerEmail) identity.push({ seller_email: { $eqi: sellerEmail } });
+    let approvedStore = false;
+    if (identity.length) {
+      const prev = await strapi.documents(UID).findMany({
+        filters: { $and: [{ status: 'approved' }, { store_name: storeName }, { $or: identity }] },
+        limit: 1,
+      });
+      approvedStore = prev.length > 0;
+    }
+
     ctx.request.body = {
       data: {
-        status: 'pending',
+        status: approvedStore ? 'approved' : 'pending',
         visibility: 'visible',
         neighborhoods: '',
         name,
@@ -186,8 +202,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         contract_user_agent: S(ctx.request.headers['user-agent'], 400),
 
         submitted_at: now,
-        decided_at: null,
-        decided_by: null,
+        decided_at: approvedStore ? now : null,
+        decided_by: approvedStore ? 'אישור אוטומטי - חנות מאושרת' : null,
         rejection_reason: null,
         admin_note: null,
       },

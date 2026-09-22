@@ -1,14 +1,29 @@
 // ─────────────────────────────────────────────────────────────
 // Lifecycle hooks ל-ch-charter-signature (אמנת UECC · חכמי העדה)
 //
-// afterCreate: שולח מייל אישור לחותם בצד-שרת (Resend/nodemailer).
-// חשוב: שליחת המייל עטופה ב-try/catch ולעולם לא חוסמת/מפילה את יצירת
-// החתימה — גם אם RESEND_API_KEY לא מוגדר או ה-SMTP נכשל, החתימה נשמרת.
+// afterCreate: שולח מייל אישור + SMS לחותם בצד-שרת.
+// חשוב: כל שליחה עטופה ב-try/catch משלה ולעולם לא חוסמת/מפילה את יצירת
+// החתימה — גם אם RESEND_API_KEY / ספק ה-SMS לא מוגדרים, החתימה נשמרת.
 // (החלפה לזרימת ה-mailto שהוסרה מצד-הלקוח — ראה chachmei-haeda ethical-code.)
+//
+// ה-SMS מזכיר גם ל"קהילה בשכונה": אותו באקאנד משותף מזהה חתימה חדשה לפי
+// טלפון ומציג אוטומטית תווית "חתום על אמנת המוסר" על כרטיס הפנויים/פנויות
+// שלו (ראה community/src/lib/server/charterSignatures.ts) - בלי שום פעולה
+// נוספת מצידו.
 // ─────────────────────────────────────────────────────────────
+
+import { sendSms, toMobileE164 } from '../../../../utils/sms';
 
 const SITE_URL = 'https://chachmei-haeda.gofreeil.com';
 const CHARTER_INDEX_URL = `${SITE_URL}/charter-index`;
+
+function buildConfirmationSms(name: string): string {
+  const safeName = String(name || '').trim();
+  return (
+    `${safeName ? `שלום ${safeName}, ` : 'שלום, '}נוספת בהצלחה למאגר החתומים על אמנת חכמי העדה (UECC) 🎉\n` +
+    `הכרטיס שלך באתר "קהילה בשכונה" (אם יש לך) מסומן כעת אוטומטית כ"חתום על אמנת המוסר".`
+  );
+}
 
 function buildConfirmationEmail(name: string): { subject: string; html: string; text: string } {
   const safeName = String(name || '').trim() || 'חותם/ת יקר/ה';
@@ -62,20 +77,36 @@ function buildConfirmationEmail(name: string): { subject: string; html: string; 
 export default {
   async afterCreate(event: any) {
     const { result } = event;
-    const to = (result?.email || '').trim();
-    if (!to) return; // אין מייל → אין למי לשלוח (השדה אופציונלי)
 
-    try {
-      const { subject, html, text } = buildConfirmationEmail(result?.name);
-      await strapi.plugin('email').service('email').send({ to, subject, html, text });
-      strapi.log.info(`[ch-charter-signature] confirmation email sent to ${to}`);
-    } catch (err) {
-      // לעולם לא מפילים את יצירת החתימה בגלל כשל מייל
-      strapi.log.error(
-        `[ch-charter-signature] failed to send confirmation email to ${to}: ${
-          err instanceof Error ? err.message : String(err)
-        }`
-      );
+    const to = (result?.email || '').trim();
+    if (to) {
+      try {
+        const { subject, html, text } = buildConfirmationEmail(result?.name);
+        await strapi.plugin('email').service('email').send({ to, subject, html, text });
+        strapi.log.info(`[ch-charter-signature] confirmation email sent to ${to}`);
+      } catch (err) {
+        // לעולם לא מפילים את יצירת החתימה בגלל כשל מייל
+        strapi.log.error(
+          `[ch-charter-signature] failed to send confirmation email to ${to}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      }
+    }
+
+    const e164 = toMobileE164(result?.phone);
+    if (e164) {
+      try {
+        await sendSms(e164, buildConfirmationSms(result?.name));
+        strapi.log.info(`[ch-charter-signature] confirmation SMS sent to ${e164}`);
+      } catch (err) {
+        // לעולם לא מפילים את יצירת החתימה בגלל כשל SMS (גם כשאף ספק לא מוגדר)
+        strapi.log.error(
+          `[ch-charter-signature] failed to send confirmation SMS to ${e164}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      }
     }
   },
 };

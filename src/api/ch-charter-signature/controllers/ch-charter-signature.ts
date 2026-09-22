@@ -21,6 +21,12 @@ function ownsEntry(user: any, entry: any): boolean {
     return !!userEmail && userEmail === entryEmail;
 }
 
+/** אימות שרת-לשרת בלבד (API Token) — אותו כלל כמו community-user.adminSmsSend: fail-closed */
+function requireServerToken(ctx: any): boolean {
+    const strat = ctx.state?.auth?.strategy?.name;
+    return !!strat && strat !== 'users-permissions';
+}
+
 export default factories.createCoreController(UID, ({ strapi }) => ({
     // GET /ch-charter-signatures/mine — החתימה של המשתמש המחובר (התאמה לפי email, שדה private).
     // מחזיר גם את השדות הפרטיים — זה המידע של החותם עצמו, למילוי טופס העריכה.
@@ -65,5 +71,22 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
 
         const updated = await strapi.documents(UID).update({ documentId, data: data as any });
         ctx.body = { ok: true, data: updated };
+    },
+
+    // GET /ch-charter-signatures/signed-contacts — לזיהוי אוטומטי מאתרי-אחות (למשל
+    // "קהילה בשכונה"): רשימת טלפונים/מיילים של מי שחתום, כדי להציג תווית "חתום על
+    // אמנת המוסר" בלי שהמשתמש יצטרך לסמן זאת ידנית שם. שרת-לשרת בלבד (STRAPI_TOKEN) -
+    // email/phone הם שדות private, ולכן חסומים ב-find/findOne הרגילים גם עם הטוקן;
+    // הנתיב הזה חושף רק אותם, ורק למי שמאומת כשרת (לא לגולש רגיל).
+    async signedContacts(ctx) {
+        if (!requireServerToken(ctx)) return ctx.forbidden('server-to-server token required');
+        const entries = await strapi.documents(UID).findMany({
+            filters: { status: 'signed' },
+            fields: ['email', 'phone'],
+            limit: 5000,
+        });
+        ctx.body = {
+            data: (entries ?? []).map((e: any) => ({ email: e.email ?? null, phone: e.phone ?? null })),
+        };
     },
 }));

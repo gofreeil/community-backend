@@ -4,18 +4,21 @@
 // afterCreate שולח, best-effort וללא תלות בין הערוצים:
 //   1. מנהלי החנות (super_admin / shop_admin, לא חסומים): הודעה לתיבת הניהול
 //      בקהילה (אוסף messages → ה-lifecycle של message שולח SMS לנייד) + מייל.
-//   2. כל מוכר שמוצר שלו נמכר: מייל עם הפריטים ופרטי המשלוח של הלקוח, כדי
-//      שיספק (לפי הסכם המוכר האספקה עליו) + הודעה לתיבה בקהילה אם הוא רשום.
+//   2. כל מוכר שמוצר שלו נמכר: SMS מיידי לנייד שרשום על המוצר (מה נמכר ולמי
+//      לספק) + מייל עם הפירוט המלא ופרטי המשלוח של הלקוח, כדי שיספק (לפי הסכם
+//      המוכר האספקה עליו) + הודעה לתיבה בקהילה אם הוא רשום.
 //   3. הלקוח: מייל אישור הזמנה.
 // מה נשלח נרשם ב-notifications על ההזמנה, לביקורת בפאנל.
 // כל כשל נבלע ונרשם בלוג — יצירת ההזמנה לעולם לא נופלת בגלל התראה.
 // ─────────────────────────────────────────────────────────────
 
 import type { OrderItem } from '../../controllers/shop-order';
+import { sendSms, smsEnabled, smsProviderName, toMobileE164 } from '../../../../utils/sms';
 
 const SHOP_URL = 'https://shop.gofreeil.com';
 const SHOP_NAME = 'חנות החירות';
 const ADMIN_LINK = `${SHOP_URL}/admin.html`;
+const SELLER_DASHBOARD_LINK = `${SHOP_URL}/seller-dashboard.html`;
 const SUPER_ADMIN_EMAILS = ['yahavanter@gmail.com'];
 const SHOP_ADMIN_ROLES = ['super_admin', 'shop_admin'];
 
@@ -120,7 +123,7 @@ async function notifyAdmins(o: OrderRow, log: Record<string, unknown>) {
     `לקוח: ${o.customer_name} · ${o.customer_phone} · ${o.customer_email}\n` +
     `משלוח: ${[o.customer_address, o.customer_city, o.customer_zip].filter(Boolean).join(', ')}\n` +
     `${itemCount} פריטים:\n${itemsText(o.items)}\n` +
-    (sellerItems.length ? `${sellerItems.length} פריטי מוכרים — המוכרים קיבלו מייל לאספקה\n` : '') +
+    (sellerItems.length ? `${sellerItems.length} פריטי מוכרים — המוכרים קיבלו SMS ומייל לאספקה\n` : '') +
     `תשלום: ${PAYMENT_HE[o.payment_method ?? ''] ?? o.payment_method}\n` +
     (o.note ? `הערת לקוח: ${o.note}\n` : '') +
     `ניהול ההזמנה ב-${ADMIN_LINK.replace('https://', '')}`;
@@ -131,7 +134,7 @@ async function notifyAdmins(o: OrderRow, log: Record<string, unknown>) {
     ${o.note ? `<p style="margin:0 0 10px"><strong>הערת לקוח:</strong> ${esc(o.note)}</p>` : ''}
     ${itemsHtml(o.items)}
     ${totalsHtml(o)}
-    ${sellerItems.length ? `<p style="margin:12px 0 0;font-size:13px;color:#0e7490">${sellerItems.length} פריטים של מוכרים חיצוניים — כל מוכר קיבל מייל עם פרטי המשלוח. עמלת החנות (10%): ${ils(sellerItems.reduce((s, it) => s + it.price * it.qty, 0) * 0.1)}</p>` : ''}
+    ${sellerItems.length ? `<p style="margin:12px 0 0;font-size:13px;color:#0e7490">${sellerItems.length} פריטים של מוכרים חיצוניים — כל מוכר קיבל SMS ומייל עם פרטי המשלוח. עמלת החנות (10%): ${ils(sellerItems.reduce((s, it) => s + it.price * it.qty, 0) * 0.1)}</p>` : ''}
     <div style="text-align:center;margin:20px 0 4px"><a href="${ADMIN_LINK}" style="display:inline-block;background:#06b6d4;color:#fff;text-decoration:none;font-weight:700;padding:11px 26px;border-radius:12px">לפאנל הניהול</a></div>`);
 
   const sent: string[] = [];
@@ -143,17 +146,67 @@ async function notifyAdmins(o: OrderRow, log: Record<string, unknown>) {
   log.admins = sent;
 }
 
+// ---- SMS למוכר על כל הזמנה ----
+// מייל אפשר לפספס, SMS לא: זה הערוץ שמביא את המוכר לספק בזמן. נשלח לנייד
+// שנשמר על המוצר (הנייד האישי של המוכר, ובהיעדרו טלפון החנות).
+// SHOP_SELLER_SMS_ENABLED=false מכבה בלי לגעת בקוד; תקרה שעתית מגינה מפני
+// באג שמייצר הזמנות בלולאה. כל כשל נבלע — ההזמנה לא נופלת בגלל SMS.
+const SELLER_SMS_MAX_BODY = 320;
+const HOUR_MS = 60 * 60_000;
+let sellerSmsTimes: number[] = [];
+
+function sellerSmsAllowed(): boolean {
+  if (process.env.SHOP_SELLER_SMS_ENABLED === 'false' || !smsEnabled()) return false;
+  const now = Date.now();
+  sellerSmsTimes = sellerSmsTimes.filter((t) => now - t < HOUR_MS);
+  const cap = Number(process.env.SHOP_SELLER_SMS_MAX_PER_HOUR ?? 100) || 100;
+  if (sellerSmsTimes.length >= cap) {
+    strapi.log.warn(`[shop-order] SMS למוכר לא נשלח — תקרת ${cap} לשעה`);
+    return false;
+  }
+  sellerSmsTimes.push(now);
+  return true;
+}
+
+function sellerSmsBody(o: OrderRow, items: OrderItem[], payout: number): string {
+  const head = `🛒 הזמנה חדשה ב${SHOP_NAME}\n${o.order_number} · ${ils(payout)} אליך\n`;
+  const foot =
+    `לספק: ${[o.customer_name, o.customer_phone, [o.customer_city, o.customer_address].filter(Boolean).join(' ')].filter(Boolean).join(', ')}\n` +
+    SELLER_DASHBOARD_LINK;
+  const room = SELLER_SMS_MAX_BODY - head.length - foot.length - 1;
+  let list = items.map((it) => `${it.qty}× ${it.name}`).join(', ');
+  if (list.length > room) list = `${list.slice(0, Math.max(0, room - 1))}…`;
+  return `${head}${list}\n${foot}`;
+}
+
+async function smsToSeller(o: OrderRow, items: OrderItem[], payout: number): Promise<string | null> {
+  const to = toMobileE164(items.find((it) => it.seller_phone)?.seller_phone);
+  if (!to) return null;
+  if (!sellerSmsAllowed()) return null;
+  try {
+    await sendSms(to, sellerSmsBody(o, items, payout));
+    strapi.log.info(`[shop-order] ${o.order_number}: SMS למוכר via ${smsProviderName()} → ${to}`);
+    return `sms:${to}`;
+  } catch (err) {
+    strapi.log.error(`[shop-order] SMS למוכר ${to} נכשל: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+}
+
 // 2. המוכרים
 async function notifySellers(o: OrderRow, log: Record<string, unknown>) {
+  // קיבוץ לפי מוכר: אימייל כשיש, אחרת נייד או מזהה המוצר — כדי שגם מוכר בלי
+  // אימייל יקבל את ה-SMS על ההזמנה.
   const bySeller = new Map<string, OrderItem[]>();
   for (const it of o.items) {
-    if (!it.seller_document_id || !it.seller_email) continue;
-    const key = it.seller_email.toLowerCase();
+    if (!it.seller_document_id) continue;
+    const key = (it.seller_email || '').toLowerCase() || it.seller_phone || it.seller_document_id;
     bySeller.set(key, [...(bySeller.get(key) ?? []), it]);
   }
   const sent: string[] = [];
-  for (const [email, items] of bySeller) {
+  for (const items of bySeller.values()) {
     const first = items[0];
+    const email = (first.seller_email || '').toLowerCase();
     const gross = items.reduce((s, it) => s + it.price * it.qty, 0);
     const fee = gross * 0.1;
     const subject = `💰 מכרת! הזמנה ${o.order_number} ב${SHOP_NAME} — נא לספק`;
@@ -176,6 +229,9 @@ async function notifySellers(o: OrderRow, log: Record<string, unknown>) {
         ${o.note ? `<br><span style="color:#6b7280">הערת לקוח: ${esc(o.note)}</span>` : ''}
       </div>
       <p style="margin:0;font-size:12px;color:#6b7280">פרטי הלקוח נמסרים לצורך אספקת הזמנה זו בלבד (סעיף 9 להסכם המוכר).</p>`);
+    // ה-SMS ראשון: הוא מה שמגיע למוכר תוך שניות, לפני שיפתח מייל
+    const sms = await smsToSeller(o, items, gross - fee);
+    if (sms) sent.push(sms);
     if (await sendMail(email, subject, html, text)) sent.push(`mail:${email}`);
 
     const sellerUserId = Number(first.seller_user_id);
@@ -183,8 +239,8 @@ async function notifySellers(o: OrderRow, log: Record<string, unknown>) {
       const inbox =
         `💰 מכרת ב${SHOP_NAME}! הזמנה ${o.order_number}\n${itemsText(items)}\n` +
         `למשלוח: ${o.customer_name}, ${o.customer_phone}, ${[o.customer_address, o.customer_city, o.customer_zip].filter(Boolean).join(', ')}\n` +
-        `פרטים מלאים נשלחו למייל ${email}`;
-      if (await inboxMessage(sellerUserId, inbox)) sent.push(`inbox:${email}`);
+        (email ? `פרטים מלאים נשלחו למייל ${email}` : `פרטים מלאים בלוח הבקרה: ${SELLER_DASHBOARD_LINK}`);
+      if (await inboxMessage(sellerUserId, inbox)) sent.push(`inbox:${email || sellerUserId}`);
     }
   }
   log.sellers = sent;

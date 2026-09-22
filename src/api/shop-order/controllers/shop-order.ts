@@ -7,6 +7,7 @@ import { factories } from '@strapi/strapi';
 // ופרטי המוכר נלקחים מה-DB ולא מהלקוח. הסכומים מחושבים כאן מחדש.
 // ההתראות (מנהלים / מוכרים / לקוח) נשלחות ב-lifecycles.afterCreate.
 //
+// mine — ההזמנות של המשתמש המחובר (לפי מזהה משתמש או אימייל), בתצוגת לקוח.
 // find / findOne / update / delete — מנהל חנות בלבד (super_admin / shop_admin).
 const UID = 'api::shop-order.shop-order' as const;
 const SELLER_UID = 'api::shop-seller-product.shop-seller-product' as const;
@@ -39,6 +40,8 @@ export interface OrderItem {
   seller_display?: string;
   seller_email?: string;
   seller_name?: string;
+  /** נייד המוכר - לשליחת SMS על ההזמנה (lifecycles). לא נחשף ללקוח. */
+  seller_phone?: string;
   seller_user_id?: string | null;
 }
 
@@ -55,7 +58,7 @@ function customerView(row: any) {
   if (!row) return row;
   const { admin_note, notifications, ...rest } = row;
   if (Array.isArray(rest.items)) {
-    rest.items = rest.items.map(({ seller_email, seller_name, seller_user_id, ...it }: OrderItem) => it);
+    rest.items = rest.items.map(({ seller_email, seller_name, seller_phone, seller_user_id, ...it }: OrderItem) => it);
   }
   return rest;
 }
@@ -103,6 +106,22 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     }
     ctx.set('Cache-Control', 'public, max-age=300');
     ctx.body = { data: out };
+  },
+
+  // GET /shop-orders/mine - היסטוריית ההזמנות של המשתמש המחובר: הזמנות שנרשמו על
+  // המשתמש (buyer_user_id) או על האימייל שלו (גם מלפני שהתחבר). בלי פרטי המוכרים.
+  async mine(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const email = String(user.email ?? '').trim().toLowerCase();
+    const rows: any[] = await strapi.documents(UID).findMany({
+      filters: {
+        $or: [{ buyer_user_id: String(user.id) }, ...(email ? [{ customer_email: { $eqi: email } }] : [])],
+      },
+      sort: { createdAt: 'desc' },
+      limit: 100,
+    });
+    ctx.body = { data: rows.map(customerView) };
   },
 
   // GET /shop-orders/mine-seller - ההזמנות שכוללות מוצר של המוכר המחובר, לוח
@@ -174,6 +193,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
           seller_display: sp.seller_business || sp.seller_name || '',
           seller_email: sp.seller_email || '',
           seller_name: sp.seller_name || '',
+          // הנייד האישי של המוכר, ואם אין - טלפון החנות. לשם נשלח ה-SMS על ההזמנה.
+          seller_phone: sp.seller_phone || sp.store_phone || '',
           seller_user_id: sp.seller_user_id || null,
         });
       } else {

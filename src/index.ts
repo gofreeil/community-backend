@@ -153,6 +153,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // (store_design) ורק לחנות מאושרת, כדי שכל מי שנכנס לדף החנות יראה את
         // מה שהמוכר עיצב. שאר רשומת החנות אינה ציבורית.
         'api::shop-store.shop-store.design',
+        // רשימת החנויות המאושרות (פרטים ציבוריים בלבד) והלוגו שלהן - כדי שחנות
+        // מאושרת תופיע בקניון גם לפני שיש לה מוצרים
+        'api::shop-store.shop-store.publicList',
+        'api::shop-store.shop-store.logo',
         'api::shop-site-override.shop-site-override.find',
         'api::shop-site-override.shop-site-override.findOne',
     ],
@@ -275,6 +279,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-store.shop-store.mine',
         'api::shop-store.shop-store.upsert',
         'api::shop-store.shop-store.design',
+        'api::shop-store.shop-store.publicList',
+        'api::shop-store.shop-store.logo',
         'api::shop-store.shop-store.find',
         'api::shop-store.shop-store.findOne',
         // אישור/דחיית חנות - ההכרעה היחידה בקניון; ה-controller פותח אותה רק למנהל חנות

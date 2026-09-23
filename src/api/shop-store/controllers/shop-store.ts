@@ -109,6 +109,33 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     ctx.body = { data: row?.store_design ? { slug: row.slug, design: row.store_design } : null };
   },
 
+  // GET /shop-stores/public - החנויות המאושרות, ציבורי. רק פרטי החנות
+  // הציבוריים (store_*) - בלי פרטי המוכר, ההסכם או הלוגו עצמו (כבד; נקרא
+  // בנפרד דרך logo). כך חנות מאושרת מופיעה ברשימת החנויות גם לפני שיש לה מוצרים.
+  async publicList(ctx) {
+    const rows: any[] = await strapi.documents(UID).findMany({
+      filters: { status: { $eq: 'approved' } },
+      fields: ['slug', 'store_name', 'store_logo', 'store_phone', 'store_whatsapp', 'store_city', 'store_website', 'store_description', 'decided_at'],
+      sort: 'decided_at:desc',
+      limit: 500,
+    } as any);
+    ctx.body = {
+      data: rows.map(({ store_logo, ...r }) => ({ ...r, has_logo: DATA_IMAGE.test(store_logo || '') })),
+    };
+  },
+
+  // GET /shop-stores/logo?d=<documentId> - הלוגו של חנות מאושרת, ציבורי
+  async logo(ctx) {
+    const d = S(ctx.query?.d, 64);
+    if (!d) return ctx.badRequest('missing id');
+    const rows: any[] = await strapi.documents(UID).findMany({
+      filters: { documentId: { $eq: d }, status: { $eq: 'approved' } },
+      fields: ['store_logo'],
+      limit: 1,
+    });
+    ctx.body = { data: rows[0]?.store_logo ? { logo: rows[0].store_logo } : null };
+  },
+
   // POST /shop-stores/upsert { data: {...} } - פתיחת חנות או עדכון פרטיה.
   // ולידציה כמו בהגשת מוצר; תיעוד ההסכם נחתם כאן בשרת בפעם הראשונה בלבד
   // (או כשגרסת ההסכם השתנתה) - עדכון פרטים לא "חותם מחדש".

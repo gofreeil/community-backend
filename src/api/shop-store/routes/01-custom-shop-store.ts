@@ -10,5 +10,7 @@ export default {
     { method: 'GET', path: '/shop-stores/mine', handler: 'shop-store.mine' },
     { method: 'POST', path: '/shop-stores/upsert', handler: 'shop-store.upsert' },
     { method: 'GET', path: '/shop-stores/design', handler: 'shop-store.design' },
+    { method: 'GET', path: '/shop-stores/public', handler: 'shop-store.publicList' },
+    { method: 'GET', path: '/shop-stores/logo', handler: 'shop-store.logo' },
   ],
 };

@@ -159,8 +159,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-store.shop-store.logo',
         'api::shop-site-override.shop-site-override.find',
         'api::shop-site-override.shop-site-override.findOne',
-        // תגובות על מוצרים בחנות — קריאה ציבורית (שדות תצוגה בלבד, ה-controller מסנן)
+        // דירוגים ותגובות על מוצרים בחנות — קריאה ציבורית (שדות תצוגה בלבד, ה-controller מסנן)
         'api::shop-product-comment.shop-product-comment.find',
+        'api::shop-product-comment.shop-product-comment.summary',
     ],
     authenticated: [
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
@@ -306,10 +307,15 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-site-override.shop-site-override.create',
         'api::shop-site-override.shop-site-override.update',
         'api::shop-site-override.shop-site-override.delete',
-        // תגובות על מוצרים — כתיבה למחוברים; מחיקה לכותב או למנהל חנות (נאכף ב-controller)
+        // דירוגים ותגובות על מוצרים — דירוג, לייק ותגובה-לתגובה למחוברים; מחיקה לכותב או
+        // למנהל חנות; update (נעיצה / תשובת מנהל) למנהל חנות בלבד (נאכף ב-controller)
         'api::shop-product-comment.shop-product-comment.find',
+        'api::shop-product-comment.shop-product-comment.summary',
         'api::shop-product-comment.shop-product-comment.create',
+        'api::shop-product-comment.shop-product-comment.update',
         'api::shop-product-comment.shop-product-comment.delete',
+        'api::shop-product-comment.shop-product-comment.toggleLike',
+        'api::shop-product-comment.shop-product-comment.addReply',
     ],
 };
 

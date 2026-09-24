@@ -2222,12 +2222,17 @@ export interface ApiShopProductCommentShopProductComment
     draftAndPublish: false;
   };
   attributes: {
+    admin_liked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    admin_reply: Schema.Attribute.Text;
     author_avatar: Schema.Attribute.String;
     author_name: Schema.Attribute.String;
-    body: Schema.Attribute.Text & Schema.Attribute.Required;
+    body: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    is_featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    liked_by: Schema.Attribute.JSON;
+    likes: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -2236,6 +2241,9 @@ export interface ApiShopProductCommentShopProductComment
       Schema.Attribute.Private;
     product_id: Schema.Attribute.Integer & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<{ max: 5; min: 1 }, number>;
+    replies: Schema.Attribute.JSON;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

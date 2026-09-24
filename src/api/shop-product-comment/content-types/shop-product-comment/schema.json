@@ -5,7 +5,7 @@
     "singularName": "shop-product-comment",
     "pluralName": "shop-product-comments",
     "displayName": "Shop · Product Comment",
-    "description": "תגובות גולשים רשומים על מוצרים בחנות החירות (shop.gofreeil.com). product_id = המזהה של המוצר באתר (מוצר מוכר = 100000 + id של shop-seller-product). שם ותמונת הכותב נגזרים מהמשתמש המחובר בשרת."
+    "description": "דירוגים ותגובות של גולשים רשומים על מוצרים בחנות החירות (shop.gofreeil.com) - אותו מודל כמו pg-satisfaction-response בקבוצות הרכישה: דירוג 1-5 + תגובה, לייקים, תגובות לתגובה, תשובת מנהל ונעיצה. product_id = המזהה של המוצר באתר (מוצר מוכר = 100000 + id של shop-seller-product). דירוג אחד למשתמש למוצר; שם ותמונת הכותב נגזרים מהמשתמש המחובר בשרת."
   },
   "options": {
     "draftAndPublish": false
@@ -13,13 +13,20 @@
   "pluginOptions": {},
   "attributes": {
     "product_id": { "type": "integer", "required": true },
-    "body": { "type": "text", "required": true },
+    "rating": { "type": "integer", "min": 1, "max": 5 },
+    "body": { "type": "text" },
     "author_name": { "type": "string" },
     "author_avatar": { "type": "string" },
     "user": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
-    }
+    },
+    "is_featured": { "type": "boolean", "default": false },
+    "admin_liked": { "type": "boolean", "default": false },
+    "admin_reply": { "type": "text" },
+    "likes": { "type": "integer", "default": 0 },
+    "liked_by": { "type": "json" },
+    "replies": { "type": "json" }
   }
 }

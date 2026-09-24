@@ -2209,6 +2209,43 @@ export interface ApiShopSellerProductShopSellerProduct
   };
 }
 
+export interface ApiShopProductCommentShopProductComment
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_product_comments';
+  info: {
+    description: 'Shop product comments';
+    displayName: 'Shop \u00B7 Product Comment';
+    pluralName: 'shop-product-comments';
+    singularName: 'shop-product-comment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    author_avatar: Schema.Attribute.String;
+    author_name: Schema.Attribute.String;
+    body: Schema.Attribute.Text & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-product-comment.shop-product-comment'
+    > &
+      Schema.Attribute.Private;
+    product_id: Schema.Attribute.Integer & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiShopSiteOverrideShopSiteOverride
   extends Struct.CollectionTypeSchema {
   collectionName: 'shop_site_overrides';
@@ -2962,6 +2999,7 @@ declare module '@strapi/strapi' {
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
       'api::shop-order.shop-order': ApiShopOrderShopOrder;
       'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
+      'api::shop-product-comment.shop-product-comment': ApiShopProductCommentShopProductComment;
       'api::shop-site-override.shop-site-override': ApiShopSiteOverrideShopSiteOverride;
       'api::shop-store.shop-store': ApiShopStoreShopStore;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;

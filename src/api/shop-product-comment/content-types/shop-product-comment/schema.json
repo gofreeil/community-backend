@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shop_product_comments",
+  "info": {
+    "singularName": "shop-product-comment",
+    "pluralName": "shop-product-comments",
+    "displayName": "Shop · Product Comment",
+    "description": "תגובות גולשים רשומים על מוצרים בחנות החירות (shop.gofreeil.com). product_id = המזהה של המוצר באתר (מוצר מוכר = 100000 + id של shop-seller-product). שם ותמונת הכותב נגזרים מהמשתמש המחובר בשרת."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "product_id": { "type": "integer", "required": true },
+    "body": { "type": "text", "required": true },
+    "author_name": { "type": "string" },
+    "author_avatar": { "type": "string" },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

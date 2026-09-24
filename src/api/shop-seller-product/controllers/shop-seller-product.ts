@@ -353,6 +353,21 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       data.visibility = v;
     }
     if (typeof body.neighborhoods === 'string') data.neighborhoods = S(body.neighborhoods, 300);
+    // גלריית תמונות מלאה (החלפה/הוספה/הסרה/סדר) - אותן מגבלות כמו בהגשה
+    if (Array.isArray(body.images)) {
+      const DATA_IMAGE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+      const images = body.images.filter((x) => typeof x === 'string' && x) as string[];
+      if (images.length > MAX_IMAGES) return ctx.badRequest(`עד ${MAX_IMAGES} תמונות למוצר`);
+      let totalBytes = 0;
+      for (const img of images) {
+        if (img.length > 1_200_000) return ctx.badRequest('אחת התמונות גדולה מדי');
+        if (!DATA_IMAGE.test(img)) return ctx.badRequest('פורמט תמונה לא נתמך');
+        totalBytes += img.length;
+      }
+      if (totalBytes > 4_500_000) return ctx.badRequest('סך התמונות גדול מדי');
+      data.images = images;
+      data.image = images[0] || '';
+    }
     if (!Object.keys(data).length) return ctx.badRequest('אין מה לעדכן');
 
     const updated = await strapi.documents(UID).update({ documentId, data: data as any });

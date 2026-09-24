@@ -59,12 +59,14 @@ function publicView(row: any) {
     emoji: row.emoji,
     price: row.price,
     old_price: row.old_price,
+    shipping_price: row.shipping_price,
     description: row.description,
     image: row.image,
     images: Array.isArray(row.images) ? row.images : (row.image ? [row.image] : []),
     link: row.link,
     quantity: row.quantity,
     delivery_days: row.delivery_days,
+    delivery_by_carrier: !!row.delivery_by_carrier,
     seller_display: row.store_name || row.seller_business || row.seller_name || '',
     decided_at: row.decided_at,
     createdAt: row.createdAt,
@@ -212,13 +214,14 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         emoji: S(body.emoji, 8) || '📦',
         price: Math.round(price * 100) / 100,
         old_price: N(body.old_price) && Number(body.old_price) > price ? Math.round(Number(body.old_price) * 100) / 100 : null,
+        shipping_price: N(body.shipping_price) != null && Number(body.shipping_price) >= 0 ? Math.round(Math.min(Number(body.shipping_price), 10_000) * 100) / 100 : null,
         description: S(body.description, 2000),
         image,
         images,
         link: S(body.link, 300),
         quantity: N(body.quantity) ? Math.max(0, Math.floor(Number(body.quantity))) : null,
-        // 0 = זמן האספקה בכפוף לחברת המשלוחים
-        delivery_days: N(body.delivery_days) === 0 ? 0 : N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,
+        delivery_days: N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,
+        delivery_by_carrier: body.delivery_by_carrier === true || body.delivery_by_carrier === 'true',
         commission_percent: 10,
 
         store_name: storeName,
@@ -325,10 +328,16 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       const basePrice = (data.price as number) ?? Number(row.price);
       data.old_price = op && op > basePrice ? Math.round(op * 100) / 100 : null;
     }
+    if (body.shipping_price !== undefined) {
+      const sp = N(body.shipping_price);
+      if (sp != null && (sp < 0 || sp > 10_000)) return ctx.badRequest('מחיר משלוח לא תקין');
+      data.shipping_price = sp == null ? null : Math.round(sp * 100) / 100;
+    }
     if (body.delivery_days !== undefined) {
       const d = N(body.delivery_days);
-      data.delivery_days = d === 0 ? 0 : d ? Math.max(1, Math.floor(d)) : null; // 0 = בכפוף לחברת המשלוחים
+      data.delivery_days = d ? Math.max(1, Math.floor(d)) : null;
     }
+    if (body.delivery_by_carrier !== undefined) data.delivery_by_carrier = body.delivery_by_carrier === true || body.delivery_by_carrier === 'true';
     if (typeof body.description === 'string') data.description = S(body.description, 2000);
     if (typeof body.link === 'string') {
       const link = S(body.link, 300);

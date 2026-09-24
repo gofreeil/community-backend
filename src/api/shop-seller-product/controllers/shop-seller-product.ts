@@ -217,7 +217,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         images,
         link: S(body.link, 300),
         quantity: N(body.quantity) ? Math.max(0, Math.floor(Number(body.quantity))) : null,
-        delivery_days: N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,
+        // 0 = זמן האספקה בכפוף לחברת המשלוחים
+        delivery_days: N(body.delivery_days) === 0 ? 0 : N(body.delivery_days) ? Math.max(1, Math.floor(Number(body.delivery_days))) : null,
         commission_percent: 10,
 
         store_name: storeName,
@@ -326,7 +327,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     }
     if (body.delivery_days !== undefined) {
       const d = N(body.delivery_days);
-      data.delivery_days = d ? Math.max(1, Math.floor(d)) : null;
+      data.delivery_days = d === 0 ? 0 : d ? Math.max(1, Math.floor(d)) : null; // 0 = בכפוף לחברת המשלוחים
     }
     if (typeof body.description === 'string') data.description = S(body.description, 2000);
     if (typeof body.link === 'string') {

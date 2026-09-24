@@ -32,6 +32,7 @@
     "price": { "type": "decimal", "required": true },
     "old_price": { "type": "decimal" },
     "shipping_price": { "type": "decimal" },
+    "short_description": { "type": "string" },
     "description": { "type": "text" },
     "image": { "type": "text" },
     "images": { "type": "json" },

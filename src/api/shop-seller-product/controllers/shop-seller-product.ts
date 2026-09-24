@@ -60,6 +60,7 @@ function publicView(row: any) {
     price: row.price,
     old_price: row.old_price,
     shipping_price: row.shipping_price,
+    short_description: row.short_description || '',
     description: row.description,
     image: row.image,
     images: Array.isArray(row.images) ? row.images : (row.image ? [row.image] : []),
@@ -215,6 +216,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         price: Math.round(price * 100) / 100,
         old_price: N(body.old_price) && Number(body.old_price) > price ? Math.round(Number(body.old_price) * 100) / 100 : null,
         shipping_price: N(body.shipping_price) != null && Number(body.shipping_price) >= 0 ? Math.round(Math.min(Number(body.shipping_price), 10_000) * 100) / 100 : null,
+        short_description: S(body.short_description, 80),
         description: S(body.description, 2000),
         image,
         images,
@@ -338,6 +340,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       data.delivery_days = d ? Math.max(1, Math.floor(d)) : null;
     }
     if (body.delivery_by_carrier !== undefined) data.delivery_by_carrier = body.delivery_by_carrier === true || body.delivery_by_carrier === 'true';
+    if (typeof body.short_description === 'string') data.short_description = S(body.short_description, 80);
     if (typeof body.description === 'string') data.description = S(body.description, 2000);
     if (typeof body.link === 'string') {
       const link = S(body.link, 300);

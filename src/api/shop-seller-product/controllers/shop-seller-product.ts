@@ -340,6 +340,11 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       data.delivery_days = d ? Math.max(1, Math.floor(d)) : null;
     }
     if (body.delivery_by_carrier !== undefined) data.delivery_by_carrier = body.delivery_by_carrier === true || body.delivery_by_carrier === 'true';
+    if (typeof body.name === 'string') {
+      const name = S(body.name, 120);
+      if (!name) return ctx.badRequest('שם המוצר חובה');
+      data.name = name;
+    }
     if (typeof body.short_description === 'string') data.short_description = S(body.short_description, 80);
     if (typeof body.description === 'string') data.description = S(body.description, 2000);
     if (typeof body.link === 'string') {

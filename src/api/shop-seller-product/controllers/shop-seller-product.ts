@@ -378,4 +378,17 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const updated = await strapi.documents(UID).update({ documentId, data: data as any });
     ctx.body = { data: ownerView(updated) };
   },
+
+  // DELETE /shop-seller-products/mine/:documentId - המוכר מוחק מוצר שלו בלבד.
+  // ההזמנות שומרות עותק של פרטי הפריט, כך שהיסטוריית המכירות לא נפגעת.
+  async deleteMine(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const documentId = String(ctx.params?.documentId || '').trim();
+    if (!documentId) return ctx.badRequest('missing id');
+    const row: any = await strapi.documents(UID).findOne({ documentId });
+    if (!row || String(row.seller_user_id || '') !== String(user.id)) return ctx.forbidden('המוצר הזה אינו שלך');
+    await strapi.documents(UID).delete({ documentId });
+    ctx.body = { ok: true };
+  },
 }));

@@ -3,6 +3,7 @@
 // authenticated ב-bootstrap (src/index.ts); הזיהוי נעשה ב-controller לפי ctx.state.user.
 //   GET /mine             ההגשות של המשתמש המחובר
 //   PUT /mine/:documentId ניהול מלאי עצמי (כמות/מחיר/אספקה/תיאור/קישור) על מוצר שלו בלבד
+//   DELETE /mine/:documentId מחיקת מוצר שלו בלבד
 export default {
   routes: [
     {
@@ -14,6 +15,11 @@ export default {
       method: 'PUT',
       path: '/shop-seller-products/mine/:documentId',
       handler: 'shop-seller-product.updateMine',
+    },
+    {
+      method: 'DELETE',
+      path: '/shop-seller-products/mine/:documentId',
+      handler: 'shop-seller-product.deleteMine',
     },
   ],
 };

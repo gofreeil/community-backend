@@ -277,6 +277,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-seller-product.shop-seller-product.mine',
         // ניהול מלאי עצמי - המוכר מעדכן כמות/מחיר/אספקה על המוצר שלו בלבד; אכיפת בעלות ב-controller
         'api::shop-seller-product.shop-seller-product.updateMine',
+        // מחיקת מוצר על ידי המוכר - רק מוצר שלו; אכיפת בעלות ב-controller
+        'api::shop-seller-product.shop-seller-product.deleteMine',
         // החנות של המוכר (שלב "פתיחת חנות" לפני העלאת מוצרים) - קריאה ושמירה של הרשומה
         // של המשתמש עצמו בלבד (mine/upsert); find/findOne/update/delete נפתחים ב-controller רק למנהל חנות
         'api::shop-store.shop-store.mine',

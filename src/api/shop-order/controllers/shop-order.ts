@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { notifyCancelled } from '../content-types/shop-order/lifecycles';
 
 // הזמנות מחנות החירות (shop.gofreeil.com).
 //
@@ -184,6 +185,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     if (row.status !== 'new' || handled) return ctx.badRequest('ההזמנה כבר בטיפול ולא ניתן לבטל אותה כאן - פנו אלינו ונטפל בזה');
     const updated = await strapi.documents(UID).update({ documentId, data: { status: 'cancelled' } as any });
     await adjustStock(row.items || [], 1);
+    // ההתראות ברקע - הלקוח לא מחכה למיילים/SMS
+    notifyCancelled(updated as any).catch((e) => strapi.log.error(`[shop-order] notifyCancelled: ${e?.message ?? e}`));
     ctx.body = { data: customerView(updated) };
   },
 

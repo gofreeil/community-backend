@@ -264,6 +264,57 @@ async function notifyCustomer(o: OrderRow, log: Record<string, unknown>) {
   log.customer = (await sendMail(o.customer_email, subject, html, text)) ? [`mail:${o.customer_email}`] : [];
 }
 
+// ביטול הזמנה על ידי הלקוח (controller cancelMine): המנהלים והמוכרים שבהזמנה
+// מקבלים הודעה כדי שלא יספקו אותה, והלקוח מקבל אישור ביטול. כל כשל נבלע.
+export async function notifyCancelled(o: OrderRow) {
+  const items = Array.isArray(o.items) ? o.items : [];
+  const who = `${o.customer_name} · ${o.customer_phone}`;
+  const log: string[] = [];
+  const safe = async (p: Promise<boolean>, tag: string) => { try { if (await p) log.push(tag); } catch { /* נבלע */ } };
+
+  const adminText = `❌ הזמנה ${o.order_number} בוטלה על ידי הלקוח (${who}) — ${ils(o.total)}
+${itemsText(items)}
+אין לספק אותה.`;
+  const adminHtml = wrapHtml(`הזמנה ${o.order_number} בוטלה`, '❌', `
+    <p style="margin:0 0 10px">הלקוח <strong>${esc(o.customer_name)}</strong> ביטל את ההזמנה. אין לספק אותה.</p>
+    ${itemsHtml(items)}`);
+  for (const a of await shopAdmins()) {
+    await safe(inboxMessage(a.id, adminText), `inbox:${a.email}`);
+    await safe(sendMail(a.email, `❌ הזמנה ${o.order_number} בוטלה — ${SHOP_NAME}`, adminHtml, adminText), `mail:${a.email}`);
+  }
+
+  const bySeller = new Map<string, OrderItem[]>();
+  for (const it of items) {
+    if (!it.seller_document_id) continue;
+    const key = (it.seller_email || '').toLowerCase() || it.seller_phone || it.seller_document_id;
+    bySeller.set(key, [...(bySeller.get(key) ?? []), it]);
+  }
+  for (const list of bySeller.values()) {
+    const first = list[0];
+    const text = `❌ הזמנה ${o.order_number} ב${SHOP_NAME} בוטלה על ידי הלקוח — אין לשלוח אותה.
+${itemsText(list)}
+המלאי הוחזר אוטומטית.`;
+    const to = toMobileE164(list.find((it) => it.seller_phone)?.seller_phone);
+    if (to && sellerSmsAllowed()) {
+      try { await sendSms(to, `❌ הזמנה ${o.order_number} בוטלה על ידי הלקוח - אין לשלוח אותה.
+${SELLER_DASHBOARD_LINK}`); log.push(`sms:${to}`); } catch { /* נבלע */ }
+    }
+    await safe(sendMail((first.seller_email || '').toLowerCase(), `❌ הזמנה ${o.order_number} בוטלה — אין לשלוח`, wrapHtml('ההזמנה בוטלה - אין לשלוח', '❌', `
+      <p style="margin:0 0 10px">הלקוח ביטל את הזמנה <strong>${esc(o.order_number)}</strong>. אם עוד לא שלחת - אין צורך לשלוח. המלאי הוחזר אוטומטית.</p>
+      ${itemsHtml(list)}`), text), `mail:${first.seller_email}`);
+    const sellerUserId = Number(first.seller_user_id);
+    if (Number.isFinite(sellerUserId) && sellerUserId > 0) await safe(inboxMessage(sellerUserId, text), `inbox:${sellerUserId}`);
+  }
+
+  await safe(sendMail(o.customer_email, `ההזמנה ${o.order_number} בוטלה — ${SHOP_NAME}`, wrapHtml('ההזמנה בוטלה', '✅', `
+    <p style="margin:0 0 10px">שלום ${esc(o.customer_name)}, הזמנה <strong>${esc(o.order_number)}</strong> בוטלה לבקשתך. לא תחויב/י עליה.</p>
+    ${itemsHtml(items)}`), `שלום ${o.customer_name}, הזמנה ${o.order_number} בוטלה לבקשתך. לא תחויב/י עליה.
+
+${SHOP_NAME}`), `mail:${o.customer_email}`);
+
+  strapi.log.info(`[shop-order] ${o.order_number} cancelled by customer, notified: ${log.join(', ')}`);
+}
+
 export default {
   async afterCreate(event: any) {
     const o = event?.result as OrderRow | undefined;

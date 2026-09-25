@@ -43,6 +43,11 @@ export interface OrderItem {
   /** נייד המוכר - לשליחת SMS על ההזמנה (lifecycles). לא נחשף ללקוח. */
   seller_phone?: string;
   seller_user_id?: string | null;
+  /** שלב האספקה שהמוכר סימן לפריטים שלו (confirmed / shipped / completed) */
+  seller_status?: string;
+  seller_status_at?: string;
+  /** מספר מעקב משלוח שהמוכר הזין - מוצג גם ללקוח */
+  tracking?: string;
 }
 
 // מספר הזמנה קריא: S + תאריך + 4 תווים אקראיים (למשל S260906-K3ZQ)
@@ -147,6 +152,44 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       })
       .filter(Boolean);
     ctx.body = { data: mine };
+  },
+
+  // PUT /shop-orders/mine-seller/:documentId - המוכר מסמן את האספקה של הפריטים
+  // שלו (אושרה / נשלחה / נמסרה) ומצרף מספר מעקב. הסטטוס נשמר על כל פריט שלו
+  // (seller_status), וסטטוס ההזמנה כולה מתקדם לשלב שכל המוכרים בה הגיעו אליו -
+  // כך בהזמנה של מוכר יחיד הלקוח רואה מיד "נשלחה", ובהזמנה משותפת רק כשכולם שלחו.
+  async updateMineSeller(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const uid = String(user.id);
+    const documentId = String(ctx.params?.documentId || '').trim();
+    const body = (ctx.request.body?.data ?? {}) as Record<string, unknown>;
+    const RANK: Record<string, number> = { new: 0, confirmed: 1, shipped: 2, completed: 3 };
+    const status = String(body.status ?? '');
+    if (body.status !== undefined && !(status in RANK)) return ctx.badRequest('סטטוס לא תקין');
+    const row: any = documentId ? await strapi.documents(UID).findOne({ documentId }) : null;
+    if (!row) return ctx.notFound();
+    if (row.status === 'cancelled') return ctx.badRequest('ההזמנה בוטלה');
+    const items: any[] = Array.isArray(row.items) ? row.items : [];
+    if (!items.some((it) => String(it?.seller_user_id || '') === uid)) return ctx.forbidden('ההזמנה הזו אינה כוללת מוצרים שלך');
+    const tracking = typeof body.tracking === 'string' ? S(body.tracking, 120) : undefined;
+    const now = new Date().toISOString();
+    const nextItems = items.map((it) => {
+      if (String(it?.seller_user_id || '') !== uid) return it;
+      const out = { ...it };
+      if (body.status !== undefined) { out.seller_status = status; out.seller_status_at = now; }
+      if (tracking !== undefined) out.tracking = tracking;
+      return out;
+    });
+    // פריט בלי seller_status (מוצר של החנות עצמה / מוכר שעוד לא עדכן) נחשב בשלב של ההזמנה
+    const cur = RANK[row.status] ?? 0;
+    const minRank = Math.min(...nextItems.map((it) => (it.seller_status in RANK ? RANK[it.seller_status] : cur)));
+    const data: Record<string, unknown> = { items: nextItems };
+    if (minRank > cur) data.status = Object.keys(RANK).find((k) => RANK[k] === minRank);
+    const updated: any = await strapi.documents(UID).update({ documentId, data: data as any });
+    const mine = (updated.items || []).filter((it: OrderItem) => String(it?.seller_user_id || '') === uid);
+    const { admin_note, notifications, items: _all, ...rest } = updated;
+    ctx.body = { data: { ...rest, items: mine, my_subtotal: money(mine.reduce((sum: number, it: OrderItem) => sum + Number(it.price) * Number(it.qty), 0)) } };
   },
 
   async find(ctx) {

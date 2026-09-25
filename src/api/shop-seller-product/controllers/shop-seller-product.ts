@@ -345,6 +345,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       if (!name) return ctx.badRequest('שם המוצר חובה');
       data.name = name;
     }
+    if (typeof body.category === 'string' && S(body.category, 40)) data.category = S(body.category, 40);
     if (typeof body.short_description === 'string') data.short_description = S(body.short_description, 80);
     if (typeof body.description === 'string') data.description = S(body.description, 2000);
     if (typeof body.link === 'string') {

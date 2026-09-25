@@ -97,6 +97,18 @@ async function coPurchaseMap(): Promise<Map<number, Map<number, number>>> {
   return map;
 }
 
+// מלאי: מוצר מוכר עם quantity מוגדר יורד בכל הזמנה ועולה בחזרה כשהיא מבוטלת.
+// quantity ריק = ללא הגבלה, ולא נוגעים בו. sign=-1 הורדה, +1 החזרה.
+async function adjustStock(items: OrderItem[], sign: 1 | -1) {
+  const byDoc = new Map<string, number>();
+  for (const it of items) if (it?.seller_document_id) byDoc.set(it.seller_document_id, (byDoc.get(it.seller_document_id) || 0) + Number(it.qty || 0));
+  for (const [documentId, qty] of byDoc) {
+    const sp: any = await strapi.documents(SELLER_UID).findOne({ documentId });
+    if (!sp || sp.quantity == null) continue;
+    await strapi.documents(SELLER_UID).update({ documentId, data: { quantity: Math.max(0, Number(sp.quantity) + sign * qty) } as any });
+  }
+}
+
 export default factories.createCoreController(UID, ({ strapi }) => ({
   // GET /shop-orders/related?ids=1,2 - ציבורי, אנונימי
   async related(ctx) {
@@ -152,6 +164,24 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       })
       .filter(Boolean);
     ctx.body = { data: mine };
+  },
+
+  // PUT /shop-orders/mine/:documentId/cancel - הלקוח מבטל הזמנה שלו. מותר רק כל עוד
+  // ההזמנה חדשה ואף מוכר עוד לא אישר/שלח את הפריטים שלו - אחרי זה ביטול דרך החנות.
+  async cancelMine(ctx) {
+    const user = ctx.state?.user;
+    if (!user) return ctx.unauthorized('נדרשת התחברות');
+    const documentId = String(ctx.params?.documentId || '').trim();
+    const row: any = documentId ? await strapi.documents(UID).findOne({ documentId }) : null;
+    if (!row) return ctx.notFound();
+    const email = String(user.email ?? '').trim().toLowerCase();
+    const own = String(row.buyer_user_id || '') === String(user.id) || (!!email && String(row.customer_email || '').trim().toLowerCase() === email);
+    if (!own) return ctx.forbidden('ההזמנה הזו אינה שלך');
+    const handled = (Array.isArray(row.items) ? row.items : []).some((it: OrderItem) => it?.seller_status && it.seller_status !== 'new');
+    if (row.status !== 'new' || handled) return ctx.badRequest('ההזמנה כבר בטיפול ולא ניתן לבטל אותה כאן - פנו אלינו ונטפל בזה');
+    const updated = await strapi.documents(UID).update({ documentId, data: { status: 'cancelled' } as any });
+    await adjustStock(row.items || [], 1);
+    ctx.body = { data: customerView(updated) };
   },
 
   // PUT /shop-orders/mine-seller/:documentId - המוכר מסמן את האספקה של הפריטים
@@ -225,7 +255,11 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       if (docId) {
         // מוצר של מוכר — האמת ב-DB, לא בעגלה
         const sp: any = await strapi.documents(SELLER_UID).findOne({ documentId: docId });
-        if (!sp || sp.status !== 'approved') return ctx.badRequest(`המוצר "${S(raw?.name, 60)}" כבר לא זמין`);
+        if (!sp || sp.status !== 'approved' || sp.visibility === 'hidden') return ctx.badRequest(`המוצר "${S(raw?.name, 60)}" כבר לא זמין`);
+        const already = items.filter((x) => x.seller_document_id === docId).reduce((n, x) => n + x.qty, 0);
+        if (sp.quantity != null && qty + already > Number(sp.quantity)) {
+          return ctx.badRequest(Number(sp.quantity) > 0 ? `מהמוצר "${sp.name}" נשארו במלאי רק ${sp.quantity} יחידות` : `המוצר "${sp.name}" אזל מהמלאי`);
+        }
         items.push({
           id: Number(raw?.id) || 0,
           name: sp.name,
@@ -274,6 +308,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       },
     };
     const res: any = await super.create(ctx);
+    if (res?.data) await adjustStock(items, -1);
     if (res?.data) res.data = customerView(res.data);
     return res;
   },
@@ -285,8 +320,15 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const allowed: Record<string, unknown> = {};
     if (['new', 'confirmed', 'shipped', 'completed', 'cancelled'].includes(String(body.status))) allowed.status = body.status;
     if (typeof body.admin_note === 'string') allowed.admin_note = body.admin_note.slice(0, 2000);
+    // ביטול / שחזור של הזמנה מחזיר / מוריד את המלאי בהתאם
+    const before: any = allowed.status ? await strapi.documents(UID).findOne({ documentId: ctx.params.id ?? ctx.params.documentId }) : null;
     ctx.request.body = { data: allowed };
-    return super.update(ctx);
+    const res: any = await super.update(ctx);
+    if (before && res?.data) {
+      if (before.status !== 'cancelled' && allowed.status === 'cancelled') await adjustStock(before.items || [], 1);
+      if (before.status === 'cancelled' && allowed.status !== 'cancelled') await adjustStock(before.items || [], -1);
+    }
+    return res;
   },
 
   async delete(ctx) {

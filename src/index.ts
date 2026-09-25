@@ -304,6 +304,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-order.shop-order.mineSeller',
         // המוכר מעדכן סטטוס אספקה של הפריטים שלו בהזמנה; אכיפת בעלות ב-controller
         'api::shop-order.shop-order.updateMineSeller',
+        // הלקוח מבטל הזמנה שלו (רק כל עוד היא חדשה); אכיפה ב-controller
+        'api::shop-order.shop-order.cancelMine',
         // דריסות תוכן של החנות — ה-controller פותח כתיבה (upsert/update/delete) רק לסופר-אדמין
         'api::shop-site-override.shop-site-override.find',
         'api::shop-site-override.shop-site-override.findOne',

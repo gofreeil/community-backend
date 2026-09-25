@@ -17,6 +17,7 @@ import { factories } from '@strapi/strapi';
 // דף החנות של חנות מאושרת (design), כדי שמי שנכנס לדף יראה את מה שהמוכר
 // בנה בסטודיו. שאר הדף הציבורי נגזר מהמוצרים המאושרים, לא מכאן.
 const UID = 'api::shop-store.shop-store' as const;
+const PRODUCT_UID = 'api::shop-seller-product.shop-seller-product' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 const DATA_IMAGE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
@@ -218,6 +219,21 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const row = prev
       ? await strapi.documents(UID).update({ documentId: prev.documentId, data: data as any })
       : await strapi.documents(UID).create({ data: data as any });
+    // פרטי החנות מועתקים לכל מוצר (store_* - מה שהציבור רואה בכרטיס ובדף המוצר), ולכן
+    // עריכת החנות מתגלגלת לכל המוצרים של המוכר - אחרת שם/לוגו/טלפון ישנים נשארים על המדף.
+    const products: any[] = await strapi.documents(PRODUCT_UID).findMany({
+      filters: { seller_user_id: { $eq: String(user.id) } },
+      fields: ['documentId'] as any,
+      limit: 500,
+    });
+    const storeFields = {
+      store_name: data.store_name, store_logo: data.store_logo, store_phone: data.store_phone,
+      store_whatsapp: data.store_whatsapp, store_city: data.store_city, store_website: data.store_website,
+      store_description: data.store_description, seller_business: data.store_name,
+    };
+    for (const p of products) {
+      await strapi.documents(PRODUCT_UID).update({ documentId: p.documentId, data: storeFields as any });
+    }
     ctx.body = { data: ownerView(row), created: !prev };
   },
 }));

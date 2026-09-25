@@ -14,6 +14,9 @@ const SELLER_UID = 'api::shop-seller-product.shop-seller-product' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
 
+// דמי משלוח: כל מוכר שולח בנפרד, ולכן משלוח אחד לכל מוכר בהזמנה - המחיר שהמוכר
+// קבע למוצר (shipping_price; הגבוה מבין המוצרים שלו), וברירת מחדל 35 ₪ כשלא קבע.
+// מוצרי החנות הקבועים נחשבים "מוכר" אחד.
 const SHIPPING_FEE = 35;
 
 function isPrivileged(user: any): boolean {
@@ -249,6 +252,8 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     if (rawItems.length > 50) return ctx.badRequest('יותר מדי פריטים');
 
     const items: OrderItem[] = [];
+    const shipBySeller = new Map<string, number>();
+    const addShip = (key: string, fee: number) => shipBySeller.set(key, Math.max(shipBySeller.get(key) ?? 0, fee));
     for (const raw of rawItems) {
       const qty = Math.max(1, Math.min(99, Math.floor(Number(raw?.qty) || 0)));
       const docId = S(raw?.seller_document_id, 60);
@@ -260,6 +265,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         if (sp.quantity != null && qty + already > Number(sp.quantity)) {
           return ctx.badRequest(Number(sp.quantity) > 0 ? `מהמוצר "${sp.name}" נשארו במלאי רק ${sp.quantity} יחידות` : `המוצר "${sp.name}" אזל מהמלאי`);
         }
+        addShip(`seller:${sp.seller_user_id || sp.seller_email || sp.store_name || docId}`, sp.shipping_price == null ? SHIPPING_FEE : Math.max(0, Number(sp.shipping_price)));
         items.push({
           id: Number(raw?.id) || 0,
           name: sp.name,
@@ -278,12 +284,13 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         const price = Number(raw?.price);
         const itemName = S(raw?.name, 120);
         if (!itemName || !Number.isFinite(price) || price < 0 || price > 1_000_000) return ctx.badRequest('פריט לא תקין');
+        addShip('store', SHIPPING_FEE);
         items.push({ id: Number(raw?.id) || 0, name: itemName, price: money(price), qty, emoji: S(raw?.emoji, 8) || '📦' });
       }
     }
 
     const subtotal = money(items.reduce((s, it) => s + it.price * it.qty, 0));
-    const shipping = SHIPPING_FEE;
+    const shipping = money([...shipBySeller.values()].reduce((a, b) => a + b, 0));
     const total = money(subtotal + shipping);
 
     ctx.request.body = {

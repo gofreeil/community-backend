@@ -20,7 +20,7 @@
     },
     "visibility": {
       "type": "enumeration",
-      "enum": ["visible", "hidden", "neighborhoods"],
+      "enum": ["visible", "hidden", "neighborhoods", "unlisted"],
       "default": "visible",
       "required": true
     },

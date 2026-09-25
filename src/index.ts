@@ -141,6 +141,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // תיעוד קבלת הסכם המוכר). אישור/דחייה — מנהל חנות בלבד.
         'api::shop-seller-product.shop-seller-product.find',
         'api::shop-seller-product.shop-seller-product.findOne',
+        // מוצר "לא מוצג בחנות" נפתח רק למי שקיבל את הקישור
+        'api::shop-seller-product.shop-seller-product.byLink',
         'api::shop-seller-product.shop-seller-product.create',
         // הזמנה מהצ'קאאוט — יצירה ציבורית (ה-controller מאמת ומחשב מחדש; afterCreate
         // מודיע למנהלים, למוכרים וללקוח). קריאה/עדכון — מנהל חנות בלבד.

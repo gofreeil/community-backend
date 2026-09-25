@@ -109,7 +109,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   async findOne(ctx) {
     const res: any = await super.findOne(ctx);
     if (isTrusted(ctx)) return res;
-    if (!res?.data || res.data.status !== 'approved' || (res.data.visibility && res.data.visibility !== 'visible')) return ctx.notFound();
+    if (!res?.data || res.data.status !== 'approved' || !['visible', 'unlisted'].includes(res.data.visibility || 'visible')) return ctx.notFound();
     res.data = publicView(res.data);
     return res;
   },
@@ -286,6 +286,18 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     return super.delete(ctx);
   },
 
+  // GET /shop-seller-products/link/:id - מוצר בודד לפי המזהה המספרי, לדף המוצר ולקישור
+  // השיתוף. בניגוד לרשימה הציבורית, מחזיר גם "לא מוצג בחנות" (unlisted): המוצר לא
+  // מופיע בחנות/בחיפוש, אבל מי שקיבל קישור בפרטי יכול לראות ולקנות.
+  async byLink(ctx) {
+    const id = Number(ctx.params?.id);
+    if (!Number.isInteger(id) || id <= 0) return ctx.notFound();
+    const rows: any[] = await strapi.documents(UID).findMany({ filters: { id: { $eq: id } } as any, limit: 1 });
+    const row = rows[0];
+    if (!row || row.status !== 'approved' || !['visible', 'unlisted'].includes(row.visibility || 'visible')) return ctx.notFound();
+    ctx.body = { data: { ...publicView(row), visibility: row.visibility || 'visible' } };
+  },
+
   // GET /shop-seller-products/mine - ההגשות של המשתמש המחובר (לפי מזהה משתמש
   // או אימייל), כולל סטטוס וסיבת דחייה.
   async mine(ctx) {
@@ -355,7 +367,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     }
     if (body.visibility !== undefined) {
       const v = String(body.visibility);
-      if (!['visible', 'hidden', 'neighborhoods'].includes(v)) return ctx.badRequest('סטטוס תצוגה לא תקין');
+      if (!['visible', 'hidden', 'neighborhoods', 'unlisted'].includes(v)) return ctx.badRequest('סטטוס תצוגה לא תקין');
       data.visibility = v;
     }
     if (typeof body.neighborhoods === 'string') data.neighborhoods = S(body.neighborhoods, 300);

@@ -13,8 +13,8 @@ const UID = 'api::shop-order.shop-order' as const;
 const SELLER_UID = 'api::shop-seller-product.shop-seller-product' as const;
 
 const SUPER_ADMIN_EMAILS = new Set(['yahavanter@gmail.com']);
-const FREE_SHIPPING_FROM = 199;
-const SHIPPING_FEE = 29;
+
+const SHIPPING_FEE = 35;
 
 function isPrivileged(user: any): boolean {
   if (!user) return false;
@@ -283,7 +283,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     }
 
     const subtotal = money(items.reduce((s, it) => s + it.price * it.qty, 0));
-    const shipping = subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE;
+    const shipping = SHIPPING_FEE;
     const total = money(subtotal + shipping);
 
     ctx.request.body = {

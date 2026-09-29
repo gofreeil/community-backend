@@ -21,6 +21,23 @@ IMAGE=ghcr.io/gofreeil/community-backend
 
 cd "$REPO_DIR"
 
+# לכל היותר $1 גרסאות של ה-image על הדיסק. כל אחת ~4.3GB, ופרץ של 10 דפלויים
+# ביומיים מילא 13GB (29.9.2026) - prune לפי גיל לא עומד בקצב כזה. תמיד נשמרות
+# הגרסאות שקונטיינר משתמש בהן, ואת שאר המקומות ממלאות החדשות ביותר (לחזרה אחורה).
+keep_newest_images() {
+    local keep=$1 in_use ids id n=0
+    in_use=$(docker ps -aq | xargs -r docker inspect -f '{{.Image}}' | sort -u)
+    ids=$(docker images -q --no-trunc "$IMAGE" | sort -u \
+        | xargs -r docker image inspect -f '{{.Created}} {{.Id}}' | sort -r | cut -d' ' -f2)
+    # קודם אלה שבשימוש, אחריהם השאר מהחדש לישן
+    for id in $(grep -xF -f <(echo "$in_use") <<<"$ids"; grep -vxF -f <(echo "$in_use") <<<"$ids"); do
+        n=$((n + 1))
+        [ "$n" -le "$keep" ] && continue
+        grep -qxF "$id" <<<"$in_use" && continue
+        docker rmi -f "$id" >/dev/null
+    done
+}
+
 git fetch origin --quiet
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/main)
@@ -43,8 +60,9 @@ echo "=== $(date -u) deploying $REMOTE ==="
 # פינוי לפני המשיכה, לא רק אחריה: image של Strapi שוקל ~1.7GB, והדיסק 38GB.
 # משיכות שנכשלו (ולכן לא הגיעו ל-prune שבסוף) השאירו שכבות חלקיות ו-images
 # ישנים עד 97% תפוסה - ואז כל משיכה נכשלת ב"no space left" והשרת תקוע.
-# מוחקים images שאינם בשימוש ובני יותר משבוע (ה-image הרץ לעולם לא נמחק).
-docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
+# משאירים 2 לפני המשיכה, כך שאחריה יש לכל היותר 3 (ה-image הרץ לעולם לא נמחק).
+keep_newest_images 2 || true
+docker image prune -f >/dev/null 2>&1 || true
 
 export IMAGE_TAG="$REMOTE"
 if ! docker compose pull strapi strapi2; then
@@ -60,5 +78,6 @@ git reset --hard origin/main
 docker compose up -d --no-deps --force-recreate --wait strapi
 docker compose up -d --no-deps --force-recreate --wait strapi2
 
+keep_newest_images 3 || true
 docker image prune -f
 echo "=== $(date -u) deploy done ($REMOTE) ==="

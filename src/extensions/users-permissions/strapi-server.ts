@@ -289,6 +289,79 @@ export default (plugin: any) => {
         ctx.body = { data: out, order: await readOrder() };
     };
 
+    // ── לוח המשימות והדיווחים של צוות הרשת (gofreeil.com/admin) ──
+    // מסמך JSON אחד ב-core_store: { rev, data }. השרת כאן רק שומר ומגן — כל
+    // לוגיקת המשימות וההרשאות הפנימיות יושבת בפורטל (שמעדכן בלי פריסת באקאנד).
+    // כתיבה = compare-and-swap לפי rev, תחת נעילת Postgres בין שני מופעי Strapi —
+    // כך שתי תגובות שנשלחות באותו רגע לא דורסות זו את זו (הפורטל מנסה שוב ב-409).
+    // גישה: סופר-אדמין + כל מי שמונה כאדמין של אתר ברשת (לפי מפת site-admins).
+    const NETWORK_BOARD_KEY = 'gofreeil-network-board';
+    const NETWORK_BOARD_LOCK_ID = 7_243_001; // מזהה נעילה ייעודי ל-pg_advisory_xact_lock
+    const normEmail = (e: any) => String(e ?? '').trim().toLowerCase();
+
+    const isNetworkTeamUser = async (user: any): Promise<boolean> => {
+        if (!user) return false;
+        if (isSuperAdminUser(user)) return true;
+        const email = normEmail(user.email);
+        if (!email) return false;
+        const map = ((await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {}) as Record<string, any>;
+        return Object.values(map).some((a: any) => normEmail(a?.adminEmail) === email);
+    };
+
+    const withBoardLock = async <T>(fn: () => Promise<T>): Promise<T> => {
+        if (process.env.DATABASE_CLIENT !== 'postgres') return fn();
+        return strapi.db.connection.transaction(async (trx: any) => {
+            await trx.raw('SELECT pg_advisory_xact_lock(?)', [NETWORK_BOARD_LOCK_ID]);
+            return fn();
+        });
+    };
+
+    // GET /api/network-board → { data, rev } (data=null כשהלוח עוד ריק)
+    plugin.controllers.user.networkBoardGet = async (ctx: any) => {
+        if (!(await isNetworkTeamUser(ctx.state?.user))) return ctx.forbidden('צוות הרשת בלבד');
+        const stored = (await siteAdminsStore().get({ key: NETWORK_BOARD_KEY })) as any;
+        ctx.body = { data: stored?.data ?? null, rev: Number(stored?.rev ?? 0) };
+    };
+
+    // PUT /api/network-board { data, rev } — נשמר רק אם rev תואם לגרסה בשרת; אחרת 409.
+    // הגרסה הקודמת נשמרת בצד (‎-prev) כרשת ביטחון מפני דריסה בטעות.
+    plugin.controllers.user.networkBoardSet = async (ctx: any) => {
+        const user = ctx.state?.user;
+        if (!(await isNetworkTeamUser(user))) return ctx.forbidden('צוות הרשת בלבד');
+        const body = (ctx.request.body ?? {}) as any;
+        const rev = Number(body.rev);
+        if (!Number.isInteger(rev) || rev < 0) return ctx.badRequest('rev לא תקין');
+        const data = body.data;
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            return ctx.badRequest('data חייב להיות אובייקט');
+        }
+        if (JSON.stringify(data).length > 4_000_000) return ctx.badRequest('הלוח גדול מדי');
+
+        const result = await withBoardLock(async () => {
+            const stored = (await siteAdminsStore().get({ key: NETWORK_BOARD_KEY })) as any;
+            const current = Number(stored?.rev ?? 0);
+            if (current !== rev) return { conflict: true, rev: current };
+            if (stored) await siteAdminsStore().set({ key: `${NETWORK_BOARD_KEY}-prev`, value: stored });
+            await siteAdminsStore().set({
+                key: NETWORK_BOARD_KEY,
+                value: {
+                    rev: current + 1,
+                    data,
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: normEmail(user.email),
+                },
+            });
+            return { conflict: false, rev: current + 1 };
+        });
+
+        if (result.conflict) {
+            ctx.status = 409;
+            ctx.body = { error: 'הלוח עודכן בינתיים', rev: result.rev };
+            return;
+        }
+        ctx.body = { ok: true, rev: result.rev };
+    };
+
     // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת
     // קידומת שם-הפלאגין (‎/api/users-permissions/ch-users) במקום ‎/api/ch-users,
     // והפרונט מקבל 404. כל ה-routes המובנים של users-permissions משתמשים בזה.
@@ -333,6 +406,18 @@ export default (plugin: any) => {
             method: 'GET',
             path: '/site-admins/public',
             handler: 'user.siteAdminsPublicGet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'GET',
+            path: '/network-board',
+            handler: 'user.networkBoardGet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'PUT',
+            path: '/network-board',
+            handler: 'user.networkBoardSet',
             config: { prefix: '' },
         }
     );

@@ -269,6 +269,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // אדמיני אתרי הרשת לפאנל של gofreeil.com; אכיפת סופר-אדמין ב-controller
         'plugin::users-permissions.user.siteAdminsGet',
         'plugin::users-permissions.user.siteAdminsSet',
+        // לוח המשימות והדיווחים של צוות הרשת; אכיפת צוות (סופר-אדמין/אדמין אתר) ב-controller
+        'plugin::users-permissions.user.networkBoardGet',
+        'plugin::users-permissions.user.networkBoardSet',
         // חנות החירות — הגשת מוצר בשם משתמש מחובר (מצמיד seller_user_id), "המוצרים
         // שלי", ואישור/דחייה/מחיקה שה-controller פותח רק ל-super_admin / shop_admin.
         'api::shop-seller-product.shop-seller-product.find',

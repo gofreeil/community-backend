@@ -12,6 +12,8 @@
  */
 // הצהרה מקומית ל-global של Strapi — עצמאית מהטיפוסים של @strapi/strapi
 // (noEmitOnError=true בבילד; שגיאת קומפילציה הייתה תוקעת את ה-auto-deploy)
+import { installAccountRecovery } from '../../utils/accountRecovery';
+
 declare const strapi: any;
 
 // בעלי האתר — רשת ביטחון כמו בפרונט; app_role='super_admin' מוקצה להם ב-bootstrap
@@ -492,6 +494,9 @@ export default (plugin: any) => {
 
         return { ...base, connect };
     };
+
+    // ── שחזור גישה לחשבון: הקישור חוזר לאתר המבקש + מייל חכם (ראה utils/accountRecovery.ts) ──
+    installAccountRecovery(plugin);
 
     return plugin;
 };

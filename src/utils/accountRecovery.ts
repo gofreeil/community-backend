@@ -169,12 +169,28 @@ export function buildResetEmail(opts: {
     return { subject: `שחזור גישה לחשבון - ${siteName}`, html, text };
 }
 
-/** מתקין את ה-wrappers על controllers.auth של users-permissions. */
+/**
+ * מתקין את ה-wrappers על controllers.auth של users-permissions.
+ *
+ * ב-users-permissions 5.x ה-controller של auth הוא *factory* — ({ strapi }) => ({...}) —
+ * ו-Strapi מפעיל אותו בעצמו בעת הרישום. השמה של מתודות על ה-factory (כמו שעובד
+ * ב-controllers.user, שהוא אובייקט) לא מגיעה לאובייקט שנוצר ממנו, ולכן עוטפים את
+ * ה-factory: מייצרים את האובייקט המקורי ודורסים עליו את שתי המתודות.
+ */
 export function installAccountRecovery(plugin: any) {
-    const originalForgot = plugin.controllers.auth.forgotPassword;
-    const originalReset = plugin.controllers.auth.resetPassword;
+    const authController = plugin.controllers.auth;
+    plugin.controllers.auth =
+        typeof authController === 'function'
+            ? (opts: any) => wrapAuthController(authController(opts))
+            : wrapAuthController(authController);
+}
 
-    plugin.controllers.auth.forgotPassword = async (ctx: any) => {
+/** דורס forgotPassword ו-resetPassword על אובייקט ה-controller (מחזיר אותו). */
+export function wrapAuthController(ctrl: any) {
+    const originalForgot = ctrl.forgotPassword;
+    const originalReset = ctrl.resetPassword;
+
+    ctrl.forgotPassword = async (ctx: any) => {
         const body = ctx.request?.body ?? {};
         // בלי resetUrl → התנהגות Strapi המקורית, בדיוק כמו קודם.
         if (body.resetUrl === undefined) return originalForgot(ctx);
@@ -222,7 +238,7 @@ export function installAccountRecovery(plugin: any) {
         return done();
     };
 
-    plugin.controllers.auth.resetPassword = async (ctx: any) => {
+    ctrl.resetPassword = async (ctx: any) => {
         const code = String(ctx.request?.body?.code ?? '');
         const users = strapi.db.query(USER_UID);
         const user = code ? await users.findOne({ where: { resetPasswordToken: code } }) : null;
@@ -241,4 +257,6 @@ export function installAccountRecovery(plugin: any) {
             await users.update({ where: { id: user.id }, data: { provider: 'local', confirmed: true } });
         }
     };
+
+    return ctrl;
 }

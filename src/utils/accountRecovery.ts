@@ -29,6 +29,10 @@ const RESET_TTL_MS = 2 * 60 * 60 * 1000; // שעתיים
 const COOLDOWN_MS = 45 * 1000;
 const USER_UID = 'plugin::users-permissions.user';
 
+// כתובת השולח היא noreply@ (לא מקבלת תשובות). מי שלוחץ "השב" על מייל השחזור מגיע
+// לכתובת יצירת הקשר של הרשת - אותה כתובת שמופיעה בכל האתרים. ניתן לדרוס ב-env.
+const REPLY_TO = process.env.RECOVERY_REPLY_TO || 'freedomhasbegun@gmail.com';
+
 // זיכרון-תהליך בלבד (שני מופעי Strapi מאחורי ה-nginx) — רשת ביטחון, לא חשבונאות.
 const lastSentByEmail = new Map<string, number>();
 
@@ -230,7 +234,7 @@ export function wrapAuthController(ctrl: any) {
         const fromEmail = process.env.EMAIL_FROM || 'noreply@gofreeil.com';
         const from = fromEmail.includes('<') ? fromEmail : `${siteNameFor(target.host)} <${fromEmail}>`;
         try {
-            await strapi.plugin('email').service('email').send({ to: user.email, from, subject, html, text });
+            await strapi.plugin('email').service('email').send({ to: user.email, from, replyTo: REPLY_TO, subject, html, text });
         } catch (e) {
             lastSentByEmail.delete(email); // שליחה נכשלה — שיוכל לנסות שוב מיד
             throw e;

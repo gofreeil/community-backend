@@ -162,6 +162,12 @@
     "sms_campaigns": {
       "type": "json",
       "default": []
+    },
+    "isModeratorOf": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::city.city",
+      "mappedBy": "moderator"
     }
   }
 }

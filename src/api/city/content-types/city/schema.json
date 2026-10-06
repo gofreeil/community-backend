@@ -16,6 +16,12 @@
     },
     "neighborhoods": {
       "type": "json"
+    },
+    "moderator": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "isModeratorOf"
     }
   }
 }

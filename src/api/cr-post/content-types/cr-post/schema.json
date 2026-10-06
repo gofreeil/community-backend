@@ -1,0 +1,78 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cr_posts",
+  "info": {
+    "singularName": "cr-post",
+    "pluralName": "cr-posts",
+    "displayName": "CrPost",
+    "description": "מבקר רשויות המדינה (criticism) — חדשות ארציות ומקומיות לפי עיר (נפרד מ-post של הקהילה)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "summary": {
+      "type": "text"
+    },
+    "category": {
+      "type": "string"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "moderationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending_moderation",
+        "approved",
+        "rejected"
+      ],
+      "default": "approved"
+    },
+    "publishDate": {
+      "type": "datetime"
+    },
+    "rejectionReason": {
+      "type": "text"
+    },
+    "videourl": {
+      "type": "string"
+    },
+    "videodescription": {
+      "type": "text"
+    },
+    "sourceUrl": {
+      "type": "string"
+    },
+    "locale2": {
+      "type": "string"
+    },
+    "imageUrl": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "cities": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::city.city"
+    }
+  }
+}

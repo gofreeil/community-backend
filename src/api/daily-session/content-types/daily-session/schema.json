@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "daily_sessions",
+  "info": {
+    "singularName": "daily-session",
+    "pluralName": "daily-sessions",
+    "displayName": "DailySession",
+    "description": "מבקר רשויות המדינה (criticism) — ביקור יומי לפי session — למניעת ספירה כפולה, נמחק אחרי 30 יום"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "sessionId": {
+      "type": "string",
+      "required": true
+    },
+    "visitDate": {
+      "type": "date",
+      "required": true
+    }
+  }
+}

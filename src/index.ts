@@ -2,6 +2,7 @@ import type { Core } from '@strapi/strapi';
 import fs from 'fs';
 import path from 'path';
 import { seedPGCampaigns } from './seeds/pg-campaigns';
+import { seedCriticismCities } from './seeds/criticism-cities';
 
 async function runMigrations(strapi: Core.Strapi) {
   const db = strapi.db;
@@ -164,8 +165,37 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // דירוגים ותגובות על מוצרים בחנות — קריאה ציבורית (שדות תצוגה בלבד, ה-controller מסנן)
         'api::shop-product-comment.shop-product-comment.find',
         'api::shop-product-comment.shop-product-comment.summary',
+        // מבקר רשויות המדינה (criticism) — קריאה ציבורית בלבד. ה-controllers מסננים: פניות
+        // מאושרות בלבד, בלי כתובות מייל, ופנייה אנונימית בלי שם. כתיבה/מודרציה — בלי הרשאת role.
+        'api::inquiry.inquiry.find',
+        'api::inquiry.inquiry.findOne',
+        'api::concil-member.concil-member.find',
+        'api::concil-member.concil-member.findOne',
+        'api::specialty.specialty.find',
+        'api::specialty.specialty.findOne',
+        'api::partner.partner.find',
+        'api::partner.partner.findOne',
+        'api::cr-post.cr-post.find',
+        'api::cr-post.cr-post.findOne',
     ],
     authenticated: [
+        // מבקר רשויות המדינה (criticism) — הגשת פנייה/חדשה, תמיכה וסגירה של פנייה שלך. ה-controller
+        // כופה pending, בעלים מה-JWT ובודק בעלות; אישור/דחייה/מענה רק מ-API Token של שרת האתר.
+        // (העלאת תמונה לא מקבלת הרשאת upload: היא עוברת דרך שרת האתר עם טוקן-שרת.)
+        'api::inquiry.inquiry.find',
+        'api::inquiry.inquiry.findOne',
+        'api::inquiry.inquiry.create',
+        'api::inquiry.inquiry.support',
+        'api::inquiry.inquiry.close',
+        'api::concil-member.concil-member.find',
+        'api::concil-member.concil-member.findOne',
+        'api::specialty.specialty.find',
+        'api::specialty.specialty.findOne',
+        'api::partner.partner.find',
+        'api::partner.partner.findOne',
+        'api::cr-post.cr-post.find',
+        'api::cr-post.cr-post.findOne',
+        'api::cr-post.cr-post.create',
         // יורש מ-public + יכולות יצירה/עדכון של תוכן משלו
         'api::event.event.create',
         'api::event.event.update',
@@ -599,5 +629,6 @@ export default {
     await ensurePermissions(strapi);
     await ensureGoogleProvider(strapi);
     await seedPGCampaigns(strapi);
+    await seedCriticismCities(strapi);
   },
 };

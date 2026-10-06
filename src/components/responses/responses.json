@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_responses_responses",
+  "info": {
+    "displayName": "responses",
+    "description": "מבקר רשויות המדינה (criticism) — תגובה לפנייה (נציג או הנהלת האתר)"
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "createdDate": {
+      "type": "datetime"
+    },
+    "isOfficial": {
+      "type": "boolean",
+      "default": false
+    },
+    "council_member": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::concil-member.concil-member"
+    }
+  }
+}

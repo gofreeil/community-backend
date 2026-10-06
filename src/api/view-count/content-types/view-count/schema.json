@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "view_counts",
+  "info": {
+    "singularName": "view-count",
+    "pluralName": "view-counts",
+    "displayName": "ViewCount",
+    "description": "מבקר רשויות המדינה (criticism) — מונה צפיות כולל ויומי (רשומה בודדת)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "totalViews": {
+      "type": "integer",
+      "default": 0
+    },
+    "dailyViews": {
+      "type": "integer",
+      "default": 0
+    },
+    "lastReset": {
+      "type": "date"
+    }
+  }
+}

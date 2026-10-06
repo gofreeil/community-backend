@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "specialties",
+  "info": {
+    "singularName": "specialty",
+    "pluralName": "specialties",
+    "displayName": "Specialty",
+    "description": "מבקר רשויות המדינה (criticism) — תחום התמחות של חבר מועצה"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "concil_members": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::concil-member.concil-member",
+      "mappedBy": "specialties"
+    }
+  }
+}

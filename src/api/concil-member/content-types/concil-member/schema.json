@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "concil_members",
+  "info": {
+    "singularName": "concil-member",
+    "pluralName": "concil-members",
+    "displayName": "ConcilMember",
+    "description": "מבקר רשויות המדינה (criticism) — חבר מועצה / נציג רשות"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "role": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "party": {
+      "type": "string"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "responsive": {
+      "type": "boolean",
+      "default": false
+    },
+    "specialties": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::specialty.specialty",
+      "inversedBy": "concil_members"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "hasAnnualReport": {
+      "type": "boolean",
+      "default": false
+    },
+    "linkToLastAnnualReport": {
+      "type": "string"
+    },
+    "city": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::city.city"
+    }
+  }
+}

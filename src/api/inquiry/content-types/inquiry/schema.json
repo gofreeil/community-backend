@@ -1,0 +1,97 @@
+{
+  "kind": "collectionType",
+  "collectionName": "inquiries",
+  "info": {
+    "singularName": "inquiry",
+    "pluralName": "inquiries",
+    "displayName": "Inquiry",
+    "description": "מבקר רשויות המדינה (criticism) — פניות תושבים לנציגי הרשות"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "numid": {
+      "type": "integer"
+    },
+    "isAnonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "userOpenerRating": {
+      "type": "integer"
+    },
+    "moderationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending_moderation",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending_moderation"
+    },
+    "inquiryStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending_moderation",
+        "sent_to_council",
+        "awaiting_response",
+        "response_received",
+        "closed"
+      ],
+      "default": "pending_moderation"
+    },
+    "rejectionReason": {
+      "type": "text"
+    },
+    "sentToCouncilAt": {
+      "type": "datetime"
+    },
+    "isClosed": {
+      "type": "boolean",
+      "default": false
+    },
+    "mainImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "responses": {
+      "type": "component",
+      "repeatable": true,
+      "component": "responses.responses"
+    },
+    "userOpener": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "supporters": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "concil_members": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::concil-member.concil-member"
+    },
+    "cities": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::city.city"
+    }
+  }
+}

@@ -1035,6 +1035,10 @@ export interface ApiCityCity extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::city.city'> &
       Schema.Attribute.Private;
+    moderator: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     name: Schema.Attribute.String;
     neighborhoods: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
@@ -1124,6 +1128,52 @@ export interface ApiCommunityUserCommunityUser
   };
 }
 
+export interface ApiConcilMemberConcilMember
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'concil_members';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05D7\u05D1\u05E8 \u05DE\u05D5\u05E2\u05E6\u05D4 / \u05E0\u05E6\u05D9\u05D2 \u05E8\u05E9\u05D5\u05EA';
+    displayName: 'ConcilMember';
+    pluralName: 'concil-members';
+    singularName: 'concil-member';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    city: Schema.Attribute.Relation<'manyToOne', 'api::city.city'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.String;
+    facebook: Schema.Attribute.String;
+    hasAnnualReport: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    linkToLastAnnualReport: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::concil-member.concil-member'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    party: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    responsive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    role: Schema.Attribute.String;
+    specialties: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::specialty.specialty'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    verified: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    whatsapp: Schema.Attribute.String;
+  };
+}
+
 export interface ApiContactRequestContactRequest
   extends Struct.CollectionTypeSchema {
   collectionName: 'contact_requests';
@@ -1203,6 +1253,86 @@ export interface ApiCoordinatorRequestCoordinatorRequest
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user_id: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ApiCrPostCrPost extends Struct.CollectionTypeSchema {
+  collectionName: 'cr_posts';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05D7\u05D3\u05E9\u05D5\u05EA \u05D0\u05E8\u05E6\u05D9\u05D5\u05EA \u05D5\u05DE\u05E7\u05D5\u05DE\u05D9\u05D5\u05EA \u05DC\u05E4\u05D9 \u05E2\u05D9\u05E8 (\u05E0\u05E4\u05E8\u05D3 \u05DE-post \u05E9\u05DC \u05D4\u05E7\u05D4\u05D9\u05DC\u05D4)';
+    displayName: 'CrPost';
+    pluralName: 'cr-posts';
+    singularName: 'cr-post';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    archived: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    author: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    category: Schema.Attribute.String;
+    cities: Schema.Attribute.Relation<'manyToMany', 'api::city.city'>;
+    content: Schema.Attribute.RichText;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    imageUrl: Schema.Attribute.Media<'images'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    locale2: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::cr-post.cr-post'
+    > &
+      Schema.Attribute.Private;
+    moderationStatus: Schema.Attribute.Enumeration<
+      ['pending_moderation', 'approved', 'rejected']
+    > &
+      Schema.Attribute.DefaultTo<'approved'>;
+    publishDate: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    rejectionReason: Schema.Attribute.Text;
+    sourceUrl: Schema.Attribute.String;
+    summary: Schema.Attribute.Text;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    videodescription: Schema.Attribute.Text;
+    videourl: Schema.Attribute.String;
+  };
+}
+
+export interface ApiDailySessionDailySession
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'daily_sessions';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05D1\u05D9\u05E7\u05D5\u05E8 \u05D9\u05D5\u05DE\u05D9 \u05DC\u05E4\u05D9 session \u2014 \u05DC\u05DE\u05E0\u05D9\u05E2\u05EA \u05E1\u05E4\u05D9\u05E8\u05D4 \u05DB\u05E4\u05D5\u05DC\u05D4, \u05E0\u05DE\u05D7\u05E7 \u05D0\u05D7\u05E8\u05D9 30 \u05D9\u05D5\u05DD';
+    displayName: 'DailySession';
+    pluralName: 'daily-sessions';
+    singularName: 'daily-session';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::daily-session.daily-session'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sessionId: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    visitDate: Schema.Attribute.Date & Schema.Attribute.Required;
   };
 }
 
@@ -1498,6 +1628,71 @@ export interface ApiIdxReviewIdxReview extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiInquiryInquiry extends Struct.CollectionTypeSchema {
+  collectionName: 'inquiries';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05E4\u05E0\u05D9\u05D5\u05EA \u05EA\u05D5\u05E9\u05D1\u05D9\u05DD \u05DC\u05E0\u05E6\u05D9\u05D2\u05D9 \u05D4\u05E8\u05E9\u05D5\u05EA';
+    displayName: 'Inquiry';
+    pluralName: 'inquiries';
+    singularName: 'inquiry';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    cities: Schema.Attribute.Relation<'manyToMany', 'api::city.city'>;
+    concil_members: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::concil-member.concil-member'
+    >;
+    content: Schema.Attribute.Text & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    inquiryStatus: Schema.Attribute.Enumeration<
+      [
+        'pending_moderation',
+        'sent_to_council',
+        'awaiting_response',
+        'response_received',
+        'closed',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'pending_moderation'>;
+    isAnonymous: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isClosed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::inquiry.inquiry'
+    > &
+      Schema.Attribute.Private;
+    mainImage: Schema.Attribute.Media<'images'>;
+    moderationStatus: Schema.Attribute.Enumeration<
+      ['pending_moderation', 'approved', 'rejected']
+    > &
+      Schema.Attribute.DefaultTo<'pending_moderation'>;
+    numid: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    rejectionReason: Schema.Attribute.Text;
+    responses: Schema.Attribute.Component<'responses.responses', true>;
+    sentToCouncilAt: Schema.Attribute.DateTime;
+    supporters: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userOpener: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    userOpenerRating: Schema.Attribute.Integer;
+  };
+}
+
 export interface ApiItemItem extends Struct.CollectionTypeSchema {
   collectionName: 'items';
   info: {
@@ -1695,6 +1890,41 @@ export interface ApiNewsTickerItemNewsTickerItem
     order: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
     text: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
+  collectionName: 'partners';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05E9\u05D5\u05EA\u05E4\u05D9\u05DD \u05D5\u05DE\u05E4\u05E8\u05E1\u05DE\u05D9\u05DD \u05D1\u05D3\u05E3 \u05D4\u05D1\u05D9\u05EA, \u05E2\u05DD \u05DE\u05D5\u05E0\u05D4 \u05DC\u05D7\u05D9\u05E6\u05D5\u05EA';
+    displayName: 'Partner';
+    pluralName: 'partners';
+    singularName: 'partner';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    clicks: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    header: Schema.Attribute.String & Schema.Attribute.Required;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    link: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::partner.partner'
+    > &
+      Schema.Attribute.Private;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    pic: Schema.Attribute.Media<'images'>;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2139,81 +2369,11 @@ export interface ApiShopOrderShopOrder extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiShopSellerProductShopSellerProduct
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'shop_seller_products';
-  info: {
-    description: '\u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05E9\u05D4\u05E7\u05D4\u05DC \u05D4\u05D2\u05D9\u05E9 \u05DC\u05DE\u05DB\u05D9\u05E8\u05D4 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - pending / approved / rejected. \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E0\u05D5\u05E9\u05D0 \u05D0\u05EA \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (store_*: \u05E9\u05DD, \u05DC\u05D5\u05D2\u05D5, \u05D8\u05DC\u05E4\u05D5\u05DF - \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP).';
-    displayName: 'Shop \u00B7 Seller Product';
-    pluralName: 'shop-seller-products';
-    singularName: 'shop-seller-product';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    admin_note: Schema.Attribute.Text;
-    category: Schema.Attribute.String;
-    commission_percent: Schema.Attribute.Decimal &
-      Schema.Attribute.DefaultTo<10>;
-    contract_accepted: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
-    contract_accepted_at: Schema.Attribute.DateTime;
-    contract_ip: Schema.Attribute.String;
-    contract_user_agent: Schema.Attribute.Text;
-    contract_version: Schema.Attribute.String;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    decided_at: Schema.Attribute.DateTime;
-    decided_by: Schema.Attribute.String;
-    delivery_days: Schema.Attribute.Integer;
-    description: Schema.Attribute.Text;
-    emoji: Schema.Attribute.String;
-    image: Schema.Attribute.Text;
-    images: Schema.Attribute.JSON;
-    link: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::shop-seller-product.shop-seller-product'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String & Schema.Attribute.Required;
-    old_price: Schema.Attribute.Decimal;
-    price: Schema.Attribute.Decimal & Schema.Attribute.Required;
-    publishedAt: Schema.Attribute.DateTime;
-    quantity: Schema.Attribute.Integer;
-    rejection_reason: Schema.Attribute.Text;
-    seller_address: Schema.Attribute.String;
-    seller_business: Schema.Attribute.String;
-    seller_email: Schema.Attribute.String;
-    seller_id_number: Schema.Attribute.String;
-    seller_name: Schema.Attribute.String;
-    seller_phone: Schema.Attribute.String;
-    seller_user_id: Schema.Attribute.String;
-    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'pending'>;
-    store_city: Schema.Attribute.String;
-    store_description: Schema.Attribute.Text;
-    store_logo: Schema.Attribute.Text;
-    store_name: Schema.Attribute.String;
-    store_phone: Schema.Attribute.String;
-    store_website: Schema.Attribute.String;
-    store_whatsapp: Schema.Attribute.String;
-    submitted_at: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiShopProductCommentShopProductComment
   extends Struct.CollectionTypeSchema {
   collectionName: 'shop_product_comments';
   info: {
-    description: 'Shop product comments';
+    description: '\u05D3\u05D9\u05E8\u05D5\u05D2\u05D9\u05DD \u05D5\u05EA\u05D2\u05D5\u05D1\u05D5\u05EA \u05E9\u05DC \u05D2\u05D5\u05DC\u05E9\u05D9\u05DD \u05E8\u05E9\u05D5\u05DE\u05D9\u05DD \u05E2\u05DC \u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05D1\u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - \u05D0\u05D5\u05EA\u05D5 \u05DE\u05D5\u05D3\u05DC \u05DB\u05DE\u05D5 pg-satisfaction-response \u05D1\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D4\u05E8\u05DB\u05D9\u05E9\u05D4: \u05D3\u05D9\u05E8\u05D5\u05D2 1-5 + \u05EA\u05D2\u05D5\u05D1\u05D4, \u05DC\u05D9\u05D9\u05E7\u05D9\u05DD, \u05EA\u05D2\u05D5\u05D1\u05D5\u05EA \u05DC\u05EA\u05D2\u05D5\u05D1\u05D4, \u05EA\u05E9\u05D5\u05D1\u05EA \u05DE\u05E0\u05D4\u05DC \u05D5\u05E0\u05E2\u05D9\u05E6\u05D4. product_id = \u05D4\u05DE\u05D6\u05D4\u05D4 \u05E9\u05DC \u05D4\u05DE\u05D5\u05E6\u05E8 \u05D1\u05D0\u05EA\u05E8 (\u05DE\u05D5\u05E6\u05E8 \u05DE\u05D5\u05DB\u05E8 = 100000 + id \u05E9\u05DC shop-seller-product). \u05D3\u05D9\u05E8\u05D5\u05D2 \u05D0\u05D7\u05D3 \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9 \u05DC\u05DE\u05D5\u05E6\u05E8; \u05E9\u05DD \u05D5\u05EA\u05DE\u05D5\u05E0\u05EA \u05D4\u05DB\u05D5\u05EA\u05D1 \u05E0\u05D2\u05D6\u05E8\u05D9\u05DD \u05DE\u05D4\u05DE\u05E9\u05EA\u05DE\u05E9 \u05D4\u05DE\u05D7\u05D5\u05D1\u05E8 \u05D1\u05E9\u05E8\u05EA.';
     displayName: 'Shop \u00B7 Product Comment';
     pluralName: 'shop-product-comments';
     singularName: 'shop-product-comment';
@@ -2242,7 +2402,13 @@ export interface ApiShopProductCommentShopProductComment
     product_id: Schema.Attribute.Integer & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     rating: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<{ max: 5; min: 1 }, number>;
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
     replies: Schema.Attribute.JSON;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -2251,6 +2417,88 @@ export interface ApiShopProductCommentShopProductComment
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+  };
+}
+
+export interface ApiShopSellerProductShopSellerProduct
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'shop_seller_products';
+  info: {
+    description: '\u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05E9\u05D4\u05E7\u05D4\u05DC \u05D4\u05D2\u05D9\u05E9 \u05DC\u05DE\u05DB\u05D9\u05E8\u05D4 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - pending / approved / rejected. \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E0\u05D5\u05E9\u05D0 \u05D0\u05EA \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (store_*: \u05E9\u05DD, \u05DC\u05D5\u05D2\u05D5, \u05D8\u05DC\u05E4\u05D5\u05DF - \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP).';
+    displayName: 'Shop \u00B7 Seller Product';
+    pluralName: 'shop-seller-products';
+    singularName: 'shop-seller-product';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_note: Schema.Attribute.Text;
+    category: Schema.Attribute.String;
+    charter_signed_at: Schema.Attribute.DateTime;
+    charter_signer: Schema.Attribute.String;
+    commission_percent: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<10>;
+    contract_accepted: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    contract_accepted_at: Schema.Attribute.DateTime;
+    contract_ip: Schema.Attribute.String;
+    contract_user_agent: Schema.Attribute.Text;
+    contract_version: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
+    delivery_by_carrier: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    delivery_days: Schema.Attribute.Integer;
+    description: Schema.Attribute.Text;
+    emoji: Schema.Attribute.String;
+    image: Schema.Attribute.Text;
+    images: Schema.Attribute.JSON;
+    link: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shop-seller-product.shop-seller-product'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    neighborhoods: Schema.Attribute.String;
+    old_price: Schema.Attribute.Decimal;
+    price: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer;
+    rejection_reason: Schema.Attribute.Text;
+    seller_address: Schema.Attribute.String;
+    seller_business: Schema.Attribute.String;
+    seller_email: Schema.Attribute.String;
+    seller_id_number: Schema.Attribute.String;
+    seller_name: Schema.Attribute.String;
+    seller_phone: Schema.Attribute.String;
+    seller_user_id: Schema.Attribute.String;
+    shipping_price: Schema.Attribute.Decimal;
+    short_description: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    store_city: Schema.Attribute.String;
+    store_description: Schema.Attribute.Text;
+    store_logo: Schema.Attribute.Text;
+    store_name: Schema.Attribute.String;
+    store_phone: Schema.Attribute.String;
+    store_website: Schema.Attribute.String;
+    store_whatsapp: Schema.Attribute.String;
+    submitted_at: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    visibility: Schema.Attribute.Enumeration<
+      ['visible', 'hidden', 'neighborhoods', 'unlisted']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'visible'>;
   };
 }
 
@@ -2295,7 +2543,7 @@ export interface ApiShopSiteOverrideShopSiteOverride
 export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
   collectionName: 'shop_stores';
   info: {
-    description: "\u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05DE\u05D5\u05DB\u05E8 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - \u05E8\u05E9\u05D5\u05DE\u05D4 \u05D0\u05D7\u05EA \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9. \u05E0\u05E9\u05DE\u05E8\u05EA \u05D1\u05E9\u05DC\u05D1 '\u05E4\u05EA\u05D9\u05D7\u05EA \u05D7\u05E0\u05D5\u05EA' (\u05DC\u05E4\u05E0\u05D9 \u05D4\u05E2\u05DC\u05D0\u05EA \u05DE\u05D5\u05E6\u05E8\u05D9\u05DD): \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05D4\u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD (store_*), \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D6\u05D9\u05D4\u05D5\u05D9 \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (seller_* - \u05E4\u05E8\u05D8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP). \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E9\u05D4\u05DE\u05D5\u05DB\u05E8 \u05DE\u05E2\u05DC\u05D4 \u05D0\u05D7\u05E8 \u05DB\u05DA \u05DE\u05E2\u05EA\u05D9\u05E7 \u05DE\u05DE\u05E0\u05D4 \u05D0\u05EA \u05D4\u05E4\u05E8\u05D8\u05D9\u05DD.";
+    description: "\u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05DC \u05DE\u05D5\u05DB\u05E8 \u05D1\u05E7\u05E0\u05D9\u05D5\u05DF \u05D4\u05E9\u05D9\u05EA\u05D5\u05E4\u05D9 \u05D7\u05E0\u05D5\u05EA \u05D4\u05D7\u05D9\u05E8\u05D5\u05EA (shop.gofreeil.com) - \u05E8\u05E9\u05D5\u05DE\u05D4 \u05D0\u05D7\u05EA \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9. \u05E0\u05E9\u05DE\u05E8\u05EA \u05D1\u05E9\u05DC\u05D1 '\u05E4\u05EA\u05D9\u05D7\u05EA \u05D7\u05E0\u05D5\u05EA' (\u05DC\u05E4\u05E0\u05D9 \u05D4\u05E2\u05DC\u05D0\u05EA \u05DE\u05D5\u05E6\u05E8\u05D9\u05DD): \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D7\u05E0\u05D5\u05EA \u05D4\u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05D9\u05DD (store_*), \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D6\u05D9\u05D4\u05D5\u05D9 \u05E9\u05DC \u05D4\u05DE\u05D5\u05DB\u05E8 (seller_* - \u05E4\u05E8\u05D8\u05D9\u05D9\u05DD) \u05D5\u05EA\u05D9\u05E2\u05D5\u05D3 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E1\u05DB\u05DD \u05D4\u05DE\u05D5\u05DB\u05E8 (\u05D2\u05E8\u05E1\u05D4, \u05D6\u05DE\u05DF, IP). \u05D4\u05D7\u05E0\u05D5\u05EA \u05D4\u05D9\u05D0 \u05DE\u05D4 \u05E9\u05E2\u05D5\u05D1\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 \u05DE\u05E0\u05D4\u05DC (status: pending/approved/rejected); \u05DB\u05DC \u05DE\u05D5\u05E6\u05E8 \u05E9\u05D4\u05DE\u05D5\u05DB\u05E8 \u05DE\u05E2\u05DC\u05D4 \u05D0\u05D7\u05E8 \u05DB\u05DA \u05DE\u05E2\u05EA\u05D9\u05E7 \u05DE\u05DE\u05E0\u05D4 \u05D0\u05EA \u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05D5\u05E2\u05D5\u05DC\u05D4 \u05DC\u05DE\u05D3\u05E3 \u05DC\u05E4\u05D9 \u05E1\u05D8\u05D8\u05D5\u05E1 \u05D4\u05D7\u05E0\u05D5\u05EA. store_design \u05D4\u05D5\u05D0 \u05E2\u05D9\u05E6\u05D5\u05D1 \u05D3\u05E3 \u05D4\u05D7\u05E0\u05D5\u05EA \u05E9\u05D4\u05DE\u05D5\u05DB\u05E8 \u05D1\u05E0\u05D4 \u05D1\u05E1\u05D8\u05D5\u05D3\u05D9\u05D5 (JSON \u05DB\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA) - \u05D4\u05D5\u05D0 \u05E0\u05E7\u05E8\u05D0 \u05E6\u05D9\u05D1\u05D5\u05E8\u05D9\u05EA (GET /shop-stores/design?s=<slug>) \u05DC\u05D7\u05E0\u05D5\u05EA \u05DE\u05D0\u05D5\u05E9\u05E8\u05EA, \u05DB\u05D3\u05D9 \u05E9\u05DB\u05DC \u05DE\u05D9 \u05E9\u05E0\u05DB\u05E0\u05E1 \u05DC\u05D3\u05E3 \u05D4\u05D7\u05E0\u05D5\u05EA \u05D9\u05E8\u05D0\u05D4 \u05D0\u05EA \u05DE\u05D4 \u05E9\u05D4\u05DE\u05D5\u05DB\u05E8 \u05E2\u05D9\u05E6\u05D1.";
     displayName: 'Shop \u00B7 Store';
     pluralName: 'shop-stores';
     singularName: 'shop-store';
@@ -2313,6 +2561,8 @@ export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    decided_at: Schema.Attribute.DateTime;
+    decided_by: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -2321,6 +2571,7 @@ export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     opened_at: Schema.Attribute.DateTime;
     publishedAt: Schema.Attribute.DateTime;
+    rejection_reason: Schema.Attribute.Text;
     seller_address: Schema.Attribute.String;
     seller_email: Schema.Attribute.String;
     seller_id_number: Schema.Attribute.String;
@@ -2330,6 +2581,9 @@ export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     slug: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'rejected']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
     store_city: Schema.Attribute.String;
     store_description: Schema.Attribute.Text;
     store_design: Schema.Attribute.Text;
@@ -2338,6 +2592,39 @@ export interface ApiShopStoreShopStore extends Struct.CollectionTypeSchema {
     store_phone: Schema.Attribute.String;
     store_website: Schema.Attribute.String;
     store_whatsapp: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiSpecialtySpecialty extends Struct.CollectionTypeSchema {
+  collectionName: 'specialties';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05EA\u05D7\u05D5\u05DD \u05D4\u05EA\u05DE\u05D7\u05D5\u05EA \u05E9\u05DC \u05D7\u05D1\u05E8 \u05DE\u05D5\u05E2\u05E6\u05D4';
+    displayName: 'Specialty';
+    pluralName: 'specialties';
+    singularName: 'specialty';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    concil_members: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::concil-member.concil-member'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::specialty.specialty'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2391,6 +2678,37 @@ export interface ApiSubmittedAdSubmittedAd extends Struct.CollectionTypeSchema {
     submitted_by_name: Schema.Attribute.String;
     subtitle: Schema.Attribute.Text;
     title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiViewCountViewCount extends Struct.CollectionTypeSchema {
+  collectionName: 'view_counts';
+  info: {
+    description: '\u05DE\u05D1\u05E7\u05E8 \u05E8\u05E9\u05D5\u05D9\u05D5\u05EA \u05D4\u05DE\u05D3\u05D9\u05E0\u05D4 (criticism) \u2014 \u05DE\u05D5\u05E0\u05D4 \u05E6\u05E4\u05D9\u05D5\u05EA \u05DB\u05D5\u05DC\u05DC \u05D5\u05D9\u05D5\u05DE\u05D9 (\u05E8\u05E9\u05D5\u05DE\u05D4 \u05D1\u05D5\u05D3\u05D3\u05EA)';
+    displayName: 'ViewCount';
+    pluralName: 'view-counts';
+    singularName: 'view-count';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dailyViews: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    lastReset: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::view-count.view-count'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    totalViews: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2908,6 +3226,8 @@ export interface PluginUsersPermissionsUser
     external_id: Schema.Attribute.String;
     family_status: Schema.Attribute.String;
     gender: Schema.Attribute.String;
+    import_source: Schema.Attribute.String;
+    isModeratorOf: Schema.Attribute.Relation<'oneToMany', 'api::city.city'>;
     items: Schema.Attribute.Relation<'oneToMany', 'api::item.item'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -2936,7 +3256,9 @@ export interface PluginUsersPermissionsUser
     security_answer_2: Schema.Attribute.String;
     security_question: Schema.Attribute.String;
     security_question_2: Schema.Attribute.String;
+    sms_campaigns: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     sms_prefs: Schema.Attribute.JSON;
+    sms_profile_nudge_at: Schema.Attribute.DateTime;
     status: Schema.Attribute.String & Schema.Attribute.DefaultTo<'active'>;
     street: Schema.Attribute.String;
     tier_prompted: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
@@ -2983,19 +3305,24 @@ declare module '@strapi/strapi' {
       'api::city.city': ApiCityCity;
       'api::community-fund.community-fund': ApiCommunityFundCommunityFund;
       'api::community-user.community-user': ApiCommunityUserCommunityUser;
+      'api::concil-member.concil-member': ApiConcilMemberConcilMember;
       'api::contact-request.contact-request': ApiContactRequestContactRequest;
       'api::coordinator-request.coordinator-request': ApiCoordinatorRequestCoordinatorRequest;
+      'api::cr-post.cr-post': ApiCrPostCrPost;
+      'api::daily-session.daily-session': ApiDailySessionDailySession;
       'api::discount-config.discount-config': ApiDiscountConfigDiscountConfig;
       'api::event.event': ApiEventEvent;
       'api::gathering.gathering': ApiGatheringGathering;
       'api::idx-business.idx-business': ApiIdxBusinessIdxBusiness;
       'api::idx-report.idx-report': ApiIdxReportIdxReport;
       'api::idx-review.idx-review': ApiIdxReviewIdxReview;
+      'api::inquiry.inquiry': ApiInquiryInquiry;
       'api::item.item': ApiItemItem;
       'api::lost-found-request.lost-found-request': ApiLostFoundRequestLostFoundRequest;
       'api::message.message': ApiMessageMessage;
       'api::neighborhood.neighborhood': ApiNeighborhoodNeighborhood;
       'api::news-ticker-item.news-ticker-item': ApiNewsTickerItemNewsTickerItem;
+      'api::partner.partner': ApiPartnerPartner;
       'api::pg-campaign.pg-campaign': ApiPgCampaignPgCampaign;
       'api::pg-satisfaction-response.pg-satisfaction-response': ApiPgSatisfactionResponsePgSatisfactionResponse;
       'api::pg-site-event.pg-site-event': ApiPgSiteEventPgSiteEvent;
@@ -3006,11 +3333,13 @@ declare module '@strapi/strapi' {
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::revenue-config.revenue-config': ApiRevenueConfigRevenueConfig;
       'api::shop-order.shop-order': ApiShopOrderShopOrder;
-      'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
       'api::shop-product-comment.shop-product-comment': ApiShopProductCommentShopProductComment;
+      'api::shop-seller-product.shop-seller-product': ApiShopSellerProductShopSellerProduct;
       'api::shop-site-override.shop-site-override': ApiShopSiteOverrideShopSiteOverride;
       'api::shop-store.shop-store': ApiShopStoreShopStore;
+      'api::specialty.specialty': ApiSpecialtySpecialty;
       'api::submitted-ad.submitted-ad': ApiSubmittedAdSubmittedAd;
+      'api::view-count.view-count': ApiViewCountViewCount;
       'api::visit-stat.visit-stat': ApiVisitStatVisitStat;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

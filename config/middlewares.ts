@@ -42,6 +42,14 @@ const config: Core.Config.Middlewares = [
         'https://investors-group.gofreeil.com',
         'https://neighborhoods.gofreeil.com',
         'https://index.gofreeil.com',
+        // אתרים שטוענים את עורך הכיתובים (public/site-editor.js) - הוא קורא ל-/api/site-edit/* מהדפדפן עם עוגיות.
+        // מחרוזות מפורשות בלבד: ה-cors של Strapi משווה ב-includes, ולכן ה-regex שבהמשך אינו תופס כלום.
+        'https://singles.gofreeil.com',
+        'https://avedot.gofreeil.com',
+        'https://gemach.gofreeil.com',
+        'https://rating.gofreeil.com',
+        'https://experts.gofreeil.com',
+        'https://groups.gofreeil.com',
         // fallback regex (אם משום מה לא נתפס)
         /^https:\/\/[a-z0-9-]+\.gofreeil\.com$/,
         // Vercel.app legacy — נשמרים זמנית עד להשלמת ההגירה
@@ -54,7 +62,8 @@ const config: Core.Config.Middlewares = [
         /^https:\/\/chachmei-haeda-.*\.vercel\.app$/,
       ],
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      headers: ['Content-Type', 'Authorization'],
+      // X-Requested-With: כותרת האבטחה של /site-edit/save (כופה preflight)
+      headers: ['Content-Type', 'Authorization', 'X-Requested-With'],
     },
   },
   'strapi::poweredBy',

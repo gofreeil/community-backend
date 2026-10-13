@@ -502,6 +502,16 @@ async function ensurePermissions(strapi: Core.Strapi) {
             // להיות סופרסט של authenticated, אחרת מינוי לאדמין ישבור לו את שאר האתרים
             for (const action of PERMISSIONS.public)        if (await grant(chachmeiRole.id, action)) added++;
             for (const action of PERMISSIONS.authenticated) if (await grant(chachmeiRole.id, action)) added++;
+            // וגם כל מה שהוענק ל-authenticated ידנית בפאנל ולא מופיע ברשימה כאן.
+            // בלי זה הסופר-אדמין, שעבר ל-chachmei_editor, איבד הרשאות שהיו לו
+            // כמשתמש רגיל - למשל אישור פרסומות בקבוצות רכישה נחסם ב-403.
+            const authPerms = await strapi.db.query('plugin::users-permissions.permission').findMany({
+                where: { role: authRole.id },
+                select: ['action'],
+            });
+            for (const p of authPerms as Array<{ action: string }>) {
+                if (p.action && await grant(chachmeiRole.id, p.action)) added++;
+            }
         }
 
         let removed = 0;

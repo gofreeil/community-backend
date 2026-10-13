@@ -50,6 +50,7 @@ const config: Core.Config.Middlewares = [
         'https://rating.gofreeil.com',
         'https://experts.gofreeil.com',
         'https://groups.gofreeil.com',
+        'https://investors.gofreeil.com',
         // fallback regex (אם משום מה לא נתפס)
         /^https:\/\/[a-z0-9-]+\.gofreeil\.com$/,
         // Vercel.app legacy — נשמרים זמנית עד להשלמת ההגירה

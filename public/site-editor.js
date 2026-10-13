@@ -13,6 +13,10 @@
  *     קוד Google Authenticator (פעם אחת ל-12 שעות לכל האתרים), ואז לוחצים על כל כיתוב ועורכים אותו.
  *     השמירה (POST /api/site-edit/save) לפי הטקסט המקורי - בלי דיפלוי.
  *
+ * נערך: כל טקסט גלוי - גם בתוך כפתורים וקישורים, גם מספרים (מחיר, כמות), גם placeholder של תיבות
+ * (לחיצה על התיבה), וגם תוכן שנטען אחרי הכניסה למצב עריכה. כיתוב עם אותיות נשמר לכל האתר;
+ * מספר בלבד נשמר לדף הנוכחי בלבד (מפתח "@<נתיב>|<מספר>"), כדי ש-"5000" בטבלה אחת לא ישנה כל "5000".
+ *
  * אזור שלא עורכים ולא מחליפים בו (תוכן משתמשים: כרטיסים, פרסומות, שמות): data-no-edit.
  * ריקון כיתוב מחזיר אותו לנוסח המקורי.
  */
@@ -43,14 +47,22 @@
 
   // ---------------------------------------------------------------- החלפת טקסטים
   var SKIP = 'script,style,noscript,textarea,input,select,option,svg,[data-no-edit],[data-se-ui],[data-se-key]';
+  var PH = 'input[placeholder],textarea[placeholder]';
+  var HAS_LETTER = /\p{L}/u;
+  var HAS_TEXT = /[\p{L}\p{N}]/u;
+
+  /** המפתח של דריסה: כיתוב עם אותיות - לכל האתר; מספר בלבד - לדף הנוכחי בלבד */
+  function keyFor(orig) {
+    return HAS_LETTER.test(orig) ? orig : '@' + location.pathname + '|' + orig;
+  }
 
   var overrides = new Map();
   var paused = false;
   var touched = false; // נכתבה לפחות דריסה אחת - נשמור עקביות גם אם המפה התרוקנה
   var scheduled = false;
   var pending = new Set();
-  var originals = new WeakMap(); // text-node -> הטקסט המקורי (אחרי trim) כשהחלפנו אותו
-  var applied = new WeakMap();   // text-node -> הערך המלא שכתבנו (לזיהוי שהוא עדיין שלנו)
+  var originals = new WeakMap(); // text-node / תיבה -> הטקסט המקורי (אחרי trim) כשהחלפנו אותו
+  var applied = new WeakMap();   // text-node / תיבה -> הערך המלא שכתבנו (לזיהוי שהוא עדיין שלנו)
 
   function split(raw) {
     var t = raw.trim();
@@ -66,7 +78,7 @@
     var mine = prev !== undefined && applied.get(node) === raw;
     if (!mine) { originals.delete(node); applied.delete(node); }
     var orig = mine ? prev : t;
-    var next = overrides.get(orig);
+    var next = overrides.get(keyFor(orig));
 
     if (next === undefined || next === orig) {
       if (mine) { // הדריסה בוטלה - חוזרים לטקסט שבקוד
@@ -86,15 +98,53 @@
     touched = true;
   }
 
+  /** placeholder של תיבה - אותו מנגנון כמו text-node, על המאפיין */
+  function applyPlaceholder(box) {
+    var cur = box.getAttribute('placeholder') || '';
+    var prev = originals.get(box);
+    var mine = prev !== undefined && applied.get(box) === cur;
+    if (!mine) { originals.delete(box); applied.delete(box); }
+    var orig = mine ? prev : cur.trim();
+    if (!orig) return;
+    var next = overrides.get(keyFor(orig));
+    if (next === undefined || next === orig) {
+      if (mine) {
+        box.setAttribute('placeholder', orig);
+        originals.delete(box);
+        applied.delete(box);
+      }
+      return;
+    }
+    if (mine && next === cur) return;
+    box.setAttribute('placeholder', next);
+    originals.set(box, orig);
+    applied.set(box, next);
+    touched = true;
+  }
+
+  function originalPlaceholderOf(box) {
+    var cur = box.getAttribute('placeholder') || '';
+    var prev = originals.get(box);
+    return prev !== undefined && applied.get(box) === cur ? prev : cur.trim();
+  }
+
   function applyTree(root) {
     if (root.nodeType === 3) {
       if (!(root.parentElement && root.parentElement.closest(SKIP))) applyNode(root);
       return;
     }
-    if (root.nodeType !== 1 || root.closest(SKIP)) return;
+    if (root.nodeType !== 1) return;
+    if (root.matches(PH)) {
+      if (!root.closest('[data-no-edit],[data-se-ui]')) applyPlaceholder(root);
+      return;
+    }
+    if (root.closest(SKIP)) return;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
-        if (n.nodeType === 1) return n.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP;
+        if (n.nodeType === 1) {
+          if (n.matches(PH)) { applyPlaceholder(n); return NodeFilter.FILTER_REJECT; }
+          return n.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP;
+        }
         return NodeFilter.FILTER_ACCEPT;
       },
     });
@@ -132,14 +182,40 @@
 
   function startObserver() {
     new MutationObserver(function (records) {
+      // במצב עריכה: תוכן שנטען עכשיו (רשימה שהגיעה מהשרת, גלילה) נעשה גם הוא ניתן לעריכה
+      if (state.mode === 'edit') { wrapAdded(records); return; }
       // בלי דריסות (המצב הרגיל ברוב האתרים) - אפס עבודה על כל שינוי DOM
       if (paused || (overrides.size === 0 && !touched)) return;
       records.forEach(function (r) {
-        if (r.type === 'characterData') pending.add(r.target);
-        else r.addedNodes.forEach(function (n) { pending.add(n); });
+        if (r.type === 'childList') r.addedNodes.forEach(function (n) { pending.add(n); });
+        else pending.add(r.target); // characterData / placeholder
       });
       if (pending.size) schedule();
-    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+    }).observe(document.body, {
+      childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder'],
+    });
+  }
+
+  // מספרים נשמרים לפי דף - במעבר דף בלי טעינה (SPA) מחילים מחדש על מה שנשאר על המסך
+  var lastPath = location.pathname;
+  function onUrlChange() {
+    if (location.pathname === lastPath) return;
+    lastPath = location.pathname;
+    pending.add(document.body);
+    schedule();
+  }
+
+  function watchUrl() {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var orig = history[m];
+      if (typeof orig !== 'function') return;
+      history[m] = function () {
+        var r = orig.apply(this, arguments);
+        try { onUrlChange(); } catch (e) { /* לא מפילים את הניווט של האתר */ }
+        return r;
+      };
+    });
+    window.addEventListener('popstate', onUrlChange);
   }
 
   function loadTexts() {
@@ -178,9 +254,12 @@
 
   // ---------------------------------------------------------------- ממשק העריכה
   var CSS_GLOBAL =
-    '[data-se-key]{pointer-events:auto;outline:1px dashed rgba(245,158,11,.65);outline-offset:2px;border-radius:2px;cursor:text;min-width:1ch}' +
+    '[data-se-key]{pointer-events:auto;outline:1px dashed rgba(245,158,11,.65);outline-offset:2px;border-radius:2px;cursor:text;min-width:1ch;' +
+    '-webkit-user-select:text;user-select:text}' +
     '[data-se-key]:hover{outline-color:#f59e0b;background:rgba(245,158,11,.12)}' +
-    '[data-se-key]:focus{outline:2px solid #3b82f6;background:rgba(59,130,246,.12)}';
+    '[data-se-key]:focus{outline:2px solid #3b82f6;background:rgba(59,130,246,.12)}' +
+    '[data-se-ph]{outline:1px dashed rgba(245,158,11,.65)!important;outline-offset:2px;cursor:pointer!important}' +
+    '[data-se-ph]:hover{outline-color:#f59e0b!important}';
 
   var CSS_UI =
     ':host{all:initial}' +
@@ -218,7 +297,8 @@
 
   var host = null;
   var shadow = null;
-  var wrapped = new Map(); // span -> { key, shown, raw, node, extras }
+  var wrapped = new Map(); // span -> { key, orig, shown, raw, node, extras }
+  var boxes = new Map();   // תיבה עם placeholder -> { key, orig, shown }
   var globalStyle = null;
 
   function el(tag, props, children) {
@@ -265,7 +345,7 @@
         input,
         ok,
         // באמצע עריכה (תוקף האימות פג) - חוזרים למצב העריכה ולא מאבדים את השינויים
-        el('button', { class: 'b ghost', type: 'button', onclick: function () { state.mode = wrapped.size ? 'edit' : 'idle'; state.error = ''; render(); } }, ['ביטול']),
+        el('button', { class: 'b ghost', type: 'button', onclick: function () { state.mode = editing ? 'edit' : 'idle'; state.error = ''; render(); } }, ['ביטול']),
       ]);
       var panel = el('div', { class: 'panel' }, [form]);
       if (state.error) panel.appendChild(el('span', { class: 'err' }, [state.error]));
@@ -290,16 +370,23 @@
   }
 
   // ----- מצב עריכה: עטיפת כל text-node גלוי ב-span contenteditable
-  var NO_WRAP = SKIP + ',button,[role="button"],summary,[contenteditable]';
+  // גם בתוך כפתורים וקישורים - הלחיצה עליהם חסומה במצב עריכה (blockClicks)
+  var NO_WRAP = SKIP + ',[contenteditable]';
+  var editing = false; // נשאר true גם כשבאמצע עריכה מבקשים קוד מחדש (mode=ask)
 
   /** textContent ולא innerText: innerText מושפע מ-CSS (text-transform, קריסת רווחים) ולכן כיתוב שלא נגעו בו נראה "ששונה" */
   function currentValue(span) {
     return (span.querySelector('br,div,p') ? span.innerText : (span.textContent || '')).trim();
   }
 
+  function boxValue(box) {
+    return (box.getAttribute('placeholder') || '').trim();
+  }
+
   function countChanges() {
     var keys = new Set(); // לפי מפתח ולא לפי הופעה - כיתוב שחוזר בכמה מקומות הוא שינוי אחד
     wrapped.forEach(function (w, span) { if (currentValue(span) !== w.shown) keys.add(w.key); });
+    boxes.forEach(function (b, box) { if (boxValue(box) !== b.shown) keys.add(b.key); });
     state.changed = keys.size;
     render();
   }
@@ -309,10 +396,30 @@
     document.execCommand('insertText', false, (e.clipboardData && e.clipboardData.getData('text/plain')) || '');
   }
 
+  /** placeholder נערך בחלון קטן - אין לו text-node שאפשר להקליד בתוכו */
+  function editBox(box) {
+    var b = boxes.get(box);
+    if (!b) return;
+    var v = prompt('הטקסט שמופיע בתוך התיבה (ריק = חזרה לנוסח המקורי):', boxValue(box));
+    if (v === null) return;
+    v = v.trim();
+    box.setAttribute('placeholder', v || b.orig);
+    // אותו placeholder בשאר הדף מתעדכן יחד
+    boxes.forEach(function (o, other) { if (other !== box && o.key === b.key) other.setAttribute('placeholder', v || b.orig); });
+    countChanges();
+  }
+
   function blockClicks(e) {
     var target = e.target;
     if (!target || !target.closest) return;
     if (target.closest('[data-se-ui]')) return;
+    var box = target.closest('[data-se-ph]');
+    if (box) {
+      e.preventDefault();
+      e.stopPropagation();
+      editBox(box);
+      return;
+    }
     if (!target.closest('input,textarea,select') && target.closest('a,button,label,summary,[role="button"],form')) {
       e.preventDefault(); // במצב עריכה אין ניווט ואין הפעלת כפתורים - גם לא מטפלי הלחיצה של האתר
       e.stopPropagation();
@@ -339,11 +446,84 @@
   }
 
   function onBeforeUnload(e) {
-    if (state.mode === 'edit' && state.changed > 0) { e.preventDefault(); e.returnValue = ''; }
+    if (editing && state.changed > 0) { e.preventDefault(); e.returnValue = ''; }
   }
 
   function onPopState() {
-    if (state.mode === 'edit') exitEdit();
+    if (editing) exitEdit();
+  }
+
+  /** טקסט עם אות או ספרה (לא סימנים/אימוג'י בלבד), מחוץ לאזורים שאסור לערוך */
+  function wrappable(node) {
+    var parent = node.parentElement;
+    var text = (node.nodeValue || '').trim();
+    return !!parent && !!text && HAS_TEXT.test(text) && !parent.closest(NO_WRAP);
+  }
+
+  function collect(root, texts, inputs) {
+    if (root.nodeType === 3) {
+      if (wrappable(root)) texts.push(root);
+      return;
+    }
+    if (root.nodeType !== 1) return;
+    if (root.matches(PH)) inputs.push(root);
+    else root.querySelectorAll(PH).forEach(function (x) { inputs.push(x); });
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = walker.nextNode())) if (wrappable(n)) texts.push(n);
+  }
+
+  function wrapNode(node) {
+    if (!node.parentNode || !wrappable(node)) return; // כבר נעטף / הוסר בינתיים
+    var raw = node.nodeValue || '';
+    var shown = raw.trim();
+    var at = raw.indexOf(shown);
+    var lead = raw.slice(0, at);
+    var trail = raw.slice(at + shown.length);
+    var orig = originalTextOf(node);
+    var key = keyFor(orig);
+
+    var span = document.createElement('span');
+    span.setAttribute('data-se-key', key);
+    span.setAttribute('contenteditable', 'true');
+    span.setAttribute('spellcheck', 'false');
+    span.textContent = shown;
+
+    var extras = [];
+    var parts = [];
+    if (lead) { var a = document.createTextNode(lead); extras.push(a); parts.push(a); }
+    parts.push(span);
+    if (trail) { var b = document.createTextNode(trail); extras.push(b); parts.push(b); }
+    node.replaceWith.apply(node, parts);
+
+    span.addEventListener('paste', onPaste);
+    span.addEventListener('input', function () {
+      // אותו כיתוב בשאר הדף מתעדכן יחד, כדי שלא ייראה כאילו רק הופעה אחת השתנתה
+      var v = currentValue(span);
+      wrapped.forEach(function (w, other) { if (other !== span && w.key === key) other.textContent = v; });
+      countChanges();
+    });
+    wrapped.set(span, { key: key, orig: orig, shown: shown, raw: raw, node: node, extras: extras });
+  }
+
+  function markBox(box) {
+    if (boxes.has(box) || box.closest('[data-no-edit],[data-se-ui]')) return;
+    var shown = boxValue(box);
+    if (!shown) return;
+    var orig = originalPlaceholderOf(box);
+    box.setAttribute('data-se-ph', '');
+    boxes.set(box, { key: keyFor(orig), orig: orig, shown: shown });
+  }
+
+  function wrapAdded(records) {
+    var texts = [];
+    var inputs = [];
+    records.forEach(function (r) {
+      if (r.type !== 'childList') return;
+      r.addedNodes.forEach(function (n) { if (n.isConnected) collect(n, texts, inputs); });
+    });
+    texts.forEach(wrapNode);
+    inputs.forEach(markBox);
   }
 
   function enterEdit() {
@@ -351,53 +531,19 @@
     globalStyle = el('style', {}, [CSS_GLOBAL]);
     document.head.appendChild(globalStyle);
 
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    var nodes = [];
-    var n;
-    while ((n = walker.nextNode())) {
-      var parent = n.parentElement;
-      var text = (n.nodeValue || '').trim();
-      // רק טקסט עם אותיות (לא מספרים/סימנים/אימוג'י בלבד), מחוץ לאזורים שאסור לערוך
-      if (!parent || !text || !/\p{L}/u.test(text) || parent.closest(NO_WRAP)) continue;
-      nodes.push(n);
-    }
-
     wrapped = new Map();
-    nodes.forEach(function (node) {
-      var raw = node.nodeValue || '';
-      var shown = raw.trim();
-      var at = raw.indexOf(shown);
-      var lead = raw.slice(0, at);
-      var trail = raw.slice(at + shown.length);
-      var key = originalTextOf(node);
-
-      var span = document.createElement('span');
-      span.setAttribute('data-se-key', key);
-      span.setAttribute('contenteditable', 'true');
-      span.setAttribute('spellcheck', 'false');
-      span.textContent = shown;
-
-      var extras = [];
-      var parts = [];
-      if (lead) { var a = document.createTextNode(lead); extras.push(a); parts.push(a); }
-      parts.push(span);
-      if (trail) { var b = document.createTextNode(trail); extras.push(b); parts.push(b); }
-      node.replaceWith.apply(node, parts);
-
-      span.addEventListener('paste', onPaste);
-      span.addEventListener('input', function () {
-        // אותו כיתוב בשאר הדף מתעדכן יחד, כדי שלא ייראה כאילו רק הופעה אחת השתנתה
-        var v = currentValue(span);
-        wrapped.forEach(function (w, other) { if (other !== span && w.key === key) other.textContent = v; });
-        countChanges();
-      });
-      wrapped.set(span, { key: key, shown: shown, raw: raw, node: node, extras: extras });
-    });
+    boxes = new Map();
+    var texts = [];
+    var inputs = [];
+    collect(document.body, texts, inputs);
+    texts.forEach(wrapNode);
+    inputs.forEach(markBox);
 
     document.addEventListener('click', blockClicks, true);
     document.addEventListener('keydown', onKey, true);
     window.addEventListener('beforeunload', onBeforeUnload);
     window.addEventListener('popstate', onPopState);
+    editing = true;
     state.changed = 0;
     state.error = '';
     state.saved = false;
@@ -413,11 +559,17 @@
       w.extras.forEach(function (t) { t.remove(); });
     });
     wrapped = new Map();
+    boxes.forEach(function (b, box) {
+      box.setAttribute('placeholder', b.shown);
+      box.removeAttribute('data-se-ph');
+    });
+    boxes = new Map();
     document.removeEventListener('click', blockClicks, true);
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('beforeunload', onBeforeUnload);
     window.removeEventListener('popstate', onPopState);
     if (globalStyle) { globalStyle.remove(); globalStyle = null; }
+    editing = false;
     state.mode = 'idle';
     state.changed = 0;
     paused = false;
@@ -473,7 +625,7 @@
 
   /** קוד מהגלגל: אימות ואז מצב עריכה. באמצע עריכה (תוקף פג): אימות ואז שמירה. */
   function submitCode() {
-    var wasEditing = wrapped.size > 0;
+    var wasEditing = editing;
     verifyCode().then(function () {
       if (!state.verified) { render(); return; }
       if (wasEditing) { state.mode = 'edit'; render(); saveAll(); }
@@ -483,10 +635,15 @@
 
   function saveAll() {
     if (state.busy) return;
+    // חזרה לנוסח שבקוד נשלחת כריקון - הדריסה נמחקת (גם כשהמפתח הוא מפתח-דף של מספר)
     var texts = {};
     wrapped.forEach(function (w, span) {
       var value = currentValue(span);
-      if (value !== w.shown) texts[w.key] = value;
+      if (value !== w.shown) texts[w.key] = value === w.orig ? '' : value;
+    });
+    boxes.forEach(function (b, box) {
+      var value = boxValue(box);
+      if (value !== b.shown) texts[b.key] = value === b.orig ? '' : value;
     });
     if (!Object.keys(texts).length) { exitEdit(); return; }
     state.busy = true;
@@ -519,6 +676,7 @@
   // ---------------------------------------------------------------- הפעלה
   function start() {
     startObserver();
+    watchUrl();
     loadTexts();
     // זיהוי הסופר-אדמין אחרי שהאתר סיים להיטען - לא על הנתיב הקריטי של הדף
     var run = function () {

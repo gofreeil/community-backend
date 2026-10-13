@@ -602,8 +602,14 @@
       alert(state.error);
       return;
     }
-    if (state.verified) enterEdit();
-    else { state.mode = 'ask'; render(); }
+    if (state.verified) { enterEdit(); return; }
+    // אולי הקוד כבר הוזן באתר אחר של הרשת (העוגייה משותפת) - בודקים טרי, בלי המטמון
+    ssSet(ME_KEY, '');
+    checkMe().then(function (me) {
+      state.verified = !!(me && me.verified);
+      if (state.verified) enterEdit();
+      else { state.mode = 'ask'; render(); }
+    });
   }
 
   function verifyCode() {

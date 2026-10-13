@@ -523,23 +523,31 @@ async function ensureSuperAdmin(strapi: Core.Strapi) {
     [...HARDCODED_SUPER_ADMINS, envEmail].filter(Boolean) as string[]
   )).map((e) => e.toLowerCase());
   if (emails.length === 0) return;
+  // הסופר-אדמין מפרסם תוכן בחכמי העדה כמו כל אדמין תוכן — בלי ה-role chachmei_editor
+  // השרת דוחה כל יצירה שלו ב-ch-* ב-403 (app_role לבדו לא נותן הרשאות API).
+  const editorRole = await ensureChachmeiEditorRole(strapi);
   for (const email of emails) {
     try {
       const users = await strapi.db.query('plugin::users-permissions.user').findMany({
         where: { email: { $eqi: email } },
+        populate: ['role'],
         limit: 1,
       });
       if (users.length === 0) {
         strapi.log.info(`[bootstrap] super_admin ממתין להרשמה: ${email}`);
         continue;
       }
-      const user = users[0] as { id: number; app_role?: string };
-      if (user.app_role !== 'super_admin') {
+      const user = users[0] as { id: number; app_role?: string; role?: { type?: string } };
+      const data: Record<string, unknown> = {};
+      if (user.app_role !== 'super_admin') data.app_role = 'super_admin';
+      // משדרגים רק מ-authenticated (chachmei_editor הוא סופרסט שלו) — role מותאם אחר לא נדרס
+      if (editorRole && (!user.role || user.role.type === 'authenticated')) data.role = editorRole.id;
+      if (Object.keys(data).length > 0) {
         await strapi.db.query('plugin::users-permissions.user').update({
           where: { id: user.id },
-          data: { app_role: 'super_admin' },
+          data,
         });
-        strapi.log.info(`[bootstrap] ✅ Set super_admin for: ${email}`);
+        strapi.log.info(`[bootstrap] ✅ Set super_admin for: ${email} (${Object.keys(data).join(', ')})`);
       } else {
         strapi.log.info(`[bootstrap] Already super_admin: ${email}`);
       }

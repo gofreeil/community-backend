@@ -26,7 +26,7 @@
       "type": "json"
     },
     "photo": {
-      "type": "string"
+      "type": "text"
     },
     "order": {
       "type": "integer",

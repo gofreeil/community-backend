@@ -41,7 +41,7 @@
       "type": "string"
     },
     "imageUrl": {
-      "type": "string"
+      "type": "text"
     },
     "sourceUrl": {
       "type": "string"

@@ -567,7 +567,7 @@ export interface ApiChActivityItemChActivityItem
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     excerpt: Schema.Attribute.JSON;
-    imageUrl: Schema.Attribute.String;
+    imageUrl: Schema.Attribute.Text;
     kind: Schema.Attribute.JSON & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -905,7 +905,7 @@ export interface ApiChRabbiChRabbi extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<100>;
-    photo: Schema.Attribute.String;
+    photo: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     rabbiCity: Schema.Attribute.JSON;
     rabbiName: Schema.Attribute.JSON & Schema.Attribute.Required;

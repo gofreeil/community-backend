@@ -565,6 +565,26 @@ async function ensureSuperAdmin(strapi: Core.Strapi) {
       strapi.log.warn(`[bootstrap] ensureSuperAdmin failed for ${email}:`, e);
     }
   }
+
+  // אדמיני תוכן (app_role=ch_admin) שמונו בלי מעבר ל-chachmei_editor (למשל ישירות
+  // בפאנל של Strapi) — מסמנים אותם כאדמינים באתר, אבל כל פרסום שלהם נחסם ב-403.
+  if (!editorRole) return;
+  try {
+    const admins = await strapi.db.query('plugin::users-permissions.user').findMany({
+      where: { app_role: 'ch_admin' },
+      populate: ['role'],
+    });
+    for (const u of admins as Array<{ id: number; email?: string; role?: { type?: string } }>) {
+      if (u.role && u.role.type !== 'authenticated') continue;
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: u.id },
+        data: { role: editorRole.id },
+      });
+      strapi.log.info(`[bootstrap] ✅ ch_admin → chachmei_editor: ${u.email}`);
+    }
+  } catch (e) {
+    strapi.log.warn('[bootstrap] סנכרון role לאדמיני תוכן נכשל:', e);
+  }
 }
 
 // מפעיל ספק OAuth של Google ב-users-permissions אם הוגדרו GOOGLE_OAUTH_CLIENT_ID/SECRET ב-env.

@@ -272,6 +272,11 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // לייק/תגובה ציבוריים — כל משתמש מחובר; הזיהוי לפי ctx.state.user ב-controller
         'api::pg-satisfaction-response.pg-satisfaction-response.toggleLike',
         'api::pg-satisfaction-response.pg-satisfaction-response.addReply',
+        // ניהול הפרסומות באתר: אישור/השהיה/אשפה (update) ומחיקה לצמיתות (delete).
+        // ה-controller דוחה update ממי שאינו אדמין ו-delete ממי שאינו super_admin;
+        // delete לא הוענק עד כה בכלל - והמחיקה מהאתר נחסמה ב-403.
+        'api::pg-submitted-ad.pg-submitted-ad.update',
+        'api::pg-submitted-ad.pg-submitted-ad.delete',
         // חתימות אמנת חכמי העדה — "החתימה שלי" + עריכה עצמית; אכיפת בעלות/תפקיד ב-controller
         'api::ch-charter-signature.ch-charter-signature.mine',
         'api::ch-charter-signature.ch-charter-signature.selfUpdate',

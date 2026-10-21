@@ -18,7 +18,7 @@
  * מספר בלבד נשמר לדף הנוכחי בלבד (מפתח "@<נתיב>|<מספר>"), כדי ש-"5000" בטבלה אחת לא ישנה כל "5000".
  *
  * אזור שלא עורכים ולא מחליפים בו (תוכן משתמשים: כרטיסים, פרסומות, שמות): data-no-edit.
- * ריקון כיתוב מחזיר אותו לנוסח המקורי.
+ * ריקון כיתוב מוחק אותו מהאתר (דריסה ריקה); במצב עריכה הוא מוצג מעומעם, והקלדת הנוסח המקורי מחזירה אותו.
  */
 (function () {
   'use strict';
@@ -73,9 +73,9 @@
   function applyNode(node) {
     var raw = node.nodeValue || '';
     var t = raw.trim();
-    if (!t) return;
     var prev = originals.get(node);
     var mine = prev !== undefined && applied.get(node) === raw;
+    if (!t && !mine) return; // ריק - אלא אם זה כיתוב שאנחנו מחקנו (דריסה ריקה), שאולי צריך להחזיר
     if (!mine) { originals.delete(node); applied.delete(node); }
     var orig = mine ? prev : t;
     var next = overrides.get(keyFor(orig));
@@ -258,6 +258,7 @@
     '-webkit-user-select:text;user-select:text}' +
     '[data-se-key]:hover{outline-color:#f59e0b;background:rgba(245,158,11,.12)}' +
     '[data-se-key]:focus{outline:2px solid #3b82f6;background:rgba(59,130,246,.12)}' +
+    '[data-se-deleted]:empty::before{content:attr(data-se-deleted);opacity:.45;text-decoration:line-through}' +
     '[data-se-ph]{outline:1px dashed rgba(245,158,11,.65)!important;outline-offset:2px;cursor:pointer!important}' +
     '[data-se-ph]:hover{outline-color:#f59e0b!important}';
 
@@ -357,7 +358,7 @@
     // edit
     var p = el('div', { class: 'panel' }, [
       el('span', { class: 'label' }, ['⚙️ לחצו על כיתוב וערכו אותו' + (state.changed ? ' · ' + state.changed + ' שונו' : '')]),
-      el('span', { class: 'hint' }, ['ריקון כיתוב מחזיר אותו לנוסח המקורי']),
+      el('span', { class: 'hint' }, ['ריקון כיתוב מוחק אותו מהאתר']),
     ]);
     if (state.error) p.appendChild(el('span', { class: 'err', title: state.error }, [state.error]));
     var cancel = el('button', { class: 'b ghost', type: 'button', onclick: function () { cancelEdit(); } }, ['ביטול']);
@@ -453,11 +454,13 @@
     if (editing) exitEdit();
   }
 
-  /** טקסט עם אות או ספרה (לא סימנים/אימוג'י בלבד), מחוץ לאזורים שאסור לערוך */
+  /** טקסט עם אות או ספרה (לא סימנים/אימוג'י בלבד), מחוץ לאזורים שאסור לערוך.
+   * כיתוב שנמחק (דריסה ריקה) נעטף ריק, עם המקור מעומעם - כדי שאפשר יהיה להחזיר אותו */
   function wrappable(node) {
     var parent = node.parentElement;
     var text = (node.nodeValue || '').trim();
-    return !!parent && !!text && HAS_TEXT.test(text) && !parent.closest(NO_WRAP);
+    if (!parent || parent.closest(NO_WRAP)) return false;
+    return text ? HAS_TEXT.test(text) : !!originalTextOf(node);
   }
 
   function collect(root, texts, inputs) {
@@ -488,6 +491,7 @@
     span.setAttribute('contenteditable', 'true');
     span.setAttribute('spellcheck', 'false');
     span.textContent = shown;
+    if (!shown) span.setAttribute('data-se-deleted', orig);
 
     var extras = [];
     var parts = [];
@@ -641,15 +645,16 @@
 
   function saveAll() {
     if (state.busy) return;
-    // חזרה לנוסח שבקוד נשלחת כריקון - הדריסה נמחקת (גם כשהמפתח הוא מפתח-דף של מספר)
+    // חזרה לנוסח שבקוד נשלחת כ-null - הדריסה נמחקת (גם כשהמפתח הוא מפתח-דף של מספר);
+    // ריק = הכיתוב נמחק מהאתר
     var texts = {};
     wrapped.forEach(function (w, span) {
       var value = currentValue(span);
-      if (value !== w.shown) texts[w.key] = value === w.orig ? '' : value;
+      if (value !== w.shown) texts[w.key] = value === w.orig ? null : value;
     });
     boxes.forEach(function (b, box) {
       var value = boxValue(box);
-      if (value !== b.shown) texts[b.key] = value === b.orig ? '' : value;
+      if (value !== b.shown) texts[b.key] = value === b.orig ? null : value;
     });
     if (!Object.keys(texts).length) { exitEdit(); return; }
     state.busy = true;

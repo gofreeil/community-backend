@@ -225,7 +225,8 @@ export default {
 
   /**
    * POST /site-edit/save { site, texts: { "<מקור>": "<חדש>" } } — רק מה שנשלח משתנה.
-   * ערך ריק או זהה למקור מוחק את הדריסה (חזרה לקוד). מחזיר את המפה המלאה החדשה.
+   * null או ערך זהה למקור מוחק את הדריסה (חזרה לקוד); ערך ריק מוחק את הכיתוב מהאתר.
+   * מחזיר את המפה המלאה החדשה.
    */
   async save(ctx: any) {
     noStore(ctx);
@@ -247,9 +248,9 @@ export default {
       const row = await findRow(site);
       const texts = row ? parseTexts(row.extra_fields) : {};
       for (const [original, raw] of entries) {
-        if (!original || original.length > MAX_TEXT_LEN || typeof raw !== 'string') continue;
-        const value = raw.replace(/\r\n/g, '\n').trim();
-        if (!value || value === original || value.length > MAX_TEXT_LEN) delete texts[original];
+        if (!original || original.length > MAX_TEXT_LEN || (typeof raw !== 'string' && raw !== null)) continue;
+        const value = raw === null ? null : raw.replace(/\r\n/g, '\n').trim();
+        if (value === null || value === original || value.length > MAX_TEXT_LEN) delete texts[original];
         else texts[original] = value;
       }
       if (Object.keys(texts).length > MAX_ENTRIES) return fail(ctx, 400, 'יותר מדי כיתובים ערוכים');

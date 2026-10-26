@@ -272,6 +272,12 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // לייק/תגובה ציבוריים — כל משתמש מחובר; הזיהוי לפי ctx.state.user ב-controller
         'api::pg-satisfaction-response.pg-satisfaction-response.toggleLike',
         'api::pg-satisfaction-response.pg-satisfaction-response.addReply',
+        // פניות תמיכה (צ'אט עם ההנהלה וחברות השירות); בעלות/תפקיד נאכפים ב-controller
+        'api::pg-support-ticket.pg-support-ticket.inbox',
+        'api::pg-support-ticket.pg-support-ticket.open',
+        'api::pg-support-ticket.pg-support-ticket.thread',
+        'api::pg-support-ticket.pg-support-ticket.message',
+        'api::pg-support-ticket.pg-support-ticket.manage',
         // ניהול הפרסומות באתר: אישור/השהיה/אשפה (update) ומחיקה לצמיתות (delete).
         // ה-controller דוחה update ממי שאינו אדמין ו-delete ממי שאינו super_admin;
         // delete לא הוענק עד כה בכלל - והמחיקה מהאתר נחסמה ב-403.

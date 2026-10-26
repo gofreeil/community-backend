@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pg_support_tickets",
+  "info": {
+    "singularName": "pg-support-ticket",
+    "pluralName": "pg-support-tickets",
+    "displayName": "PG · Support Ticket",
+    "description": "פניות תמיכה של חברי קבוצות הרכישה להנהלה ולחברות השירות (צאט)"
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {},
+  "attributes": {
+    "subject": { "type": "string", "required": true },
+    "category": { "type": "string" },
+    "company": { "type": "string" },
+    "status": {
+      "type": "enumeration",
+      "enum": ["open", "answered", "closed"],
+      "default": "open"
+    },
+    "user_id": { "type": "string" },
+    "user_name": { "type": "string" },
+    "user_email": { "type": "string" },
+    "user_phone": { "type": "string" },
+    "provider_emails": { "type": "json" },
+    "messages": { "type": "json" },
+    "last_activity": { "type": "datetime" }
+  }
+}

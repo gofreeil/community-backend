@@ -249,7 +249,7 @@ export default {
       const texts = row ? parseTexts(row.extra_fields) : {};
       for (const [original, raw] of entries) {
         if (!original || original.length > MAX_TEXT_LEN || (typeof raw !== 'string' && raw !== null)) continue;
-        const value = raw === null ? null : raw.replace(/\r\n/g, '\n').trim();
+        const value = typeof raw === 'string' ? raw.replace(/\r\n/g, '\n').trim() : null;
         if (value === null || value === original || value.length > MAX_TEXT_LEN) delete texts[original];
         else texts[original] = value;
       }

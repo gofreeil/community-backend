@@ -1,0 +1,19 @@
+{
+  "kind": "collectionType",
+  "collectionName": "app_installs",
+  "info": {
+    "singularName": "app-install",
+    "pluralName": "app-installs",
+    "displayName": "App Install"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "site": { "type": "string", "required": true },
+    "device_id": { "type": "string", "required": true },
+    "platform": { "type": "enumeration", "enum": ["android", "ios", "desktop"], "default": "desktop" },
+    "source": { "type": "enumeration", "enum": ["appinstalled", "standalone_launch"], "default": "standalone_launch" },
+    "user_agent": { "type": "string" }
+  }
+}

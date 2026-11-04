@@ -430,6 +430,42 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAppInstallAppInstall extends Struct.CollectionTypeSchema {
+  collectionName: 'app_installs';
+  info: {
+    displayName: 'App Install';
+    pluralName: 'app-installs';
+    singularName: 'app-install';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    device_id: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::app-install.app-install'
+    > &
+      Schema.Attribute.Private;
+    platform: Schema.Attribute.Enumeration<['android', 'ios', 'desktop']> &
+      Schema.Attribute.DefaultTo<'desktop'>;
+    publishedAt: Schema.Attribute.DateTime;
+    site: Schema.Attribute.String & Schema.Attribute.Required;
+    source: Schema.Attribute.Enumeration<
+      ['appinstalled', 'standalone_launch']
+    > &
+      Schema.Attribute.DefaultTo<'standalone_launch'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user_agent: Schema.Attribute.String;
+  };
+}
+
 export interface ApiAdvertisementOrderAdvertisementOrder
   extends Struct.CollectionTypeSchema {
   collectionName: 'advertisement_orders';
@@ -3286,6 +3322,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::app-install.app-install': ApiAppInstallAppInstall;
       'api::advertisement-order.advertisement-order': ApiAdvertisementOrderAdvertisementOrder;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
       'api::card-exchange.card-exchange': ApiCardExchangeCardExchange;

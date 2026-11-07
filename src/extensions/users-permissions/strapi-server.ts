@@ -364,6 +364,117 @@ export default (plugin: any) => {
         ctx.body = { ok: true, rev: result.rev };
     };
 
+    // ── Freedom TV: הוספת שורה לטבלת המתנדבים ע"י משתמש רגיל (gofreeil.com/admin/tv) ──
+    // מי שאינו בצוות הרשת לא קורא את הלוח (networkBoardGet חסום לו) — הוא רק מוסיף
+    // שורה משלו ורואה אותה. השרת מחזיר לו אך ורק: כותרות העמודות הגלויות, השורות שהוא
+    // עצמו הוסיף, ומספר השורות של אחרים (בלי תוכן) — הפורטל מציג אותן ככוכביות.
+    // השורה נכנסת לאותו מסמך לוח (sheet.rows) תחת נעילה, כך שאדמינים רואים אותה בטבלה.
+    const TV_DEFAULT_COLUMNS = [
+        { id: 'col-name', label: 'שם המתנדב', kind: 'text' },
+        { id: 'col-phone', label: 'טלפון', kind: 'phone' },
+        { id: 'col-telegram', label: 'טלגרם', kind: 'link' },
+        { id: 'col-youtube', label: 'יוטיוב', kind: 'link' },
+        { id: 'col-facebook', label: 'פייסבוק', kind: 'link' },
+    ]; // זהה ל-DEFAULT_COLUMNS בפורטל (lib/teamBoard.ts) — לוח שעוד לא נשמר בו טבלה
+    const TV_ROW_ID_RE = /^[a-z0-9-]{8,64}$/i;
+    const TV_MAX_ROWS = 3000;
+    const TV_MAX_ROWS_PER_USER = 20;
+    const TV_MAX_CELL = 500;
+
+    const tvVisibleColumns = (sheet: any) => {
+        const cols = Array.isArray(sheet?.columns) && sheet.columns.length ? sheet.columns : TV_DEFAULT_COLUMNS;
+        return cols.filter((c: any) => c && typeof c.id === 'string' && c.id && !c.hidden);
+    };
+
+    // GET /api/network-board/guest → { columns, mine, others }
+    plugin.controllers.user.networkBoardGuestGet = async (ctx: any) => {
+        const user = ctx.state?.user;
+        const email = normEmail(user?.email);
+        if (!email) return ctx.unauthorized();
+        const stored = (await siteAdminsStore().get({ key: NETWORK_BOARD_KEY })) as any;
+        const sheet = stored?.data?.sheet;
+        const columns = tvVisibleColumns(sheet);
+        const ids = new Set(columns.map((c: any) => c.id));
+        const rows: any[] = Array.isArray(sheet?.rows) ? sheet.rows : [];
+        const mine = rows
+            .filter((r) => normEmail(r?.createdBy) === email)
+            .map((r) => ({
+                id: String(r.id),
+                createdAt: String(r.createdAt ?? ''),
+                cells: Object.fromEntries(
+                    Object.entries(r.cells ?? {}).filter(([k, v]) => ids.has(k) && typeof v === 'string')
+                ),
+            }));
+        ctx.body = {
+            columns: columns.map((c: any) => ({
+                id: c.id,
+                label: String(c.label ?? ''),
+                kind: String(c.kind ?? 'text'),
+                width: typeof c.width === 'number' ? c.width : 0,
+            })),
+            mine,
+            others: rows.length - mine.length,
+        };
+    };
+
+    // POST /api/network-board/guest { id, cells } — מוסיף שורה בשם המשתמש המחובר
+    plugin.controllers.user.networkBoardGuestAdd = async (ctx: any) => {
+        const user = ctx.state?.user;
+        const email = normEmail(user?.email);
+        if (!email) return ctx.unauthorized();
+        const body = (ctx.request.body ?? {}) as any;
+        const id = body.id;
+        if (typeof id !== 'string' || !TV_ROW_ID_RE.test(id)) return ctx.badRequest('מזהה לא תקין');
+        if (!body.cells || typeof body.cells !== 'object' || Array.isArray(body.cells)) {
+            return ctx.badRequest('נתונים לא תקינים');
+        }
+
+        const result = await withBoardLock(async () => {
+            const stored = (await siteAdminsStore().get({ key: NETWORK_BOARD_KEY })) as any;
+            const current = Number(stored?.rev ?? 0);
+            const data = stored?.data && typeof stored.data === 'object' ? stored.data : { v: 1, tasks: [], reports: [], people: {} };
+            if (!data.sheet || typeof data.sheet !== 'object') data.sheet = { columns: [], rows: [] };
+            if (!Array.isArray(data.sheet.columns) || !data.sheet.columns.length) {
+                data.sheet.columns = TV_DEFAULT_COLUMNS.map((c) => ({ ...c }));
+            }
+            if (!Array.isArray(data.sheet.rows)) data.sheet.rows = [];
+            const rows: any[] = data.sheet.rows;
+
+            if (rows.some((r) => r?.id === id)) return { ok: true, rev: current }; // נשלח פעמיים
+            if (rows.length >= TV_MAX_ROWS) return { error: 'הטבלה מלאה' };
+            if (rows.filter((r) => normEmail(r?.createdBy) === email).length >= TV_MAX_ROWS_PER_USER) {
+                return { error: 'הגעת למספר השורות המרבי' };
+            }
+
+            const ids = new Set(tvVisibleColumns(data.sheet).map((c: any) => c.id));
+            const cells: Record<string, string> = {};
+            for (const [k, v] of Object.entries(body.cells)) {
+                if (!ids.has(k) || typeof v !== 'string') continue;
+                const val = v.trim();
+                if (val.length > TV_MAX_CELL) return { error: 'אחד הערכים ארוך מדי' };
+                if (val) cells[k] = val;
+            }
+            if (!Object.keys(cells).length) return { error: 'צריך למלא לפחות שדה אחד' };
+
+            const now = new Date().toISOString();
+            rows.push({ id, cells, createdBy: email, createdAt: now, updatedBy: email, updatedAt: now });
+            const name = String(user.username ?? user.name ?? '').trim();
+            if (data.people && typeof data.people === 'object' && name && !data.people[email]) {
+                data.people[email] = { name, image: '' };
+            }
+
+            if (stored) await siteAdminsStore().set({ key: `${NETWORK_BOARD_KEY}-prev`, value: stored });
+            await siteAdminsStore().set({
+                key: NETWORK_BOARD_KEY,
+                value: { rev: current + 1, data, updatedAt: now, updatedBy: email },
+            });
+            return { ok: true, rev: current + 1 };
+        });
+
+        if ((result as any).error) return ctx.badRequest((result as any).error);
+        ctx.body = { ok: true };
+    };
+
     // config.prefix='' חובה: בלעדיו Strapi v5 ממפה routes של הרחבת-פלאגין תחת
     // קידומת שם-הפלאגין (‎/api/users-permissions/ch-users) במקום ‎/api/ch-users,
     // והפרונט מקבל 404. כל ה-routes המובנים של users-permissions משתמשים בזה.
@@ -420,6 +531,18 @@ export default (plugin: any) => {
             method: 'PUT',
             path: '/network-board',
             handler: 'user.networkBoardSet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'GET',
+            path: '/network-board/guest',
+            handler: 'user.networkBoardGuestGet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'POST',
+            path: '/network-board/guest',
+            handler: 'user.networkBoardGuestAdd',
             config: { prefix: '' },
         }
     );

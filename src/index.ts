@@ -313,6 +313,9 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // לוח המשימות והדיווחים של צוות הרשת; אכיפת צוות (סופר-אדמין/אדמין אתר) ב-controller
         'plugin::users-permissions.user.networkBoardGet',
         'plugin::users-permissions.user.networkBoardSet',
+        // Freedom TV: כל משתמש מחובר מוסיף שורה משלו ורואה רק אותה; ה-controller מסנן
+        'plugin::users-permissions.user.networkBoardGuestGet',
+        'plugin::users-permissions.user.networkBoardGuestAdd',
         // חנות החירות — הגשת מוצר בשם משתמש מחובר (מצמיד seller_user_id), "המוצרים
         // שלי", ואישור/דחייה/מחיקה שה-controller פותח רק ל-super_admin / shop_admin.
         'api::shop-seller-product.shop-seller-product.find',

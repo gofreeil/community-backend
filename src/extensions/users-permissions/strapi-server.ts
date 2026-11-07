@@ -376,6 +376,7 @@ export default (plugin: any) => {
         { id: 'col-youtube', label: 'יוטיוב', kind: 'link' },
         { id: 'col-facebook', label: 'פייסבוק', kind: 'link' },
         { id: 'col-instagram', label: 'אינסטגרם', kind: 'link' },
+        { id: 'col-notes', label: 'הערות', kind: 'text' },
     ]; // זהה ל-DEFAULT_COLUMNS בפורטל (lib/teamBoard.ts) — לוח שעוד לא נשמר בו טבלה
     const TV_ROW_ID_RE = /^[a-z0-9-]{8,64}$/i;
     const TV_MAX_ROWS = 3000;

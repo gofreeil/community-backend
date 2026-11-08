@@ -399,15 +399,15 @@ export default (plugin: any) => {
         const columns = tvVisibleColumns(sheet);
         const ids = new Set(columns.map((c: any) => c.id));
         const rows: any[] = Array.isArray(sheet?.rows) ? sheet.rows : [];
-        const mine = rows
-            .filter((r) => normEmail(r?.createdBy) === email)
-            .map((r) => ({
-                id: String(r.id),
-                createdAt: String(r.createdAt ?? ''),
-                cells: Object.fromEntries(
-                    Object.entries(r.cells ?? {}).filter(([k, v]) => ids.has(k) && typeof v === 'string')
-                ),
-            }));
+        // אין בטבלה מידע אישי רגיש — כל השורות גלויות לכל משתמש מחובר; mine מסמן את שלו
+        const mine = rows.map((r) => ({
+            id: String(r.id),
+            createdAt: String(r.createdAt ?? ''),
+            mine: normEmail(r?.createdBy) === email,
+            cells: Object.fromEntries(
+                Object.entries(r.cells ?? {}).filter(([k, v]) => ids.has(k) && typeof v === 'string')
+            ),
+        }));
         ctx.body = {
             columns: columns.map((c: any) => ({
                 id: c.id,
@@ -416,7 +416,7 @@ export default (plugin: any) => {
                 width: typeof c.width === 'number' ? c.width : 0,
             })),
             mine,
-            others: rows.length - mine.length,
+            others: 0,
         };
     };
 

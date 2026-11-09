@@ -14,6 +14,20 @@
 
 import { COMMUNITY_SITE_URL, extractLink, notifyAdminBySms, oneLine } from '../../../../utils/adminSms';
 
+// יעד ברירת מחדל לפי סוג ההתראה (זהה ל-MSG_TYPE_LINKS באתר) — כדי שהקישור ב-SMS יוביל ישר למסך האישור
+const TYPE_LINKS: Record<string, string> = {
+    coordinator_request: '/admin#coord-requests',
+    location_request: '/admin#pending-neighborhoods',
+    neighborhood_request: '/admin#pending-neighborhoods',
+    singles_review: '/admin/singles-review',
+    ad_submission: '/admin/ads-review',
+    wish_request: '/admin#pending-wishes',
+    design_help_request: '/admin/ads-review',
+    singles_access: '/admin/singles-review',
+    matchmaker_request: '/admin/singles-review',
+    quiz_suggestion: '/admin/quiz-suggestions',
+};
+
 const INBOX_CATEGORIES = new Set(['message', 'admin_alert']);
 
 export default {
@@ -27,9 +41,16 @@ export default {
         try {
             const label = oneLine(r.label ?? '') || 'התראת ניהול חדשה';
             const title = `קהילה בשכונה · ${label}`;
-            const link = extractLink(r.description ?? '', COMMUNITY_SITE_URL) ?? `${COMMUNITY_SITE_URL}/messages`;
-            const ef = r.extra_fields && typeof r.extra_fields === 'object' ? (r.extra_fields as { type?: unknown }) : null;
+            let ef: { type?: unknown; link?: unknown; review_link?: unknown } | null = null;
+            const rawEf = r.extra_fields;
+            if (rawEf && typeof rawEf === 'object') ef = rawEf as typeof ef;
+            else if (typeof rawEf === 'string') { try { ef = JSON.parse(rawEf); } catch { ef = null; } }
             const efType = ef && typeof ef.type === 'string' ? ef.type : null;
+            const explicit = [ef?.link, ef?.review_link].find((l): l is string => typeof l === 'string' && l.startsWith('/'));
+            const path = explicit ?? (efType ? TYPE_LINKS[efType] : undefined);
+            const link = path
+                ? `${COMMUNITY_SITE_URL}${path}`
+                : (extractLink(r.description ?? '', COMMUNITY_SITE_URL) ?? `${COMMUNITY_SITE_URL}/messages`);
             await notifyAdminBySms({ externalId: uid, title, link, source: 'item', category: r.category, efType });
         } catch (err) {
             strapi.log.warn(`[item] admin SMS hook failed: ${err instanceof Error ? err.message : String(err)}`);

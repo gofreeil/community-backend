@@ -116,6 +116,10 @@
     "sms_prefs": {
       "type": "json"
     },
+    "email_optout": {
+      "type": "boolean",
+      "default": false
+    },
     "external_id": {
       "type": "string"
     },

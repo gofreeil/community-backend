@@ -38,6 +38,10 @@
     },
     "publishedQaSlug": {
       "type": "string"
+    },
+    "emailOptOut": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

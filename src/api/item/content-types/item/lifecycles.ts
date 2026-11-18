@@ -30,12 +30,25 @@ const TYPE_LINKS: Record<string, string> = {
 
 const INBOX_CATEGORIES = new Set(['message', 'admin_alert']);
 
+// item הוא draftAndPublish: כל עדכון של מסמך מפורסם (סימון "נקראה", "טופלה", "✅ אושר ·")
+// מפרסם אותו מחדש כשורה חדשה — ו-afterCreate רץ שוב. בלי הבדיקה הזו כל עדכון שלח
+// SMS נוסף כאילו ההתראה חדשה (18.11.2026: "פנוי חדש" נשלח שוב ברגע הסימון כנקראה).
+// בפרסום מחדש createdAt נשמר מהמקור, ולכן התראה חדשה באמת = createdAt של ממש עכשיו.
+const REPUBLISH_AGE_MS = 2 * 60_000;
+
+function isRepublish(createdAt: unknown): boolean {
+    if (createdAt == null || createdAt === '') return false;
+    const t = new Date(createdAt as string | number | Date).getTime();
+    return Number.isFinite(t) && Date.now() - t > REPUBLISH_AGE_MS;
+}
+
 export default {
     async afterCreate(event: any) {
         const r = event?.result as
-            | { category?: string; user_id?: string | null; label?: string; description?: string; icon?: string; extra_fields?: unknown }
+            | { category?: string; user_id?: string | null; label?: string; description?: string; icon?: string; extra_fields?: unknown; createdAt?: unknown }
             | undefined;
         if (!r || !INBOX_CATEGORIES.has(String(r.category ?? ''))) return;
+        if (isRepublish(r.createdAt)) return;
         const uid = String(r.user_id ?? '').trim();
         if (!uid) return;
         try {

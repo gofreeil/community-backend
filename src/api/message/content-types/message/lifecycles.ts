@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // Lifecycle hooks ל-message — אוסף ההודעות המשותף של אתרי הרשת
 //
-// afterCreate: SMS לנייד של הנמען אם הוא מנהל (ראה utils/adminSms.ts).
+// afterCreate: SMS לנייד של הנמען אם הוא מנהל/רכז וההודעה היא התראת מערכת
+// (בלי sender) — ראה utils/adminSms.ts.
 // אתרי הרשת (אבדות, בעלי מקצוע, גמ"ח ארצי, דירוג, חכמי העדה, ועוד) כותבים
 // לכאן דרך adsNotify/adsCode: { receiver, content, read } — וכך התראה על
 // בקשת פרסום שהאדמין של אותו אתר היה מגלה רק בכניסה מקרית לתיבה, מגיעה
@@ -20,15 +21,16 @@ export default {
         try {
             const msg = (await strapi.db.query('api::message.message').findOne({
                 where: { id },
-                populate: ['receiver'],
-            })) as { content?: string; receiver?: { id?: number } | null } | null;
+                populate: ['receiver', 'sender'],
+            })) as { content?: string; receiver?: { id?: number } | null; sender?: { id?: number } | null } | null;
             const receiverId = msg?.receiver?.id;
             if (!receiverId) return;
 
             const content = String(msg?.content ?? '');
             const title = firstLine(content) || 'הודעה חדשה בתיבת הניהול';
             const link = extractLink(content, COMMUNITY_SITE_URL) ?? `${COMMUNITY_SITE_URL}/messages`;
-            await notifyAdminBySms({ userId: receiverId, title, link, source: 'message' });
+            // הודעה עם שולח = צ'אט בין משתמשים (/api/messages בקהילה) — לא התראת ניהול
+            await notifyAdminBySms({ userId: receiverId, title, link, source: 'message', hasSender: !!msg?.sender?.id });
         } catch (err) {
             strapi.log.warn(`[message] admin SMS hook failed: ${err instanceof Error ? err.message : String(err)}`);
         }

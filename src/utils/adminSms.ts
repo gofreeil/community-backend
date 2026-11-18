@@ -11,9 +11,14 @@
 // המנגנון: אותו sms.ts שמאמת נייד בגמ"ח הארצי (SMSGate / Traccar / Twilio).
 //
 // כללי בטיחות — SMS זה ערוץ יקר ורועש, ולכן:
-//   * נשלח רק למי ש-app_role שלו ברשימת התפקידים (ברירת מחדל: super_admin +
-//     neighborhood_admin) או שהוא רכז שכונה (coordinator_of לא ריק;
-//     ADMIN_SMS_INCLUDE_COORDINATORS=false מבטל), לא חסום, ועם נייד ישראלי תקין.
+//   * נשלח רק למנהל — כל תפקיד ניהול בכל אתר ברשת: super_admin וכל app_role
+//     שמסתיים ב-_admin (neighborhood_admin, idx_admin, avd_admin, ch_admin...),
+//     כך שאתר חדש ברשת נכלל בלי לגעת כאן; ADMIN_SMS_ROLES מוסיף תפקידים — או
+//     לרכז שכונה (coordinator_of לא ריק; ADMIN_SMS_INCLUDE_COORDINATORS=false
+//     מבטל). לא חסום, ועם נייד ישראלי תקין.
+//   * רק התראות חשובות ורלוונטיות לנמען (isImportantFor): מנהל — התראות שדורשות
+//     טיפול; רכז — רק מה שנוגע לאזור שלו. הודעות אישיות (תגובה על פריט, התאמה,
+//     תזכורת) והודעות צ'אט בין משתמשים נשארות בתיבה בלבד.
 //   * ריסון: אותה הודעה לאותו נמען לא נשלחת פעמיים ב-10 דק'; לכל היותר
 //     ADMIN_SMS_MAX_PER_HOUR לנמען בשעה; ותקרה גלובלית לאינסטנס — כדי שבאג
 //     שמייצר התראות בלולאה לא ירוקן חבילת SMS.
@@ -32,9 +37,19 @@ const MAX_BODY_CHARS = 320;
 const perUserCap = () => Number(process.env.ADMIN_SMS_MAX_PER_HOUR ?? 12) || 12;
 const globalCap  = () => Number(process.env.ADMIN_SMS_GLOBAL_MAX_PER_HOUR ?? 80) || 80;
 
-function allowedRoles(): Set<string> {
-    const raw = process.env.ADMIN_SMS_ROLES ?? 'super_admin,neighborhood_admin';
+/** תפקידים נוספים מה-env (מעבר לכל *_admin) — מוסיף בלבד, לא מצמצם */
+function extraRoles(): Set<string> {
+    const raw = process.env.ADMIN_SMS_ROLES ?? '';
     return new Set(raw.split(',').map((r) => r.trim()).filter(Boolean));
+}
+
+/** האם התפקיד הוא תפקיד ניהול באחד מאתרי הרשת. כל אתר מגדיר תפקיד משלו
+ *  (idx_admin, avd_admin, ch_admin, cr_admin, nc_admin, rating_admin, ref_admin,
+ *  exp_admin...) — רשימה סגורה הייתה משאירה בחוץ כל אתר חדש, כמו שקרה לאינדקס. */
+export function isAdminRole(role: string | null | undefined): boolean {
+    const r = String(role ?? '').trim();
+    if (!r) return false;
+    return r === 'super_admin' || /^[a-z0-9]+(?:_[a-z0-9]+)*_admin$/.test(r) || extraRoles().has(r);
 }
 
 function enabled(): boolean {
@@ -136,25 +151,57 @@ const GROUP_BY_TYPE: Record<string, SmsGroup> = {
     neighborhood_request: 'locations',
     location_request:     'locations',
     location_task:        'locations',
+    city_request:         'locations',
     event_pending:        'content',
     wish_request:         'content',
     singles_review:       'content',
     singles_access:       'content',
     matchmaker_request:   'content',
+    quiz_suggestion:      'content',
     server_error:         'errors',
     client_error:         'errors',
     totp_reset:           'errors',
 };
 
-/**
- * סוגי התראה שנשארים בלוח ההודעות בלבד — בלי SMS בכלל, בלי קשר להעדפות.
- * new_user: הצטרפות של משתמש/ת חדש/ה היא מידע, לא משהו שדורש טיפול מיידי
- * (בקשת המשתמש, 16.9.2026).
- */
-const INBOX_ONLY_TYPES = new Set(['new_user']);
+// ------------------------------------------------------------
+// מה חשוב ורלוונטי — רשימה מותרת, לא רשימה חסומה. התיבה של מנהל מקבלת גם
+// הודעות אישיות (תגובה על פריט שלו, התאמת אירוח, תזכורת פרסומת, צ'אט) —
+// אלה לא סיבה להעיר אותו בנייד. סוג התראה חדש שדורש טיפול מנהל → להוסיף כאן.
+// ------------------------------------------------------------
 
-export function isInboxOnly(efType?: string | null): boolean {
-    return INBOX_ONLY_TYPES.has(String(efType ?? ''));
+/** התראות items שדורשות החלטה/טיפול של מנהל */
+const ADMIN_ITEM_TYPES = new Set<string>([
+    ...Object.keys(GROUP_BY_TYPE),
+    'network_contact',   // פנייה ישירה לרכז אתר מרשימת הצוות (freedom)
+    'distress_alert',    // קריאת עזרה בשכונה
+]);
+
+/** התראות items שרלוונטיות לרכז שכונה. הן כבר ממוענות לפי האזור שלו
+ *  (אירוע בשכונה שלו, קריאת עזרה בשכונה שלו) — כאן רק סינון החשיבות. */
+const COORDINATOR_ITEM_TYPES = new Set<string>(['event_pending', 'distress_alert', 'network_contact']);
+
+export interface ImportanceInput {
+    source: string;
+    category?: string | null;
+    efType?: string | null;
+    /** להודעות messages: האם יש שולח (= צ'אט בין משתמשים, לא התראת מערכת) */
+    hasSender?: boolean;
+}
+
+/**
+ * האם ההתראה חשובה ורלוונטית לנמען לפי תפקידו.
+ *   messages (אתרי הרשת): רק התראת מערכת (בלי שולח) — בקשת פרסום, כרטיס עסק,
+ *     בקשת בעלות, תיק/שאלה חדשים, פנייה לרכזי העיר. צ'אט בין משתמשים — לא.
+ *   items (הקהילה): admin_alert תמיד; אחרת לפי הסוג — מנהל: ADMIN_ITEM_TYPES,
+ *     רכז: COORDINATOR_ITEM_TYPES.
+ */
+export function isImportantFor(input: ImportanceInput, who: { admin: boolean; coordinator: boolean }): boolean {
+    if (!who.admin && !who.coordinator) return false;
+    if (input.source === 'message') return !input.hasSender;
+    if (input.category === 'admin_alert') return true;
+    const t = String(input.efType ?? '');
+    if (!t) return false;
+    return (who.admin && ADMIN_ITEM_TYPES.has(t)) || (who.coordinator && COORDINATOR_ITEM_TYPES.has(t));
 }
 
 export function classifyGroup(input: { source: string; category?: string | null; efType?: string | null }): SmsGroup {
@@ -227,6 +274,8 @@ export interface AdminSmsInput {
     category?: string | null;
     /** extra_fields.type של ה-item — לסיווג */
     efType?: string | null;
+    /** messages בלבד: יש שולח = צ'אט בין משתמשים */
+    hasSender?: boolean;
 }
 
 /**
@@ -236,15 +285,16 @@ export interface AdminSmsInput {
 export async function notifyAdminBySms(input: AdminSmsInput): Promise<boolean> {
     if (!enabled()) return false;
     const tag = `[admin-sms:${input.source}]`;
-    if (isInboxOnly(input.efType)) {
-        strapi.log.info(`${tag} סוג "${input.efType}" הוא הודעה-בלבד — בלי SMS`);
-        return false;
-    }
     try {
         const user = await resolveUser(input);
         if (!user) return false;
         if (user.blocked) return false;
-        if (!allowedRoles().has(String(user.app_role ?? '')) && !isCoordinator(user)) return false;
+        const who = { admin: isAdminRole(user.app_role), coordinator: isCoordinator(user) };
+        if (!who.admin && !who.coordinator) return false;
+        if (!isImportantFor(input, who)) {
+            strapi.log.info(`${tag} ${user.email ?? user.id}: "${input.efType ?? input.category ?? 'message'}" לא חשובה לתפקיד — תיבה בלבד`);
+            return false;
+        }
 
         // ההעדפות שהמנהל בחר בפרופיל: כיבוי כללי או רק קבוצות מסוימות
         const group = classifyGroup(input);

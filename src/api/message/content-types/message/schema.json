@@ -27,6 +27,10 @@
     "read": {
       "type": "boolean",
       "default": false
+    },
+    "inbox_only": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

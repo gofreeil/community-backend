@@ -190,14 +190,17 @@ export interface ImportanceInput {
 
 /**
  * האם ההתראה חשובה ורלוונטית לנמען לפי תפקידו.
- *   messages (אתרי הרשת): רק התראת מערכת (בלי שולח) — בקשת פרסום, כרטיס עסק,
- *     בקשת בעלות, תיק/שאלה חדשים, פנייה לרכזי העיר. צ'אט בין משתמשים — לא.
+ *   messages (אתרי הרשת): רק למנהל, ורק התראת מערכת (בלי שולח) — בקשת פרסום,
+ *     כרטיס עסק, בקשת בעלות, תיק/שאלה חדשים. כל אתר ממען רק את super_admin ואת
+ *     תפקיד האדמין שלו, ולכן אדמין של אתר אחד לא מקבל כאן SMS של אתר אחר.
+ *     רכז שכונה הוא רכז של קהילה בשכונה — הודעה אליו מאתר אחר ברשת לא מעירה
+ *     אותו בנייד (תיבה בלבד). צ'אט בין משתמשים — לא.
  *   items (הקהילה): admin_alert תמיד; אחרת לפי הסוג — מנהל: ADMIN_ITEM_TYPES,
  *     רכז: COORDINATOR_ITEM_TYPES.
  */
 export function isImportantFor(input: ImportanceInput, who: { admin: boolean; coordinator: boolean }): boolean {
     if (!who.admin && !who.coordinator) return false;
-    if (input.source === 'message') return !input.hasSender;
+    if (input.source === 'message') return who.admin && !input.hasSender;
     if (input.category === 'admin_alert') return true;
     const t = String(input.efType ?? '');
     if (!t) return false;

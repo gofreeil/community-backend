@@ -29,6 +29,15 @@ function isSuperAdminUser(user: any): boolean {
     return user.app_role === 'super_admin';
 }
 
+/** אדמין של אתר ברשת (idx_admin, ch_admin, avd_admin...) — כל *_admin חוץ מ-neighborhood_admin
+ *  (רכזי שכונות: אוכלוסייה גדולה עם מסלול משלהם, לא צוות הרשת) ומ-super_admin (נבדק בנפרד).
+ *  אדמין של אתר הוא חבר צוות הרשת בלי מינוי ידני נוסף במפת site-admins. */
+function isSiteAdminUser(user: any): boolean {
+    const role = String(user?.app_role ?? '').trim();
+    if (!role || role === 'neighborhood_admin' || role === 'super_admin') return false;
+    return /^[a-z0-9]+(?:_[a-z0-9]+)*_admin$/.test(role);
+}
+
 export default (plugin: any) => {
     const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://community.gofreeil.com').replace(/\/+$/, '');
 
@@ -271,6 +280,73 @@ export default (plugin: any) => {
         ctx.body = { ok: true, data: { siteId, removed: admin === null } };
     };
 
+    // GET /api/network-users?q=... — חיפוש בכל משתמשי הרשת (לפי שם, אימייל או טלפון; סופר-אדמין בלבד)
+    plugin.controllers.user.networkUsersGet = async (ctx: any) => {
+        if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
+        const q = String(ctx.query?.q ?? '').trim().toLowerCase();
+        const normDigits = (p: any) => String(p ?? '').replace(/\D/g, '');
+        const qDigits = normDigits(q);
+
+        const users = await strapi.db.query('plugin::users-permissions.user').findMany({
+            limit: 10000,
+            orderBy: { createdAt: 'desc' },
+            select: ['id', 'email', 'username', 'nickname', 'phone', 'city', 'avatar_url', 'app_role', 'confirmed', 'blocked', 'createdAt'],
+        });
+
+        const filtered = q
+            ? users.filter((u: any) => {
+                  const e = String(u.email ?? '').toLowerCase();
+                  const un = String(u.username ?? '').toLowerCase();
+                  const nn = String(u.nickname ?? '').toLowerCase();
+                  const p = normDigits(u.phone);
+                  return (
+                      e.includes(q) ||
+                      un.includes(q) ||
+                      nn.includes(q) ||
+                      (qDigits && p.includes(qDigits))
+                  );
+              })
+            : users;
+
+        ctx.body = {
+            data: filtered.slice(0, 100).map((u: any) => ({
+                id: u.id,
+                email: u.email ?? '',
+                username: u.username ?? '',
+                nickname: u.nickname ?? '',
+                phone: u.phone ?? '',
+                city: u.city ?? '',
+                avatarUrl: u.avatar_url ?? '',
+                appRole: u.app_role ?? 'user',
+            })),
+            total: filtered.length,
+        };
+    };
+
+    // POST /api/network-users/set-role { email, userId, appRole } — עדכון תפקיד משתמש (סופר-אדמין בלבד)
+    plugin.controllers.user.networkUserSetRole = async (ctx: any) => {
+        if (!isSuperAdminUser(ctx.state?.user)) return ctx.forbidden('סופר-אדמין בלבד');
+        const body = (ctx.request.body ?? {}) as any;
+        const email = String(body.email ?? '').trim().toLowerCase();
+        const userId = body.userId ? Number(body.userId) : null;
+        const appRole = String(body.appRole ?? '').trim();
+        if (!email && !userId) return ctx.badRequest('אימייל או מזהה משתמש חסר');
+        if (!appRole) return ctx.badRequest('appRole חסר');
+
+        const where = userId ? { id: userId } : { email: { $eqi: email } };
+        const user = await strapi.db.query('plugin::users-permissions.user').findOne({ where });
+        if (!user) return ctx.notFound('משתמש לא נמצא');
+        if (SUPER_ADMIN_EMAILS.has(String(user.email ?? '').toLowerCase())) {
+            return ctx.badRequest('אי אפשר לשנות תפקיד של סופר-אדמין');
+        }
+
+        await strapi.db.query('plugin::users-permissions.user').update({
+            where: { id: user.id },
+            data: { app_role: appRole },
+        });
+        ctx.body = { ok: true, data: { id: user.id, email: user.email, appRole } };
+    };
+
     // GET /api/site-admins/public — התצוגה הציבורית של אדמיני הרשת (כרטיסיית
     // "ניהול הרשת" ב-gofreeil.com/about): פתוחה לכולם, קריאה בלבד.
     // מוחזרים רק שדות תצוגה ויצירת קשר; communityId (קישור לפאנל הניהול של
@@ -304,10 +380,17 @@ export default (plugin: any) => {
     const isNetworkTeamUser = async (user: any): Promise<boolean> => {
         if (!user) return false;
         if (isSuperAdminUser(user)) return true;
+        if (isSiteAdminUser(user) && !user.blocked) return true;
         const email = normEmail(user.email);
-        if (!email) return false;
+        const userDigits = String(user.phone ?? '').replace(/\D/g, '');
+        if (!email && !userDigits) return false;
         const map = ((await siteAdminsStore().get({ key: SITE_ADMINS_STORE_KEY })) ?? {}) as Record<string, any>;
-        return Object.values(map).some((a: any) => normEmail(a?.adminEmail) === email);
+        return Object.values(map).some((a: any) => {
+            if (email && normEmail(a?.adminEmail) === email) return true;
+            const aDigits = String(a?.phone ?? '').replace(/\D/g, '');
+            if (userDigits && aDigits && aDigits === userDigits) return true;
+            return false;
+        });
     };
 
     const withBoardLock = async <T>(fn: () => Promise<T>): Promise<T> => {
@@ -516,6 +599,18 @@ export default (plugin: any) => {
             method: 'PUT',
             path: '/site-admins',
             handler: 'user.siteAdminsSet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'GET',
+            path: '/network-users',
+            handler: 'user.networkUsersGet',
+            config: { prefix: '' },
+        },
+        {
+            method: 'POST',
+            path: '/network-users/set-role',
+            handler: 'user.networkUserSetRole',
             config: { prefix: '' },
         },
         {

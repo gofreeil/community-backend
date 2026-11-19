@@ -310,6 +310,8 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         // אדמיני אתרי הרשת לפאנל של gofreeil.com; אכיפת סופר-אדמין ב-controller
         'plugin::users-permissions.user.siteAdminsGet',
         'plugin::users-permissions.user.siteAdminsSet',
+        'plugin::users-permissions.user.networkUsersGet',
+        'plugin::users-permissions.user.networkUserSetRole',
         // לוח המשימות והדיווחים של צוות הרשת; אכיפת צוות (סופר-אדמין/אדמין אתר) ב-controller
         'plugin::users-permissions.user.networkBoardGet',
         'plugin::users-permissions.user.networkBoardSet',

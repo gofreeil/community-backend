@@ -17,6 +17,8 @@ export interface ExternalSite {
     publicKey: string;
     /** הכתובות היחידות שאליהן מותר להחזיר קוד כניסה (התאמה מדויקת) */
     redirects: string[];
+    /** הזמנת חבר ב-SMS (utils/externalInvite.ts): השם והקישור שייכתבו בהודעה. בלי זה האתר לא שולח הזמנות. */
+    invite?: { name: string; url: string };
 }
 
 /** חלון הזמן לחתימה. רחב בכוונה: שעון שרת ה-TV לא מסונכרן ומפגר בכמה דקות. */
@@ -31,10 +33,11 @@ const DEFAULT_SITES: Record<string, ExternalSite> = {
         // מהמסך "מצב החיבור" של הפלאגין YotzimLeherut בשרת ה-TV (מפתח ציבורי - לא סוד)
         publicKey: 'Oy98IW+DDVOhWbiSO4Ok5z8AY5UJLmCQfNgMVLU1Emg=',
         redirects: ['https://tv.gofreeil.com/plugin/YotzimLeherut/callback.php'],
+        invite: { name: 'חירות TV', url: 'https://tv.gofreeil.com/signUp' },
     },
 };
 
-/** env לכל אתר: EXTERNAL_SITE_<KEY>_PUBKEY, EXTERNAL_SITE_<KEY>_REDIRECTS (מופרדות בפסיק) */
+/** env לכל אתר: EXTERNAL_SITE_<KEY>_PUBKEY, EXTERNAL_SITE_<KEY>_REDIRECTS (מופרדות בפסיק), EXTERNAL_SITE_<KEY>_INVITE_URL */
 export function getExternalSite(key: unknown, env: Record<string, string | undefined> = process.env): ExternalSite | null {
     if (typeof key !== 'string' || !/^[a-z0-9]{1,20}$/.test(key) || !Object.prototype.hasOwnProperty.call(DEFAULT_SITES, key)) {
         return null;
@@ -42,9 +45,12 @@ export function getExternalSite(key: unknown, env: Record<string, string | undef
     const base = DEFAULT_SITES[key];
     const prefix = `EXTERNAL_SITE_${key.toUpperCase()}_`;
     const redirects = (env[`${prefix}REDIRECTS`] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    const inviteUrl = (env[`${prefix}INVITE_URL`] ?? '').trim();
     return {
         publicKey: (env[`${prefix}PUBKEY`] ?? '').trim() || base.publicKey,
         redirects: redirects.length ? redirects : base.redirects,
+        // קישור ההרשמה שב-SMS: רק https, בלי רווחים (מעבר דומיין של האתר)
+        invite: base.invite && { name: base.invite.name, url: /^https:\/\/\S+$/.test(inviteUrl) ? inviteUrl : base.invite.url },
     };
 }
 

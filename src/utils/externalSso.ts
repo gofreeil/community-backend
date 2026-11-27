@@ -117,9 +117,18 @@ export function isPublicName(value: unknown): value is string {
     return !/^(credentials|google|facebook|apple|phone)_/i.test(v) && !/^[a-z][a-z0-9]*[_-]\d{5,}$/i.test(v);
 }
 
-export function publicName(user: { nickname?: unknown; username?: unknown }): string {
-    if (isPublicName(user.nickname)) return user.nickname.trim().slice(0, 60);
-    if (isPublicName(user.username)) return user.username.trim().slice(0, 60);
+/** שם משתמש שאתרי הרשת מייצרים מהאימייל (<לפני ה-@>_xxxx) חושף את הכתובת */
+function isEmailDerived(username: string, email: unknown): boolean {
+    const local = String(email ?? '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 24);
+    const u = username.trim().toLowerCase();
+    return !!local && u.startsWith(`${local}_`) && u.length === local.length + 5;
+}
+
+export function publicName(user: { nickname?: unknown; username?: unknown; email?: unknown }): string {
+    if (isPublicName(user.nickname)) return String(user.nickname).trim().slice(0, 60);
+    if (isPublicName(user.username) && !isEmailDerived(String(user.username), user.email)) {
+        return String(user.username).trim().slice(0, 60);
+    }
     return '';
 }
 

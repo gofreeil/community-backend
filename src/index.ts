@@ -373,6 +373,10 @@ const PERMISSIONS: Record<'public' | 'authenticated', string[]> = {
         'api::shop-product-comment.shop-product-comment.delete',
         'api::shop-product-comment.shop-product-comment.toggleLike',
         'api::shop-product-comment.shop-product-comment.addReply',
+        // חיבור אתרים חיצוניים (חירות TV): קוד כניסה חד-פעמי למשתמש המחובר, ושמירת תמונה/שם בסוף
+        // הרשמה (רק לשדות ריקים בחשבון שלו) - ראה api/external-sso
+        'api::external-sso.external-sso.code',
+        'api::external-sso.external-sso.myProfile',
     ],
 };
 

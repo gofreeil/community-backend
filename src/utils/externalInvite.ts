@@ -67,7 +67,7 @@ export function cleanInviterName(value: unknown): string {
 
 export function inviteText(siteName: string, inviter: string, url: string): string {
     const from = inviter ? ` מאת ${inviter}` : '';
-    return `קיבלת הזמנה${from} להצטרף ל${siteName} ולשוחח בצ'אט.\nהרשמה: ${url}`;
+    return `קיבלת הזמנה${from} להצטרף ל${siteName}, לשוחח בפרטיות בצ'אט מאובטח, ולהכיר וליהנות מפלטפורמת הוידאו המתקדמת בעולם:\n${url}`;
 }
 
 /**
